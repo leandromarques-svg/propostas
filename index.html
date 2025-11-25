@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>METARH - Árvore de Soluções</title>
     
+    <!-- Polyfill para process.env.API_KEY -->
+    <script>
+      window.process = {
+        env: {
+          API_KEY: 'AIzaSyALN7SSF2P78DOgwwbHS4gCztnU-OLcE60'
+        }
+      };
+    </script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     

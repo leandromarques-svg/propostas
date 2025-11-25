@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Bot, Sparkles, AlertCircle } from 'lucide-react';
 import { SolutionData } from '../types';
@@ -74,8 +73,16 @@ export const ChatBot: React.FC<ChatBotProps> = ({ solutions, userName }) => {
     setIsLoading(true);
 
     try {
+        // Safe access to API Key via manual injection in index.html
+        // @ts-ignore
+        const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
+
+        if (!apiKey) {
+            throw new Error("API Key não encontrada. Verifique a configuração.");
+        }
+
         // Initialize Gemini
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: apiKey });
         
         // Call Model
         const response = await ai.models.generateContent({
@@ -101,7 +108,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ solutions, userName }) => {
         console.error("Erro na IA:", error);
         setMessages(prev => [...prev, { 
             id: Date.now().toString(), 
-            text: "Erro de conexão com a IA. Verifique sua chave API.", 
+            text: "Erro de conexão com a IA. Verifique se a chave API está correta e recarregue a página.", 
             sender: 'bot',
             isError: true
         }]);

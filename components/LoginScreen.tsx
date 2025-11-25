@@ -2,30 +2,40 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo';
 import { User } from '../types';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface LoginScreenProps {
-  users: User[]; // Changed to accept users prop
-  onLogin: (user: User) => void;
-  isExiting?: boolean; // New prop for transition
+  onLoginSuccess: (user: User) => void; // Changed prop name slightly for clarity, though handled by App session listener mainly
+  isExiting?: boolean;
+  users?: any; // Deprecated prop kept for compatibility if needed, but unused
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, isExiting }) => {
-  const [username, setUsername] = useState('');
+export const LoginScreen: React.FC<LoginScreenProps> = ({ isExiting }) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const user = users.find(u => u.username === username && u.password === password);
-    
-    if (user) {
-      onLogin(user);
-    } else {
-      setError('Usuário ou senha incorretos. Tente novamente.');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) throw error;
+      
+      // Successful login will trigger the onAuthStateChange in App.tsx
+    } catch (err: any) {
+      setError('Erro ao entrar: ' + (err.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : err.message));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,13 +57,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, isExit
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Usuário</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Email</label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
-                placeholder="Seu usuário"
+                placeholder="seu.email@metarh.com.br"
                 required
               />
             </div>
@@ -80,16 +90,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, isExit
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center">
-                {error}
+              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center flex items-center justify-center gap-2">
+                <AlertCircle size={16} /> {error}
               </div>
             )}
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group"
+              disabled={loading}
+              className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar <LogIn size={18} className="group-hover:translate-x-1 transition-transform"/>
+              {loading ? 'Entrando...' : 'Entrar'} <LogIn size={18} className="group-hover:translate-x-1 transition-transform"/>
             </button>
           </form>
         </div>

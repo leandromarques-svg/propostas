@@ -1,5 +1,4 @@
 
-
 export interface SolutionData {
   id: string;
   code: string;
@@ -40,8 +39,8 @@ export interface SavedProposal {
 
 export interface User {
   id: string;
-  username: string;
-  password: string; // In a real app, this should be hashed. For this demo/request, it's simple string matching.
+  username?: string; // Mantido para compatibilidade, mas usaremos email no login
+  password?: string; // Não usado no frontend com Supabase (segurança)
   name: string;
   role: string;
   bio: string;

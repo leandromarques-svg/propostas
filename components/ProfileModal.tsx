@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { X, User as UserIcon, Mail, Phone, Linkedin, Briefcase, FileText, Image as ImageIcon, Upload } from 'lucide-react';
+import { X, User as UserIcon, Mail, Phone, Linkedin, Briefcase, FileText, Image as ImageIcon, Upload, Save } from 'lucide-react';
 
 interface ProfileModalProps {
   user: User;
@@ -12,6 +12,7 @@ interface ProfileModalProps {
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState<User>(user);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setFormData(user);
@@ -35,10 +36,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    setIsSaving(true);
+    try {
+        await onSave(formData); // The onSave prop in App.tsx now handles Supabase logic
+        onClose();
+    } catch (error) {
+        console.error(error);
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   return (
@@ -152,6 +160,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
                         required
+                        disabled // Email generally shouldn't be changed easily without verification
+                        title="Email não pode ser alterado aqui"
                     />
                 </div>
                 <div>
@@ -192,9 +202,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
                 </button>
                 <button 
                     type="submit"
-                    className="px-8 py-3 rounded-full bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg shadow-purple-200 transition-all"
+                    disabled={isSaving}
+                    className="px-8 py-3 rounded-full bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg shadow-purple-200 transition-all flex items-center gap-2"
                 >
-                    Salvar Alterações
+                    {isSaving ? 'Salvando...' : <><Save size={18} /> Salvar Alterações</>}
                 </button>
             </div>
         </form>

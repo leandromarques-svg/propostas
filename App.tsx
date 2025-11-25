@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Logo } from './components/Logo';
-import { SOLUTIONS_DATA, USERS } from './constants';
+import { SOLUTIONS_DATA } from './constants'; // Removed USERS import
 import { SolutionData, ViewState, CartItem, CartSelections, User, SavedProposal } from './types';
 import { DetailModal } from './components/DetailModal';
 import { ProposalView } from './components/ProposalView';
@@ -11,12 +11,11 @@ import { UserManagementModal } from './components/UserManagementModal';
 import { SolutionSummaryModal } from './components/SolutionSummaryModal';
 import { ChatBot } from './components/ChatBot';
 import { Search, ShoppingBag, Plus, Edit3, ChevronDown, ChevronUp, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Zap, Filter, ArrowDown } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 // Package Themes Helper - Updated to use Standard METARH Colors (MIV) & Specific Flat Icons
 const getPackageTheme = (packageKey: string) => {
   const baseTheme = { color: 'bg-metarh-medium', textColor: 'text-metarh-dark', borderColor: 'border-metarh-medium', iconColor: 'text-white' };
-  
-  // No longer using iconUrl, returning base theme. Icons are mapped in PackageIcon.
   return baseTheme;
 };
 
@@ -51,7 +50,7 @@ const getGreeting = () => {
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>(USERS);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // We will fetch this if admin
   const [view, setView] = useState<ViewState>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
@@ -59,6 +58,7 @@ const App: React.FC = () => {
   
   // Transition State
   const [isLoginExiting, setIsLoginExiting] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,6 +98,70 @@ const App: React.FC = () => {
   const cartCount = cart.length;
   const greeting = getGreeting();
 
+  // Check for active session on load
+  useEffect(() => {
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            await fetchUserProfile(session.user.id, session.user.email || '');
+        }
+        setIsLoadingAuth(false);
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (session) {
+            await fetchUserProfile(session.user.id, session.user.email || '');
+        } else {
+            setCurrentUser(null);
+        }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserProfile = async (userId: string, email: string) => {
+      try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (data) {
+              setCurrentUser({
+                  id: data.id,
+                  name: data.full_name || 'Usuário',
+                  email: data.email || email,
+                  role: data.role || 'Consultor',
+                  bio: data.bio || '',
+                  phone: data.phone || '',
+                  linkedin: data.linkedin || '',
+                  avatarUrl: data.avatar_url || '',
+                  isAdmin: data.is_admin || false,
+                  username: email // fallback
+              });
+          } else {
+              // First time login, profile might not exist yet
+              const newUser: User = {
+                  id: userId,
+                  name: 'Novo Usuário',
+                  email: email,
+                  role: 'Consultor',
+                  bio: '',
+                  phone: '',
+                  linkedin: '',
+                  isAdmin: false,
+                  username: email
+              };
+              setCurrentUser(newUser);
+              // Optional: Create profile entry
+          }
+      } catch (err) {
+          console.error("Erro ao buscar perfil:", err);
+      }
+  };
+
   // Auto-expand groups when searching
   useEffect(() => {
     if (searchTerm) {
@@ -107,47 +171,81 @@ const App: React.FC = () => {
   }, [searchTerm, groupKeys]); 
 
   // Handlers
-  const handleLogin = (user: User) => {
-    // Trigger exit animation
-    setIsLoginExiting(true);
-    // Wait for animation to finish before switching state
-    setTimeout(() => {
-        setCurrentUser(user);
-        setView('catalog');
-        setIsLoginExiting(false);
-    }, 800);
-  };
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     setCart([]);
     setView('catalog');
   };
 
-  const handleUpdateProfile = (updatedUser: User) => {
-    // Update local user state
-    setCurrentUser(updatedUser);
-    
-    // Update global users list
-    setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-  };
+  const handleUpdateProfile = async (updatedUser: User) => {
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .upsert({
+                id: updatedUser.id,
+                full_name: updatedUser.name,
+                role: updatedUser.role,
+                bio: updatedUser.bio,
+                phone: updatedUser.phone,
+                linkedin: updatedUser.linkedin,
+                email: updatedUser.email,
+                avatar_url: updatedUser.avatarUrl
+            });
 
-  // Admin User Management Handlers
-  const handleCreateUser = (newUser: User) => {
-    setAllUsers(prev => prev.map(u => u.id === newUser.id ? newUser : u));
-    setAllUsers(prev => [...prev, newUser]);
-  };
+        if (error) throw error;
 
-  const handleUpdateUser = (updatedUser: User) => {
-    setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    // If Admin updates themselves via manager, sync current user
-    if (currentUser && currentUser.id === updatedUser.id) {
         setCurrentUser(updatedUser);
+        alert("Perfil atualizado com sucesso!");
+    } catch (error) {
+        console.error("Erro ao atualizar perfil:", error);
+        alert("Erro ao salvar perfil. Tente novamente.");
     }
   };
 
+  // Admin User Management Handlers (Simplified for Supabase)
+  // Note: Creating new users programmatically usually requires Service Role (Backend)
+  // For this demo, we will assume users are created via the App (SignUp) or Dashboard
+  // We can however list users from the profiles table if we set up RLS correctly
+  const fetchAllUsers = async () => {
+      if (!currentUser?.isAdmin) return;
+      const { data } = await supabase.from('profiles').select('*');
+      if (data) {
+          const mappedUsers: User[] = data.map(p => ({
+              id: p.id,
+              name: p.full_name,
+              email: p.email,
+              role: p.role,
+              bio: p.bio,
+              phone: p.phone,
+              linkedin: p.linkedin,
+              avatarUrl: p.avatar_url,
+              isAdmin: p.is_admin,
+              username: p.email
+          }));
+          setAllUsers(mappedUsers);
+      }
+  };
+
+  useEffect(() => {
+      if (isUserManagementOpen) {
+          fetchAllUsers();
+      }
+  }, [isUserManagementOpen]);
+
+  // Placeholder handlers for User Management Modal
+  const handleCreateUser = (newUser: User) => {
+      alert("Para criar novos usuários, utilize o painel do Supabase ou a tela de cadastro.");
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+      // Admin updating other users
+      // This requires RLS policy allowing admin to update others
+      alert("Funcionalidade de edição de terceiros requer configuração avançada de backend.");
+  };
+
   const handleDeleteUser = (userId: string) => {
-    setAllUsers(prev => prev.filter(u => u.id !== userId));
+      alert("Funcionalidade de exclusão requer configuração avançada de backend.");
   };
 
   const handleOpenDetail = (solution: SolutionData) => {
@@ -214,8 +312,6 @@ const App: React.FC = () => {
 
   const handleDownloadPresentation = (packageKey: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Logic to check for existing file would go here.
-    // For now, we simulate the missing file scenario.
     alert("Não existe um arquivo para download, por favor, solicite essa apresentação ao time de Marketing");
   };
 
@@ -225,8 +321,12 @@ const App: React.FC = () => {
     setIsSummaryModalOpen(true);
   };
 
+  if (isLoadingAuth) {
+      return <div className="min-h-screen flex items-center justify-center bg-metarh-dark"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
+  }
+
   if (!currentUser) {
-    return <LoginScreen users={allUsers} onLogin={handleLogin} isExiting={isLoginExiting} />;
+    return <LoginScreen onLoginSuccess={() => {}} isExiting={isLoginExiting} />;
   }
 
   return (
@@ -330,7 +430,7 @@ const App: React.FC = () => {
                     <div className="relative z-10 max-w-2xl">
                         <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
                         <span className="text-metarh-lime text-2xl md:text-4xl block mt-2">
-                            Vamos construir uma proposta incrível hoje, <span className="text-white font-extrabold">{currentUser.name}</span>?
+                            Vamos construir uma proposta incrível hoje, <span className="text-white font-extrabold">{currentUser.name.split(' ')[0]}</span>?
                         </span>
                         </h1>
                         <p className="text-2xl text-gray-200 mb-8 font-light leading-relaxed">
@@ -350,7 +450,7 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Drawer Tabs (Navigation) - "Saindo tipo gaveta" */}
+                {/* Drawer Tabs (Navigation) */}
                 {groupKeys.length > 0 && !searchTerm && (
                     <div className="absolute top-full left-0 right-0 -mt-8 pt-8 px-8 flex justify-center z-10 overflow-x-auto pb-4 hide-scrollbar">
                         <div className="flex items-start gap-2">
@@ -390,7 +490,7 @@ const App: React.FC = () => {
               ) : (
                 groupKeys.map(packageKey => {
                     const solutions = groupedSolutions[packageKey];
-                    const packageDescription = solutions[0]?.aboutSolution; // Take description from first item
+                    const packageDescription = solutions[0]?.aboutSolution;
                     const isExpanded = expandedGroups[packageKey] || false;
                     const itemsInCartCount = solutions.filter(s => cart.some(c => c.solution.id === s.id)).length;
                     const theme = getPackageTheme(packageKey);
@@ -411,7 +511,6 @@ const App: React.FC = () => {
                                         
                                         {/* Icon & Title Area */}
                                         <div className="flex items-center gap-6 flex-1 pr-16 md:pr-0">
-                                           {/* Icon Container with Theme Color BG and White Line Icon - Reduced size */}
                                            <div className={`p-3 md:p-4 rounded-3xl shrink-0 transition-colors duration-300 ${theme.color} w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-lg shadow-purple-100`}>
                                               <PackageIcon name={packageKey} className="text-white" size={32} />
                                            </div>
@@ -432,10 +531,8 @@ const App: React.FC = () => {
                                            </div>
                                         </div>
 
-                                        {/* Action Toolbar & Expansion - Positioned absolutely on mobile top right, or flexed on desktop */}
+                                        {/* Action Toolbar & Expansion */}
                                         <div className="flex items-center gap-4 self-end md:self-auto">
-                                             
-                                             {/* Action Toolbar */}
                                              <div className="flex items-center bg-gray-50 rounded-full p-1 border border-gray-100 shadow-sm" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={(e) => handleOpenSummary(packageKey, e)}
@@ -454,7 +551,6 @@ const App: React.FC = () => {
                                                 </button>
                                              </div>
                                              
-                                             {/* Enhanced Expand Button */}
                                              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm border
                                                 ${isExpanded ? 'bg-metarh-medium text-white border-metarh-medium rotate-180' : 'bg-white text-gray-400 border-gray-200 hover:border-metarh-medium hover:text-metarh-medium'}
                                              `}>
@@ -469,7 +565,7 @@ const App: React.FC = () => {
                                     </div>
                                 </div>
                                 
-                                {/* Expanded Content - Grid of Services */}
+                                {/* Expanded Content */}
                                 {isExpanded && (
                                   <div className="border-t border-gray-100 bg-gray-50/50 flex-1">
                                       <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
@@ -559,7 +655,7 @@ const App: React.FC = () => {
         </div>
       </footer>
 
-      {/* ChatBot (Gemini AI Powered) */}
+      {/* ChatBot */}
       {currentUser && (
         <ChatBot solutions={SOLUTIONS_DATA} userName={currentUser.name.split(' ')[0]} />
       )}

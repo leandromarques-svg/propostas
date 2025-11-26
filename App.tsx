@@ -49,6 +49,7 @@ const getGreeting = () => {
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoginExiting, setIsLoginExiting] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>(USERS); 
   const [view, setView] = useState<ViewState>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -99,7 +100,14 @@ const App: React.FC = () => {
   }, [searchTerm, groupKeys]); 
 
   const handleLoginSuccess = (user: User) => {
-      setCurrentUser(user);
+      // Trigger exit animation
+      setIsLoginExiting(true);
+      
+      // Wait for animation to complete before switching views
+      setTimeout(() => {
+          setCurrentUser(user);
+          setIsLoginExiting(false);
+      }, 1000);
   };
 
   const handleLogout = () => {
@@ -211,13 +219,14 @@ const App: React.FC = () => {
     return (
         <LoginScreen 
             onLoginSuccess={handleLoginSuccess} 
-            users={allUsers} 
+            users={allUsers}
+            isExiting={isLoginExiting}
         />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden animate-fade-in">
       
       {/* Abstract Background Shapes */}
       <div className="blob-shape bg-metarh-medium w-96 h-96 rounded-full top-[-100px] left-[-100px] mix-blend-multiply filter blur-3xl opacity-20"></div>

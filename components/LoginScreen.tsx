@@ -7,9 +7,10 @@ import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 interface LoginScreenProps {
   onLoginSuccess: (user: User) => void;
   users?: User[];
+  isExiting?: boolean;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users = [] }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users = [], isExiting = false }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -37,31 +38,29 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
     }
   };
 
+  // Loading Screen with "Ball Logo"
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden animate-fade-in">
+      <div className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 scale-105 filter blur-sm' : 'opacity-100'}`}>
         {/* Abstract Background Shapes for Loading */}
         <div className="blob-shape bg-metarh-medium w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-multiply filter blur-[80px] opacity-10 animate-pulse"></div>
         <div className="blob-shape bg-metarh-pink w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-multiply filter blur-[80px] opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
 
         <div className="z-10 flex flex-col items-center">
-          <div className="mb-8 animate-bounce">
-            <Logo variant="purple" orientation="horizontal" className="h-16 w-auto" />
+          <div className="mb-8 animate-pulse">
+            {/* Using the 'icon' (ball) orientation as requested */}
+            <Logo variant="purple" orientation="icon" className="h-24 w-24" />
           </div>
           
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-t-metarh-medium border-r-metarh-pink border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-          </div>
-          
-          <p className="mt-6 text-metarh-dark font-bold text-lg animate-pulse">Carregando Árvore de Soluções...</p>
+          <p className="mt-6 text-metarh-dark font-bold text-lg animate-pulse tracking-wide">Carregando Árvore de Soluções...</p>
         </div>
       </div>
     );
   }
 
+  // Main Login Form
   return (
-    <div className="min-h-screen bg-metarh-dark flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className={`min-h-screen bg-metarh-dark flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 -translate-y-20 scale-95' : 'opacity-100'}`}>
       
       {/* Background blobs */}
       <div className="blob-shape bg-metarh-medium w-[800px] h-[800px] rounded-full top-[-400px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20"></div>
@@ -70,7 +69,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
       <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 animate-fade-in">
         <div className="p-8 md:p-12">
           <div className="flex justify-center mb-8">
-            <Logo variant="purple" />
+            <Logo variant="purple" orientation="horizontal" />
           </div>
 
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-3">Boas Vindas</h2>

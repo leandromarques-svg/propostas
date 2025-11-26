@@ -73,23 +73,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ solutions, userName }) => {
     setIsLoading(true);
 
     try {
-        // Safe access to API Key via manual injection in index.html
-        // @ts-ignore
-        const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
-
-        if (!apiKey) {
-            throw new Error("API Key não encontrada. Verifique a configuração.");
-        }
-
         // Initialize Gemini
-        const ai = new GoogleGenAI({ apiKey: apiKey });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         // Call Model
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: [
-                { role: 'user', parts: [{ text: userText }] }
-            ],
+            contents: userText,
             config: {
                 systemInstruction: systemInstruction,
                 temperature: 0.7, // Balance between creative and factual

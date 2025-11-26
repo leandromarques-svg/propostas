@@ -14,7 +14,7 @@ export interface SolutionData {
   aboutSolution: string; // About the parent solution package
 }
 
-export type ViewState = 'catalog' | 'proposal';
+export type ViewState = 'catalog' | 'proposal' | 'layout_editor';
 
 export interface CartSelections {
   benefits: string[];
@@ -49,4 +49,25 @@ export interface User {
   linkedin: string;
   avatarUrl?: string;
   isAdmin?: boolean; // Master user flag
+}
+
+// --- PROPOSAL LAYOUT TYPES ---
+
+export type ProposalSectionType = 
+  | 'cover' 
+  | 'about_metarh' 
+  | 'solutions_list' 
+  | 'methodology' 
+  | 'investment' 
+  | 'team' 
+  | 'terms' 
+  | 'signature';
+
+export interface ProposalSection {
+  id: string;
+  type: ProposalSectionType;
+  title: string;
+  defaultText?: string; // Para textos fixos como "Sobre a Metarh"
+  isEnabled: boolean;
+  isEditable: boolean; // Se o usuário pode editar o título
 }

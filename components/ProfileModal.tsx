@@ -12,7 +12,6 @@ interface ProfileModalProps {
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState<User>(user);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setFormData(user);
@@ -36,17 +35,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    try {
-        await onSave(formData); // The onSave prop in App.tsx now handles Supabase logic
-        onClose();
-    } catch (error) {
-        console.error(error);
-    } finally {
-        setIsSaving(false);
-    }
+    onSave(formData);
+    onClose();
   };
 
   return (
@@ -160,8 +152,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
                         required
-                        disabled // Email generally shouldn't be changed easily without verification
-                        title="Email não pode ser alterado aqui"
                     />
                 </div>
                 <div>
@@ -202,10 +192,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
                 </button>
                 <button 
                     type="submit"
-                    disabled={isSaving}
                     className="px-8 py-3 rounded-full bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg shadow-purple-200 transition-all flex items-center gap-2"
                 >
-                    {isSaving ? 'Salvando...' : <><Save size={18} /> Salvar Alterações</>}
+                    <Save size={18} /> Salvar Alterações
                 </button>
             </div>
         </form>

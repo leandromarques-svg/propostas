@@ -11,7 +11,8 @@ import { UserManagementModal } from './components/UserManagementModal';
 import { SolutionSummaryModal } from './components/SolutionSummaryModal';
 import { ChatBot } from './components/ChatBot';
 import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayoutEditor';
-import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout } from 'lucide-react';
+import { PricingCalculator } from './components/PricingCalculator';
+import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator } from 'lucide-react';
 
 // Package Themes Helper
 const getPackageTheme = (packageKey: string) => {
@@ -284,6 +285,15 @@ const App: React.FC = () => {
                 </div>
              </div>
 
+             <button
+                onClick={() => setView('calculator')}
+                className="relative group flex items-center gap-2 px-4 py-2.5 bg-white text-gray-600 border border-gray-200 rounded-full transition-all hover:border-metarh-medium hover:text-metarh-medium shadow-sm"
+                title="Calculadora de Preço"
+             >
+                <Calculator size={18} />
+                <span className="hidden sm:inline text-sm font-bold">Calculadora</span>
+             </button>
+
              <button 
                onClick={() => setView('proposal')}
                className="relative group flex items-center gap-3 px-5 py-2.5 bg-metarh-dark text-white rounded-full transition-all hover:bg-metarh-medium shadow-md"
@@ -315,6 +325,8 @@ const App: React.FC = () => {
                 onSave={handleSaveLayout}
                 onCancel={() => setView('catalog')}
             />
+        ) : view === 'calculator' ? (
+            <PricingCalculator onCancel={() => setView('catalog')} />
         ) : view === 'catalog' ? (
           <div className="p-4 md:p-8 space-y-8 animate-fade-in pb-32">
             
@@ -352,29 +364,6 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {groupKeys.length > 0 && !searchTerm && (
-                    <div className="absolute top-full left-0 right-0 -mt-8 pt-8 px-8 flex justify-center z-10 overflow-x-auto pb-4 hide-scrollbar">
-                        <div className="flex items-start gap-2">
-                            {groupKeys.map((key, index) => {
-                                const theme = getPackageTheme(key);
-                                return (
-                                    <button
-                                        key={key}
-                                        onClick={() => handleScrollToSection(key)}
-                                        className="flex items-center gap-2 bg-white px-5 py-3 rounded-b-2xl shadow-md border-x border-b border-gray-100 hover:bg-gray-50 hover:pt-5 hover:pb-4 transition-all duration-300 transform hover:shadow-lg group whitespace-nowrap opacity-0 animate-slide-down-stagger"
-                                        style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
-                                    >
-                                        <div className={`p-1 rounded-full ${theme.color}`}>
-                                            <PackageIcon name={key} size={14} className="text-white" />
-                                        </div>
-                                        <span className="font-bold text-metarh-dark text-sm group-hover:text-metarh-medium">{key}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
             </div>
 
             <div className="flex flex-col gap-6 pt-6">

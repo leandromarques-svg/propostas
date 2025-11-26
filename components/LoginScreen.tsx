@@ -32,7 +32,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
       // Simulate loading delay for better UX before switching screens
       setTimeout(() => {
         onLoginSuccess(foundUser);
-      }, 2000);
+      }, 2500);
     } else {
       setError('Usuário ou senha incorretos');
     }
@@ -41,18 +41,29 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
   // Loading Screen with "Ball Logo"
   if (isLoading) {
     return (
-      <div className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 scale-105 filter blur-sm' : 'opacity-100'}`}>
-        {/* Abstract Background Shapes for Loading */}
-        <div className="blob-shape bg-metarh-medium w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-multiply filter blur-[80px] opacity-10 animate-pulse"></div>
-        <div className="blob-shape bg-metarh-pink w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-multiply filter blur-[80px] opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 scale-110 filter blur-lg' : 'opacity-100'}`}>
+        {/* Abstract Background Shapes for Loading - More animated */}
+        <div className="absolute inset-0 flex items-center justify-center">
+             <div className="w-[800px] h-[800px] border-[1px] border-metarh-medium/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s' }}></div>
+             <div className="w-[600px] h-[600px] border-[1px] border-metarh-pink/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s', animationDelay: '0.5s' }}></div>
+        </div>
 
-        <div className="z-10 flex flex-col items-center">
-          <div className="mb-8 animate-pulse">
-            {/* Using the 'icon' (ball) orientation as requested */}
-            <Logo variant="purple" orientation="icon" className="h-24 w-24" />
+        <div className="blob-shape bg-metarh-medium w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-multiply filter blur-[80px] opacity-10 animate-float"></div>
+        <div className="blob-shape bg-metarh-pink w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-multiply filter blur-[80px] opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
+
+        <div className="z-10 flex flex-col items-center justify-center relative">
+          <div className="mb-8 relative">
+            <div className="absolute inset-0 bg-metarh-medium/20 rounded-full blur-xl animate-pulse-slow"></div>
+            <div className="animate-breathing relative z-10">
+                {/* Using the 'icon' (ball) orientation as requested */}
+                <Logo variant="purple" orientation="icon" className="h-32 w-32 drop-shadow-2xl" />
+            </div>
           </div>
           
-          <p className="mt-6 text-metarh-dark font-bold text-lg animate-pulse tracking-wide">Carregando Árvore de Soluções...</p>
+          <div className="flex flex-col items-center gap-2">
+            <h3 className="text-2xl font-bold text-metarh-dark tracking-tight animate-fade-in-down">Bem vindo, {users.find(u => u.username === username || u.email === username)?.name.split(' ')[0]}</h3>
+            <p className="text-metarh-medium/80 font-medium text-sm animate-pulse tracking-widest uppercase">Preparando ambiente...</p>
+          </div>
         </div>
       </div>
     );
@@ -63,8 +74,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
     <div className={`min-h-screen bg-metarh-dark flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 -translate-y-20 scale-95' : 'opacity-100'}`}>
       
       {/* Background blobs */}
-      <div className="blob-shape bg-metarh-medium w-[800px] h-[800px] rounded-full top-[-400px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20"></div>
-      <div className="blob-shape bg-metarh-pink w-[600px] h-[600px] rounded-full bottom-[-200px] left-[-200px] mix-blend-screen filter blur-[80px] opacity-20"></div>
+      <div className="blob-shape bg-metarh-medium w-[800px] h-[800px] rounded-full top-[-400px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20 animate-float"></div>
+      <div className="blob-shape bg-metarh-pink w-[600px] h-[600px] rounded-full bottom-[-200px] left-[-200px] mix-blend-screen filter blur-[80px] opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
 
       <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 animate-fade-in">
         <div className="p-8 md:p-12">
@@ -110,14 +121,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center flex items-center justify-center gap-2 font-medium">
+              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center flex items-center justify-center gap-2 font-medium animate-pulse">
                 <AlertCircle size={16} /> {error}
               </div>
             )}
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group mt-4"
+              className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group mt-4 transform active:scale-95"
             >
               Entrar <LogIn size={18} className="group-hover:translate-x-1 transition-transform"/>
             </button>

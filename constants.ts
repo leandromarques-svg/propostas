@@ -1,4 +1,6 @@
-import { SolutionData, User } from './types';
+
+
+import { SolutionData, User, FixedCostItem } from './types';
 
 // --- USERS ---
 export const USERS: User[] = [
@@ -53,30 +55,19 @@ export const USERS: User[] = [
 ];
 
 export const SOLUTIONS_DATA: SolutionData[] = [
-  // --- BUSINESS ---
   {
     id: 'business-hunting',
     code: 'Hunting',
     solutionPackage: 'Business',
     name: 'Hunting',
     description: 'Processo conduzido por consultores especializados, com busca ativa de profissionais qualificados para vagas estratégicas. Envolve entrevistas, análise de currículos e avaliação de aderência à cultura organizacional e às necessidades do cliente.',
-    benefits: [
-      'Identifica talentos de alto desempenho que dificilmente seriam encontrados em processos tradicionais.',
-      'Aumenta a assertividade na contratação de profissionais estratégicos.',
-      'Alinha candidatos à cultura e às expectativas da empresa.',
-      'Reduz o tempo necessário para preencher posições críticas.'
-    ],
-    publicNeeds: [
-      'Acesso a Talentos Estratégicos e Escasso.',
-      'O RH interno pode não ter tempo ou a rede de contatos necessária para conduzir uma busca complexa.',
-      'Erros na contratação de um profissional estratégico são extremamente caros.',
-      'Crucial que o profissional tenha fit cultural além da competência técnica.'
-    ],
-    areasInvolved: ['Time de Recrutamento e Seleção', 'Liderança para gestão do projeto'],
-    toolsUsed: ['Sistema de Recrutamento e Seleção', 'Linkedin Recruiter', 'PowerBi (performance e indicadores)'],
+    benefits: ['Identifica talentos de alto desempenho que dificilmente seriam encontrados em processos tradicionais.', 'Aumenta a assertividade na contratação de profissionais estratégicos.', 'Alinha candidatos à cultura e às expectativas da empresa.', 'Reduz o tempo necessário para preencher posições críticas.'],
+    publicNeeds: ['Acesso a Talentos Estratégicos e Escasso.', 'O RH interno pode não ter tempo ou a rede de contatos necessária.', 'Erros na contratação de um profissional estratégico são extremamente caros.'],
+    areasInvolved: ['Time de Recrutamento e Seleção', 'Liderança para gestão do projeto.'],
+    toolsUsed: ['Sistema de Recrutamento e Seleção.', 'Linkedin Recruiter', 'PowerBi (performance e indicadores).'],
     laborType: 'Não se aplica',
     sla: 'O SLA dependerá da posição e seu nível estratégico.',
-    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental.'
+    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental, garantindo contratações que agregam valor estratégico e resultados concretos para a empresa.'
   },
   {
     id: 'business-assessment',
@@ -84,48 +75,27 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     solutionPackage: 'Business',
     name: 'Assessment',
     description: 'Assessment é uma ferramenta de mapeamento que apoia profissionais em momentos de recolocação ou mudança de carreira. Por meio de avaliações técnicas e comportamentais, oferece clareza sobre pontos fortes, competências a desenvolver e potenciais caminhos de atuação.',
-    benefits: [
-      'Apoia profissionais em momentos de transição e recolocação de carreira.',
-      'Proporciona autoconhecimento para decisões mais assertivas.',
-      'Identifica pontos fortes e oportunidades de desenvolvimento.',
-      'Oferece clareza e direcionamento para próximos passos profissionais.'
-    ],
-    publicNeeds: [
-      'Autoconhecimento profissional: Saber pontos fortes e diferenciais.',
-      'Direcionamento de carreira: Entender reposicionamento.',
-      'Tomada de decisão mais segura (baseada em dados).',
-      'Alinhamento com o mercado e competitividade.',
-      'Planejamento estratégico e plano de desenvolvimento.'
-    ],
+    benefits: ['Apoia profissionais em momentos de transição e recolocação de carreira.', 'Proporciona autoconhecimento para decisões mais assertivas.', 'Identifica pontos fortes e oportunidades de desenvolvimento.', 'Oferece clareza e direcionamento para próximos passos profissionais.'],
+    publicNeeds: ['Autoconhecimento profissional.', 'Direcionamento de carreira.', 'Tomada de decisão mais segura.', 'Alinhamento com o mercado.', 'Planejamento estratégico.'],
     areasInvolved: ['R&S'],
     toolsUsed: ['DISC Extended', 'Entrevista por Competência'],
     laborType: 'Não se aplica',
-    sla: 'Essencial: 5-7 dias. Completo: 10-12 dias. Executivo: 12-15 dias.',
-    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental.'
+    sla: 'Essencial: 5 a 7 dias. Completo: 10 a 12 dias. Executivo: 12 a 15 dias.',
+    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental, garantindo contratações que agregam valor estratégico e resultados concretos para a empresa.'
   },
   {
-    id: 'business-mapeamento',
-    code: 'Mapeamento',
+    id: 'business-map',
+    code: 'Mapeamento de Mercado',
     solutionPackage: 'Business',
     name: 'Mapeamento de Mercado',
     description: 'Prática que une planejamento da força de trabalho com recrutamento e seleção, por meio de análises qualitativas e quantitativas da densidade e distribuição de profissionais em determinada função ou segmento dentro de uma localidade específica.',
-    benefits: [
-      'Permite prever e planejar a melhor estratégia de atração.',
-      'Auxilia na identificação de mercados com maior disponibilidade de talentos.',
-      'Oferece diagnóstico da capacidade da empresa em absorver profissionais.',
-      'Traz mais assertividade para decisões estratégicas de contratação.'
-    ],
-    publicNeeds: [
-      'Entender o que concorrentes diretos e indiretos estão buscando.',
-      'Entender densidade de clientes potenciais e concentração geográfica.',
-      'Otimizar canais de recrutamento e regiões.',
-      'Obter inteligência de mercado acionável para estratégia comercial.'
-    ],
-    areasInvolved: ['RH / Aquisição de Talentos', 'Estratégia Corporativa', 'Comercial / Vendas', 'Inteligência de Mercado'],
-    toolsUsed: ['Plataformas de Inteligência de Talentos', 'Sistemas de ATS e Sourcing', 'Web Scraping', 'Bancos de Dados Setoriais'],
+    benefits: ['Permite prever e planejar a melhor estratégia de atração.', 'Auxilia na identificação de mercados com maior disponibilidade de talentos.', 'Oferece um diagnóstico da capacidade da empresa em absorver e reter profissionais qualificados.', 'Traz mais assertividade para decisões estratégicas de contratação.'],
+    publicNeeds: ['Entender o que os concorrentes diretos e indiretos estão buscando.', 'Para empresas é crucial entender a densidade de clientes potenciais.', 'Otimizar os canais de recrutamento.', 'Obter inteligência de mercado acionável.'],
+    areasInvolved: ['Recursos Humanos (RH) / Aquisição de Talentos.', 'Estratégia Corporativa / Planejamento de Negócios.', 'Comercial / Vendas e Marketing.', 'Inteligência de Mercado.'],
+    toolsUsed: ['Plataformas de Inteligência de Talentos.', 'Sistemas de ATS e Ferramentas de Sourcing.', 'Ferramentas de Web Scraping e Análise de Dados.', 'Bancos de Dados Setoriais e Relatórios de Consultorias.'],
     laborType: 'Não se Aplica',
-    sla: 'Mapeamento Inicial: 4 a 8 semanas. Monitoramento contínuo: atualização semanal/mensal.',
-    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental.'
+    sla: 'Mapeamento Inicial: 4 a 8 semanas. Vagas: Contínuo.',
+    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental, garantindo contratações que agregam valor estratégico e resultados concretos para a empresa.'
   },
   {
     id: 'business-rs',
@@ -133,995 +103,569 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     solutionPackage: 'Business',
     name: 'R&S',
     description: 'Processo estruturado para identificar, avaliar e contratar candidatos qualificados, alinhados às necessidades da organização. Envolve a definição de perfil pelo responsável da posição, a busca de talentos no mercado, a avaliação de competências e a escolha do profissional.',
-    benefits: [
-      'Atrai profissionais mais aderentes ao perfil da vaga e cultura.',
-      'Garante maior assertividade nas contratações, reduzindo turnover.',
-      'Alinha as contratações às estratégias e objetivos do negócio.',
-      'Otimiza tempo e recursos do RH interno.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil e acesso a mais talentos.',
-      'Processo estruturado e objetivo.',
-      'Agilidade sem perder qualidade.',
-      'Avaliação técnica e comportamental mais profunda.',
-      'Confidencialidade de vagas que são sigilosas.'
-    ],
-    areasInvolved: ['RH / Talent Acquisition', 'T&D', 'Marketing', 'Tecnologia', 'Jurídico', 'Gestores'],
-    toolsUsed: ['ATS (Gupy/Kenoby/Abler)', 'Testes comportamentais/potencial', 'Dinâmicas e Entrevistas (Zoom/Teams)', 'PowerBi'],
+    benefits: ['Atrai profissionais mais aderentes ao perfil da vaga e à cultura organizacional.', 'Garante maior assertividade nas contratações, reduzindo turnover.', 'Alinha as contratações às estratégias e objetivos do negócio.', 'Otimiza tempo e recursos do RH interno.'],
+    publicNeeds: ['Assertividade no perfil', 'Acesso a mais talentos', 'Processo estruturado e objetivo', 'Agilidade sem perder qualidade', 'Avaliação técnica e comportamental mais profunda'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D / Desenvolvimento', 'Marketing / Employer Branding', 'Tecnologia / TI', 'Jurídico / Compliance', 'Gestores das áreas requisitantes'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs, LinkedIn...', 'Triagem e Avaliação: ATS, Testes comportamentais...', 'Dinâmicas e Entrevistas: Zoom, Teams...', 'PowerBi: indicadores e gestão da performance.'],
     laborType: 'Todos os modelos se aplicam',
     sla: 'Média de 7 a 10 dias úteis para a entrega dos perfis.',
-    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental.'
+    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental, garantindo contratações que agregam valor estratégico e resultados concretos para a empresa.'
   },
-
-  // --- PHARMA RECRUITER ---
   {
-    id: 'pharma-gestao-terceiros',
+    id: 'pharma-terceiros',
     code: 'Gestão Terceiros',
     solutionPackage: 'Pharma Recruiter',
-    name: 'Gestão de Terceiros',
-    description: 'Permite às empresas contar com os benefícios da terceirização sem assumir a gestão direta dos funcionários. Oferece modalidades de tempo indeterminado (atividades contínuas) e determinado (projetos).',
-    benefits: [
-      'Redução da responsabilidade direta sobre a gestão de pessoas.',
-      'Flexibilidade para atender demandas temporárias ou contínuas.',
-      'Adequação ao tipo de necessidade da empresa.',
-      'Agilidade na contratação de profissionais qualificados.'
-    ],
-    publicNeeds: [
-      'Redução da carga administrativa e burocrática do RH.',
-      'Manter serviço contínuo sem vínculo empregatício direto.',
-      'Atender demandas específicas, picos ou projetos pontuais.'
-    ],
-    areasInvolved: ['Recrutamento e Seleção', 'Admissão e Contratação', 'Departamento Pessoal', 'Jurídico'],
-    toolsUsed: ['Software de gestão administrativa', 'ATS', 'PowerBi', 'Admissão Digital', 'Ponto e Presença'],
+    name: 'Gestão Terceiros',
+    description: 'Permite às empresas contar com os benefícios da terceirização sem assumir a gestão direta dos funcionários. Oferece duas modalidades contratuais: tempo indeterminado e tempo determinado.',
+    benefits: ['Redução da responsabilidade direta sobre a gestão de pessoas.', 'Flexibilidade para atender demandas temporárias ou contínuas.', 'Adequação ao tipo de necessidade da empresa.', 'Agilidade na contratação de profissionais qualificados.'],
+    publicNeeds: ['Redução da carga administrativa e burocrática do RH.', 'Manter um serviço contínuo sem o vínculo empregatício direto.', 'Atender a demandas específicas, picos de produção ou projetos pontuais.'],
+    areasInvolved: ['Recrutamento e Seleção.', 'Admissão e Contratação.', 'Departamento Pessoal.', 'Departamento Jurídico.', 'Customer Service e Experience.'],
+    toolsUsed: ['Software de gestão administrativa de pessoas.', 'ATS.', 'Plataformas de Recrutamento e Seleção.', 'PowerBi.', 'Softwares de Admissão Digital.', 'Ferramentas de Controle de Ponto.'],
     laborType: 'Terceiros',
     sla: 'Não se Aplica',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
   {
-    id: 'pharma-gestao-temporarios',
+    id: 'pharma-temporarios',
     code: 'Gestão Temporários',
     solutionPackage: 'Pharma Recruiter',
-    name: 'Gestão de Temporários',
-    description: 'Modalidade de contratação para reforçar o quadro em situações extraordinárias ou substituição de efetivos (férias, licenças).',
-    benefits: [
-      'Garante continuidade das atividades sem prejuízo operacional.',
-      'Atende demandas temporárias de forma ágil e segura.',
-      'Contratação por até 270 dias (com extensão de 9 meses).',
-      'Flexibilidade para testar profissional antes de efetivar.'
-    ],
-    publicNeeds: [
-      'Cobertura de ausências e reforço em picos.',
-      'Agilidade de contratação e flexibilidade contratual.',
-      'Redução de risco trabalhista.'
-    ],
-    areasInvolved: ['Recrutamento e Seleção', 'Admissão', 'Departamento Pessoal', 'Jurídico'],
-    toolsUsed: ['Software de gestão', 'ATS', 'PowerBi', 'Admissão Digital', 'Ponto e Presença'],
+    name: 'Gestão Temporários',
+    description: 'Modalidade de contratação em que o trabalhador atua para reforçar o quadro de profissionais em situações extraordinárias ou na substituição de efetivos, como em coberturas de férias ou licenças.',
+    benefits: ['Garante continuidade das atividades sem prejuízo operacional.', 'Atende demandas temporárias de forma ágil e segura.', 'Possibilidade de contratação por até 270 dias, com extensão.'],
+    publicNeeds: ['Cobertura de ausências.', 'Reforço em períodos de pico.', 'Agilidade de contratação.', 'Flexibilidade contratual.', 'Redução de risco trabalhista.', 'Testar o profissional antes de efetivar.'],
+    areasInvolved: ['Recrutamento e Seleção.', 'Admissão e Contratação.', 'Departamento Pessoal.', 'Departamento Jurídico.', 'Customer Service e Experience.'],
+    toolsUsed: ['Software de gestão administrativa de pessoas.', 'ATS.', 'Plataformas de Recrutamento e Seleção.', 'PowerBi.', 'Softwares de Admissão Digital.', 'Ferramentas de Controle de Ponto.'],
     laborType: 'Temporários',
     sla: 'Não se Aplica',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
   {
     id: 'pharma-rs',
     code: 'R&S',
     solutionPackage: 'Pharma Recruiter',
     name: 'R&S',
-    description: 'Processo estruturado para identificar, avaliar e contratar candidatos qualificados, alinhados às necessidades da organização farmacêutica/saúde.',
-    benefits: [
-      'Atrai profissionais mais aderentes ao perfil da vaga.',
-      'Garante maior assertividade nas contratações.',
-      'Otimiza tempo e recursos do RH interno.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil técnico.',
-      'Acesso a mais talentos do setor.',
-      'Avaliação técnica e comportamental profunda.',
-      'Confidencialidade.'
-    ],
-    areasInvolved: ['RH / Talent Acquisition', 'T&D', 'Marketing', 'Tecnologia', 'Jurídico', 'Gestores'],
-    toolsUsed: ['Gupy, 99Jobs, LinkedIn', 'ATS', 'Zoom/Teams', 'PowerBi'],
+    description: 'Processo estruturado para identificar, avaliar e contratar candidatos qualificados, alinhados às necessidades da organização. Envolve a definição de perfil, busca, avaliação e escolha do profissional.',
+    benefits: ['Atrai profissionais mais aderentes ao perfil da vaga.', 'Garante maior assertividade nas contratações.', 'Alinha as contratações às estratégias.', 'Otimiza tempo e recursos do RH interno.'],
+    publicNeeds: ['Assertividade no perfil', 'Acesso a mais talentos', 'Processo estruturado e objetivo', 'Agilidade sem perder qualidade', 'Avaliação técnica e comportamental mais profunda'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D / Desenvolvimento', 'Marketing / Employer Branding', 'Tecnologia / TI', 'Jurídico / Compliance'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs...', 'Triagem e Avaliação: ATS, Testes comportamentais...', 'Dinâmicas e Entrevistas: Zoom, Teams...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
     sla: 'Média de 7 a 10 dias úteis para a entrega dos perfis.',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
   {
     id: 'pharma-celula',
     code: 'Célula Dedicada',
     solutionPackage: 'Pharma Recruiter',
     name: 'Célula Dedicada',
-    description: 'Transferência de parte ou todo o processo de recrutamento para uma equipe especializada, ideal para projetos de médio/grande porte e longa duração.',
-    benefits: [
-      'Apoio especializado para projetos complexos.',
-      'Aumento da eficiência e produtividade.',
-      'Redução de custos operacionais.',
-      'Liberação do RH interno para ações estratégicas.'
-    ],
-    publicNeeds: [
-      'Volume de vagas acima da capacidade interna.',
-      'Necessidade de especialização (conhecimento técnico do segmento).',
-      'Escalabilidade e velocidade para expansão.',
-      'Padronização e melhoria de processo.'
-    ],
-    areasInvolved: ['Liderança da Célula', 'Equipe R&S', 'Sourcing', 'People Analytics'],
-    toolsUsed: ['ATS (Gupy, Selecty)', 'Ferramentas de Hunting', 'PowerBi', 'CRM', 'Avaliações comportamentais'],
+    description: 'Estratégia que consiste em transferir parte ou todo o processo de recrutamento da empresa para uma equipe especializada, especialmente em projetos de médio e grande porte, com longa duração.',
+    benefits: ['Apoio especializado para projetos complexos e de longo prazo.', 'Aumento da eficiência e produtividade.', 'Redução de custos operacionais.', 'Melhoria na experiência e satisfação dos colaboradores.', 'Liberação da equipe interna de RH.'],
+    publicNeeds: ['Volume de vagas acima da capacidade interna', 'Necessidade de especialização', 'Escalabilidade e velocidade', 'Padronização e melhoria de processo', 'Redução de custos de turnover'],
+    areasInvolved: ['Liderança da Célula', 'Equipe de Recrutamento e Seleção', 'Time de Sourcing / Hunting', 'People Analytics'],
+    toolsUsed: ['Ferramentas ATS (Gupy, Selecty).', 'Ferramentas de Hunting (Vagas.com, Pandapé, Linkedin Recruiter).', 'PowerBi.', 'CRM.', 'Avaliações comportamentais.'],
     laborType: 'Não se Aplica',
-    sla: 'SLA de performance e prazo, baseado em indicadores e previsibilidade.',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    sla: 'Acordo composto por SLA de prazo e SLA de performance.',
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
   {
-    id: 'pharma-mapeamento',
-    code: 'Mapeamento',
+    id: 'pharma-map',
+    code: 'Mapeamento de Mercado',
     solutionPackage: 'Pharma Recruiter',
     name: 'Mapeamento de Mercado',
-    description: 'Prática que une planejamento da força de trabalho com recrutamento, analisando densidade de profissionais de saúde/farma em localidades específicas.',
-    benefits: [
-      'Permite prever a melhor estratégia de atração.',
-      'Identifica mercados com disponibilidade de talentos.',
-      'Diagnóstico da capacidade de absorção de profissionais.'
-    ],
-    publicNeeds: [
-      'Entender concorrência e competências em alta demanda.',
-      'Entender densidade de clientes potenciais.',
-      'Otimizar canais de recrutamento e inteligência de mercado.'
-    ],
-    areasInvolved: ['RH', 'Estratégia Corporativa', 'Comercial', 'Inteligência de Mercado'],
-    toolsUsed: ['Plataformas de Inteligência', 'ATS', 'Web Scraping', 'Bancos de Dados Setoriais'],
+    description: 'Prática que une planejamento da força de trabalho com recrutamento e seleção, por meio de análises qualitativas e quantitativas da densidade e distribuição de profissionais em determinada função ou segmento dentro de uma localidade específica.',
+    benefits: ['Permite prever e planejar a melhor estratégia de atração.', 'Auxilia na identificação de mercados com maior disponibilidade.', 'Oferece um diagnóstico da capacidade da empresa.', 'Traz mais assertividade para decisões estratégicas.'],
+    publicNeeds: ['Entender o que os concorrentes diretos e indiretos estão buscando.', 'Entender a densidade de clientes potenciais.', 'Otimizar os canais de recrutamento.', 'Obter inteligência de mercado acionável.'],
+    areasInvolved: ['RH / Aquisição de Talentos.', 'Estratégia Corporativa.', 'Comercial / Vendas e Marketing.', 'Inteligência de Mercado.'],
+    toolsUsed: ['Plataformas de Inteligência de Talentos.', 'Sistemas de ATS e Sourcing.', 'Web Scraping.', 'Bancos de Dados Setoriais.'],
     laborType: 'Não se Aplica',
-    sla: 'Variável conforme projeto.',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    sla: 'Sob consulta',
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
   {
     id: 'pharma-marketing',
     code: 'Marketing Dedicado',
     solutionPackage: 'Pharma Recruiter',
     name: 'Marketing Dedicado',
-    description: 'Estratégias de marketing para atração, treinamento e retenção, incluindo employer branding, publicidade e criação de conteúdo.',
-    benefits: [
-      'Aumenta atratividade para candidatos qualificados.',
-      'Fortalece a marca empregadora.',
-      'Facilita captação e retenção de talentos estratégicos.'
-    ],
-    publicNeeds: [
-      'Reforçar processo de atração.',
-      'Reverberar marca empregadora.',
-      'Continuidade de Branding e identidade visual.'
-    ],
-    areasInvolved: ['Marketing'],
-    toolsUsed: ['RDStation', 'Adobe Creative Cloud', 'Ads (LinkedIn, Meta, Google)', 'Estúdio de Gravação'],
-    laborType: 'Redatora (terceirizada)',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    description: 'Conjunto de estratégias de marketing voltadas para atração, treinamento e retenção de talentos, incluindo desenvolvimento da marca empregadora (employer branding), publicidade em mídias sociais e criação de conteúdo.',
+    benefits: ['Aumenta a atratividade da empresa para candidatos qualificados.', 'Fortalece a marca empregadora.', 'Facilita a captação e retenção de talentos estratégicos.', 'Melhora a comunicação e o engajamento.'],
+    publicNeeds: ['Reforçar um processo de atração', 'Reverberar sua marcar empregadora', 'Continuidade de Branding e identidade visual nos processo'],
+    areasInvolved: ['Marketing', 'Redatora (terceirizada)'],
+    toolsUsed: ['RDStation', 'Adobe Creative Cloud', 'Linkedin Ads', 'Meta Ads', 'Google Ads', 'Gravação (estúdio)'],
+    laborType: 'Não se Aplica',
+    sla: 'Sob consulta',
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
   {
     id: 'pharma-rpo',
     code: 'RPO',
     solutionPackage: 'Pharma Recruiter',
     name: 'RPO',
-    description: 'A empresa transfere parte ou todo o processo de R&S para consultoria especializada. O RPO atua como extensão do RH.',
-    benefits: [
-      'Garante processos seletivos de alto nível.',
-      'Reduz custos operacionais comparado ao interno.',
-      'Oferece velocidade e agilidade.',
-      'Libera o RH interno para estratégia.'
-    ],
-    publicNeeds: [
-      'Escala e agilidade no recrutamento.',
-      'Consistência e padronização do processo.',
-      'Acesso a talentos e mercados especializados.'
-    ],
-    areasInvolved: ['RH', 'Tecnologia', 'Jurídico', 'Gestores', 'Equipe RPO'],
-    toolsUsed: ['Atração e Divulgação', 'Triagem e Avaliação (ATS)', 'Dinâmicas', 'PowerBi'],
+    description: 'Serviço em que a empresa transfere parte ou todo o processo de recrutamento e seleção para uma consultoria especializada. O RPO atua como uma extensão do RH, assumindo atividades como triagem de currículos, entrevistas e alocação.',
+    benefits: ['Garante processos seletivos de alto nível com maior assertividade.', 'Reduz custos operacionais.', 'Oferece velocidade e agilidade.', 'Libera o RH interno para atuar em ações mais estratégicas.'],
+    publicNeeds: ['Escala e agilidade no recrutamento', 'Foco estratégico do RH', 'Consistência e padronização do processo', 'Acesso a talentos e mercados especializados', 'Redução de custos e riscos'],
+    areasInvolved: ['RH / Talent Acquisition', 'Tecnologia / TI', 'Jurídico / Compliance', 'Gestores das áreas requisitantes', 'Equipe RPO (Externa)'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas: Zoom, Teams...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
-    sla: 'Depende do volume e complexidade (Acordo de nível de serviço definido).',
-    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo excelência operacional.'
+    sla: 'Depende do volume e complexidade da vaga.',
+    aboutSolution: 'Especializada em atrair, avaliar e alocar profissionais qualificados para hospitais, indústrias farmacêuticas, laboratórios e serviços correlatos, garantindo que as empresas contem com os talentos certos para impulsionar resultados e manter a excelência operacional.'
   },
-
-  // --- STAFFING ---
   {
-    id: 'staffing-gestao-terceiros',
+    id: 'staffing-terceiros',
     code: 'Gestão Terceiros',
     solutionPackage: 'Staffing',
-    name: 'Gestão de Terceiros',
-    description: 'Terceirização da contratação sem assumir gestão direta. Modalidades por tempo indeterminado ou determinado.',
-    benefits: [
-      'Redução da responsabilidade direta sobre gestão.',
-      'Flexibilidade para demandas temporárias ou contínuas.',
-      'Agilidade na contratação.'
-    ],
-    publicNeeds: [
-      'Redução de carga administrativa do RH.',
-      'Manter serviço contínuo sem vínculo direto.',
-      'Atender picos de produção ou projetos.'
-    ],
-    areasInvolved: ['R&S', 'Admissão', 'DP', 'Jurídico', 'Customer Service'],
-    toolsUsed: ['Software gestão', 'ATS', 'PowerBi', 'Admissão Digital', 'Ponto'],
+    name: 'Gestão Terceiros',
+    description: 'Permite às empresas contar com os benefícios da terceirização sem assumir a gestão direta dos funcionários.',
+    benefits: ['Redução da responsabilidade direta sobre a gestão de pessoas.', 'Flexibilidade para atender demandas temporárias ou contínuas.', 'Adequação ao tipo de necessidade da empresa.', 'Agilidade na contratação.'],
+    publicNeeds: ['Redução da carga administrativa.', 'Manter serviço contínuo sem vínculo direto.', 'Atender demandas específicas e picos.'],
+    areasInvolved: ['Recrutamento e Seleção.', 'Admissão e Contratação.', 'Departamento Pessoal.', 'Departamento Jurídico.', 'Customer Service.'],
+    toolsUsed: ['Software de gestão administrativa.', 'ATS.', 'Plataformas de Recrutamento.', 'PowerBi.', 'Softwares de Admissão Digital.', 'Ferramentas de Controle de Ponto.'],
     laborType: 'Terceiros',
     sla: 'Não se Aplica',
-    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais até cargos especialistas.'
+    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais em volume até cargos especialistas, garantindo assertividade técnica e comportamental, além de flexibilidade para escalar equipes conforme a demanda do negócio.'
   },
   {
-    id: 'staffing-gestao-temporarios',
+    id: 'staffing-temporarios',
     code: 'Gestão Temporários',
     solutionPackage: 'Staffing',
-    name: 'Gestão de Temporários',
-    description: 'Reforço do quadro em situações extraordinárias ou substituição de efetivos (férias, licenças).',
-    benefits: [
-      'Garante continuidade das atividades.',
-      'Atende demandas temporárias de forma ágil.',
-      'Possibilidade de contratação por até 270 dias.'
-    ],
-    publicNeeds: [
-      'Cobertura de ausências.',
-      'Reforço em períodos de pico.',
-      'Redução de risco trabalhista.'
-    ],
-    areasInvolved: ['R&S', 'Admissão', 'DP', 'Jurídico'],
-    toolsUsed: ['Software gestão', 'ATS', 'PowerBi', 'Admissão Digital'],
+    name: 'Gestão Temporários',
+    description: 'Modalidade de contratação em que o trabalhador atua para reforçar o quadro de profissionais em situações extraordinárias ou na substituição de efetivos.',
+    benefits: ['Garante continuidade das atividades.', 'Atende demandas temporárias de forma ágil.', 'Possibilidade de contratação por até 270 dias, com extensão.'],
+    publicNeeds: ['Cobertura de ausências.', 'Reforço em períodos de pico.', 'Agilidade de contratação.', 'Flexibilidade contratual.', 'Redução de risco.', 'Testar profissional.'],
+    areasInvolved: ['Recrutamento e Seleção.', 'Admissão e Contratação.', 'Departamento Pessoal.', 'Departamento Jurídico.', 'Customer Service.'],
+    toolsUsed: ['Software de gestão administrativa.', 'ATS.', 'Plataformas de Recrutamento.', 'PowerBi.', 'Softwares de Admissão Digital.', 'Ferramentas de Controle de Ponto.'],
     laborType: 'Temporários',
     sla: 'Não se Aplica',
-    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais até cargos especialistas.'
+    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais em volume até cargos especialistas, garantindo assertividade técnica e comportamental, além de flexibilidade para escalar equipes conforme a demanda do negócio.'
   },
   {
     id: 'staffing-rs',
     code: 'R&S',
     solutionPackage: 'Staffing',
     name: 'R&S',
-    description: 'Processo estruturado para identificar e contratar candidatos qualificados para posições de volume ou operacionais.',
-    benefits: [
-      'Atrai profissionais aderentes ao perfil.',
-      'Garante assertividade e reduz turnover.',
-      'Otimiza tempo e recursos.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil.',
-      'Agilidade sem perder qualidade.',
-      'Acesso a mais talentos.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Tecnologia', 'Jurídico', 'Gestores'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas', 'PowerBi'],
+    description: 'Processo estruturado para identificar, avaliar e contratar candidatos qualificados, alinhados às necessidades da organização.',
+    benefits: ['Atrai profissionais mais aderentes.', 'Garante maior assertividade.', 'Alinha as contratações às estratégias.', 'Otimiza tempo e recursos do RH interno.'],
+    publicNeeds: ['Assertividade no perfil', 'Acesso a mais talentos', 'Processo estruturado e objetivo', 'Agilidade sem perder qualidade'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D / Desenvolvimento', 'Marketing / Employer Branding', 'Tecnologia / TI', 'Jurídico / Compliance'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas: Zoom, Teams...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
-    sla: 'Média de 5 a 7 dias úteis para entrega dos perfis.',
-    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais até cargos especialistas.'
+    sla: 'Média de 5 a 7 dias úteis para a entrega dos perfis.',
+    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais em volume até cargos especialistas, garantindo assertividade técnica e comportamental, além de flexibilidade para escalar equipes conforme a demanda do negócio.'
   },
   {
     id: 'staffing-celula',
     code: 'Célula Dedicada',
     solutionPackage: 'Staffing',
     name: 'Célula Dedicada',
-    description: 'Equipe especializada para gerenciar grandes volumes ou projetos de longa duração de staffing.',
-    benefits: [
-      'Apoio especializado para projetos complexos.',
-      'Aumento da eficiência e produtividade.',
-      'Melhoria na experiência do colaborador.'
-    ],
-    publicNeeds: [
-      'Volume de vagas acima da capacidade interna.',
-      'Necessidade de contratar rápido sem perder qualidade.',
-      'Padronização e melhoria de processo.'
-    ],
-    areasInvolved: ['Liderança', 'Equipe R&S', 'Sourcing', 'People Analytics'],
-    toolsUsed: ['ATS', 'Ferramentas de Hunting', 'PowerBi', 'CRM'],
+    description: 'Estratégia que consiste em transferir parte ou todo o processo de recrutamento da empresa para uma equipe especializada.',
+    benefits: ['Apoio especializado para projetos complexos.', 'Aumento da eficiência.', 'Redução de custos operacionais.', 'Melhoria na experiência do colaborador.', 'Liberação do RH interno.'],
+    publicNeeds: ['Volume de vagas acima da capacidade.', 'Necessidade de especialização.', 'Escalabilidade e velocidade.', 'Padronização de processo.', 'Redução de custos de turnover.'],
+    areasInvolved: ['Liderança da Célula', 'Equipe de R&S', 'Time de Sourcing', 'People Analytics'],
+    toolsUsed: ['Ferramentas ATS.', 'Ferramentas de Hunting.', 'PowerBi.', 'CRM.', 'Avaliações comportamentais.'],
     laborType: 'Não se Aplica',
-    sla: 'Baseado em indicadores de performance e previsibilidade.',
-    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais até cargos especialistas.'
+    sla: 'Acordo composto por SLA de prazo e SLA de performance.',
+    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais em volume até cargos especialistas, garantindo assertividade técnica e comportamental, além de flexibilidade para escalar equipes conforme a demanda do negócio.'
   },
   {
-    id: 'staffing-mapeamento',
-    code: 'Mapeamento',
+    id: 'staffing-map',
+    code: 'Mapeamento de Mercado',
     solutionPackage: 'Staffing',
     name: 'Mapeamento de Mercado',
-    description: 'Análise qualitativa e quantitativa da densidade de profissionais para staffing em localidades específicas.',
-    benefits: [
-      'Previsibilidade na estratégia de atração.',
-      'Identificação de disponibilidade de talentos.',
-      'Diagnóstico de capacidade de absorção.'
-    ],
-    publicNeeds: [
-      'Entender concorrência e faixas salariais.',
-      'Otimizar canais de recrutamento.',
-      'Inteligência de mercado acionável.'
-    ],
-    areasInvolved: ['RH', 'Estratégia', 'Comercial'],
-    toolsUsed: ['Plataformas Inteligência', 'ATS', 'Web Scraping'],
+    description: 'Prática que une planejamento da força de trabalho com recrutamento e seleção, por meio de análises qualitativas e quantitativas.',
+    benefits: ['Permite prever e planejar estratégia de atração.', 'Auxilia na identificação de mercados.', 'Oferece diagnóstico da capacidade da empresa.', 'Traz assertividade para decisões estratégicas.'],
+    publicNeeds: ['Entender concorrência e vagas.', 'Entender densidade de clientes.', 'Otimizar canais de recrutamento.', 'Obter inteligência de mercado.'],
+    areasInvolved: ['RH / Aquisição de Talentos.', 'Estratégia Corporativa.', 'Comercial / Marketing.', 'Inteligência de Mercado.'],
+    toolsUsed: ['Plataformas de Inteligência de Talentos.', 'Sistemas de ATS e Sourcing.', 'Web Scraping.', 'Bancos de Dados Setoriais.'],
     laborType: 'Não se Aplica',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais até cargos especialistas.'
+    sla: 'Sob consulta',
+    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais em volume até cargos especialistas, garantindo assertividade técnica e comportamental, além de flexibilidade para escalar equipes conforme a demanda do negócio.'
   },
   {
     id: 'staffing-rpo',
     code: 'RPO',
     solutionPackage: 'Staffing',
     name: 'RPO',
-    description: 'Terceirização do processo de R&S para staffing, atuando como extensão do RH.',
-    benefits: [
-      'Processos de alto nível com assertividade.',
-      'Redução de custos operacionais.',
-      'Velocidade e agilidade para projetos.'
-    ],
-    publicNeeds: [
-      'Escala e agilidade.',
-      'Foco estratégico do RH interno.',
-      'Consistência e padronização.'
-    ],
-    areasInvolved: ['RH', 'Tecnologia', 'Jurídico', 'Gestores', 'Equipe RPO'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas', 'PowerBi'],
+    description: 'Serviço em que a empresa transfere parte ou todo o processo de recrutamento e seleção para uma consultoria especializada.',
+    benefits: ['Garante processos seletivos de alto nível.', 'Reduz custos operacionais.', 'Oferece velocidade e agilidade.', 'Libera o RH interno.'],
+    publicNeeds: ['Escala e agilidade.', 'Foco estratégico do RH.', 'Consistência e padronização.', 'Acesso a talentos especializados.', 'Redução de custos e riscos.'],
+    areasInvolved: ['RH / Talent Acquisition', 'Tecnologia / TI', 'Jurídico / Compliance', 'Gestores', 'Equipe RPO'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
-    sla: 'Depende do volume e complexidade.',
-    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais até cargos especialistas.'
+    sla: 'Depende do volume e complexidade da vaga.',
+    aboutSolution: 'Apoia empresas na alocação ágil de profissionais para projetos temporários ou estratégicos. Atuamos desde posições operacionais em volume até cargos especialistas, garantindo assertividade técnica e comportamental, além de flexibilidade para escalar equipes conforme a demanda do negócio.'
   },
-
-  // --- TALENT ---
   {
     id: 'talent-estagio',
-    code: 'Estágio',
+    code: 'Vagas pontuais de Estágio',
     solutionPackage: 'Talent',
     name: 'Vagas pontuais de Estágio',
-    description: 'Recrutamento e seleção de estagiários (ensino superior ou tecnólogo) para vagas pontuais.',
-    benefits: [
-      'Acesso rápido a talentos em formação.',
-      'Candidatos alinhados ao perfil da vaga.',
-      'Reduz tempo e esforço do RH interno.',
-      'Facilita integração de jovens talentos.'
-    ],
-    publicNeeds: [
-      'Atrair talentos qualificados e diversos.',
-      'Fortalecer marca empregadora.',
-      'Processo estruturado e criterioso.',
-      'Agilidade e volume.'
-    ],
-    areasInvolved: ['RH / Talent Acquisition', 'T&D', 'Gestores'],
-    toolsUsed: ['Divulgação (Gupy, CIEE, etc)', 'ATS', 'Dinâmicas'],
+    description: 'Serviço de recrutamento e seleção de estagiários para empresas que buscam estudantes de ensino superior ou cursos tecnólogos.',
+    benefits: ['Permite acessar talentos em formação de forma rápida.', 'Garante candidatos alinhados ao perfil.', 'Reduz tempo e esforço do RH.', 'Facilita a integração de jovens talentos.'],
+    publicNeeds: ['Atrair talentos qualificados e diversos.', 'Fortalecer marca empregadora.', 'Processo estruturado.', 'Agilidade e volume.', 'Construir pipeline de talento estratégico.'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D / Desenvolvimento', 'Marketing / Employer Branding', 'Tecnologia / TI', 'Jurídico / Compliance'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs, CIEE...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas...'],
     laborType: 'Estágio',
-    sla: '15 a 25 dias entre abertura e fechamento.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos e conecta-os às empresas de forma estruturada e estratégica.'
+    sla: '15 a 25 dias entre a abertura e o fechamento.',
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
   },
   {
     id: 'talent-trainee',
-    code: 'Trainee',
+    code: 'Vagas pontuais Trainee',
     solutionPackage: 'Talent',
     name: 'Vagas pontuais Trainee',
-    description: 'Recrutamento de trainees (último ano ou recém-formados) para assumir cargos estratégicos. Inclui avaliações de aptidão e competências.',
-    benefits: [
-      'Identifica jovens talentos com potencial estratégico.',
-      'Alinha candidatos às trilhas de desenvolvimento.',
-      'Aumenta assertividade em posições-chave.',
-      'Fortalece sucessão e planejamento de carreira.'
-    ],
-    publicNeeds: [
-      'Atrair talentos qualificados.',
-      'Fortalecer marca empregadora.',
-      'Construir pipeline de talento estratégico.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Gestores'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas'],
-    laborType: 'CLT Trainee',
-    sla: '15 a 25 dias entre abertura e fechamento.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos e conecta-os às empresas de forma estruturada e estratégica.'
+    description: 'Serviço de recrutamento e seleção de trainees, voltado a pessoas no último ano da graduação ou formadas há até 3 anos.',
+    benefits: ['Identifica jovens talentos com potencial para cargos estratégicos.', 'Alinha candidatos às necessidades e trilhas.', 'Aumenta assertividade nas contratações.', 'Fortalece sucessão e planejamento de carreira.'],
+    publicNeeds: ['Atrair talentos qualificados e diversos.', 'Fortalecer marca empregadora.', 'Processo estruturado.', 'Agilidade e volume.', 'Pipeline de talento estratégico.'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D / Desenvolvimento', 'Marketing / Employer Branding', 'Tecnologia / TI', 'Jurídico / Compliance'],
+    toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas...'],
+    laborType: 'CLT',
+    sla: '15 a 25 dias entre a abertura e o fechamento.',
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
   },
   {
-    id: 'talent-mapeamento',
-    code: 'Mapeamento',
+    id: 'talent-map',
+    code: 'Mapeamento de Mercado',
     solutionPackage: 'Talent',
-    name: 'Mapeamento de Mercado (Talent)',
-    description: 'Análise de mercado focada em jovens talentos e programas de entrada.',
-    benefits: [
-      'Previsão de estratégia de atração de jovens.',
-      'Identificação de disponibilidade de talentos.',
-      'Diagnóstico de capacidade de absorção.'
-    ],
-    publicNeeds: [
-      'Entender concorrência por jovens talentos.',
-      'Otimizar canais universitários.',
-      'Inteligência para programas de entrada.'
-    ],
-    areasInvolved: ['RH', 'Estratégia', 'Comercial'],
-    toolsUsed: ['Plataformas Inteligência', 'ATS'],
+    name: 'Mapeamento de Mercado',
+    description: 'Prática que une planejamento da força de trabalho com recrutamento e seleção, por meio de análises qualitativas e quantitativas.',
+    benefits: ['Permite prever e planejar estratégia.', 'Auxilia na identificação de mercados.', 'Oferece diagnóstico da capacidade.', 'Traz assertividade.'],
+    publicNeeds: ['Entender concorrência.', 'Entender densidade de clientes.', 'Otimizar canais.', 'Inteligência de mercado acionável.'],
+    areasInvolved: ['RH / Aquisição de Talentos.', 'Estratégia Corporativa.', 'Comercial / Marketing.', 'Inteligência de Mercado.'],
+    toolsUsed: ['Plataformas de Inteligência.', 'ATS e Sourcing.', 'Web Scraping.', 'Bancos de Dados.'],
     laborType: 'Não se Aplica',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos e conecta-os às empresas de forma estruturada e estratégica.'
+    sla: 'Sob consulta',
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
   },
   {
     id: 'talent-programas',
-    code: 'Programas',
+    code: 'Programas de Estágio/Trainee',
     solutionPackage: 'Talent',
     name: 'Programas de Estágio/Trainee',
-    description: 'Gestão completa: atração, employer branding, triagem, avaliação e acompanhamento pós-contratação.',
-    benefits: [
-      'Atrai candidatos qualificados e alinhados à cultura.',
-      'Fortalece a marca empregadora.',
-      'Permite acompanhar desempenho e desenvolvimento.',
-      'Documentação estruturada de feedbacks.'
-    ],
-    publicNeeds: [
-      'Formar futuros talentos e lideranças.',
-      'Garantir processo justo, inclusivo e diverso.',
-      'Acompanhamento pós-contratação (retenção).'
-    ],
-    areasInvolved: ['RH', 'BP', 'Gestores', 'Diretoria', 'Marketing', 'DHO'],
-    toolsUsed: ['LinkedIn, CIEE, Nube', 'Landing pages', 'ATS', 'Testes comportamentais', 'Gamificação', 'PDI'],
+    description: 'Programa de estágio/trainee que envolve atração de candidatos, employer branding, triagem e avaliação, além do acompanhamento dos aprovados.',
+    benefits: ['Atrai candidatos qualificados e alinhados à cultura.', 'Fortalece a marca empregadora.', 'Permite acompanhar desempenho e desenvolvimento.', 'Proporciona documentação estruturada de feedbacks.'],
+    publicNeeds: ['Formar futuros talentos e lideranças.', 'Atrair perfis qualificados e conectados à marca.', 'Garantir processo justo e inclusivo.', 'Acompanhamento pós-contratação.'],
+    areasInvolved: ['RH / Atração & Seleção', 'BP', 'Gestores', 'Diretoria', 'Marketing', 'Jurídico', 'DHO', 'Financeiro', 'TI'],
+    toolsUsed: ['Gestão do Programa: LinkedIn, CIEE, Gupy, Google Forms, Testes soft skills, Lógica, Inglês.', 'Gestão pós-contratação: PDI, Feedback 360, Jornadas de aprendizagem.'],
     laborType: 'Estágio / Trainee (CLT)',
-    sla: 'Processo: 8-12 semanas. Acompanhamento: 6-12 meses.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos e conecta-os às empresas de forma estruturada e estratégica.'
+    sla: 'Processo seletivo: 8 a 12 semanas. Acompanhamento: 6 a 12 meses.',
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
   },
   {
-    id: 'talent-rs',
-    code: 'R&S',
-    solutionPackage: 'Talent',
-    name: 'R&S (Talent)',
-    description: 'Processo estruturado para identificar jovens talentos alinhados às necessidades da organização.',
-    benefits: [
-      'Atrai profissionais aderentes à vaga.',
-      'Garante assertividade.',
-      'Alinha contratações à estratégia.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil jovem.',
-      'Acesso a mais talentos.',
-      'Avaliação de potencial.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Gestores'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas', 'PowerBi'],
-    laborType: 'Todos os modelos se aplicam',
-    sla: 'Média de 7 a 10 dias úteis.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos e conecta-os às empresas de forma estruturada e estratégica.'
-  },
-  {
-    id: 'talent-marketing',
-    code: 'Marketing',
-    solutionPackage: 'Talent',
-    name: 'Marketing Dedicado (Talent)',
-    description: 'Estratégias de marketing voltadas para atração de jovens talentos e employer branding.',
-    benefits: [
-      'Aumenta atratividade para estudantes.',
-      'Fortalece marca empregadora.',
-      'Melhora comunicação com potenciais colaboradores.'
-    ],
-    publicNeeds: [
-      'Reforçar atração de jovens.',
-      'Reverberar marca empregadora.',
-      'Continuidade visual nos processos.'
-    ],
-    areasInvolved: ['Marketing'],
-    toolsUsed: ['RDStation', 'Adobe', 'Ads', 'Gravação'],
-    laborType: 'Redatora',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos e conecta-os às empresas de forma estruturada e estratégica.'
-  },
-
-  // --- TECH RECRUITER ---
-  {
-    id: 'tech-gestao-terceiros',
+    id: 'tech-terceiros',
     code: 'Gestão Terceiros',
     solutionPackage: 'Tech Recruiter',
-    name: 'Gestão de Terceiros',
-    description: 'Terceirização de profissionais de tecnologia sem assumir gestão direta. Modalidades indeterminado e determinado (projetos).',
-    benefits: [
-      'Terceirização de TI sem gestão direta.',
-      'Atende demandas contínuas com retenção de conhecimento.',
-      'Ideal para projetos com prazo definido.',
-      'Rapidez e assertividade na alocação.'
-    ],
-    publicNeeds: [
-      'Redução de carga administrativa de TI.',
-      'Manter serviço contínuo.',
-      'Atender demandas específicas de Tech.'
-    ],
-    areasInvolved: ['Recrutamento', 'Admissão', 'DP', 'Jurídico'],
-    toolsUsed: ['Software gestão', 'ATS', 'PowerBi', 'Admissão Digital'],
+    name: 'Gestão Terceiros',
+    description: 'Permite às empresas terceirizar a contratação de profissionais especializados em tecnologia sem assumir a gestão direta da equipe.',
+    benefits: ['Permite terceirizar a contratação de profissionais de tecnologia.', 'Atende demandas contínuas.', 'Ideal para projetos com prazo definido.', 'Garante rapidez e assertividade.'],
+    publicNeeds: ['Redução da carga administrativa.', 'Manter serviço contínuo sem vínculo direto.', 'Atender demandas específicas e skills de TI.'],
+    areasInvolved: ['Recrutamento e Seleção.', 'Admissão e Contratação.', 'Departamento Pessoal.', 'Departamento Jurídico.', 'Customer Service.'],
+    toolsUsed: ['Software de gestão.', 'ATS.', 'Plataformas de Recrutamento.', 'PowerBi.', 'Softwares de Admissão.', 'Controle de Ponto.'],
     laborType: 'Terceiros',
     sla: 'Não se Aplica',
-    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental.'
+    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental. Focada em atrair e selecionar profissionais de TI e áreas correlatas, garante assertividade e velocidade nos processos de contratação.'
   },
   {
-    id: 'tech-gestao-temporarios',
+    id: 'tech-temporarios',
     code: 'Gestão Temporários',
     solutionPackage: 'Tech Recruiter',
-    name: 'Gestão de Temporários',
-    description: 'Reforço rápido do quadro de TI em situações extraordinárias ou substituição.',
-    benefits: [
-      'Reforço rápido de profissionais de tecnologia.',
-      'Ideal para substituição de efetivos.',
-      'Garante perfil técnico e comportamental adequado.',
-      'Rapidez na alocação.'
-    ],
-    publicNeeds: [
-      'Cobertura de ausências.',
-      'Reforço em picos de desenvolvimento.',
-      'Agilidade de contratação.'
-    ],
-    areasInvolved: ['Recrutamento', 'Admissão', 'DP', 'Jurídico'],
-    toolsUsed: ['Software gestão', 'ATS', 'PowerBi'],
+    name: 'Gestão Temporários',
+    description: 'Modalidade de contratação temporária que permite reforçar rapidamente o quadro de profissionais de tecnologia em situações extraordinárias.',
+    benefits: ['Permite reforçar rapidamente o quadro de TI.', 'Ideal para substituição de colaboradores ou demandas pontuais.', 'Garante candidatos com perfil técnico adequado.', 'Assegura rapidez e eficiência.'],
+    publicNeeds: ['Cobertura de ausências.', 'Reforço em períodos de pico.', 'Agilidade de contratação.', 'Flexibilidade.', 'Redução de risco.', 'Testar profissional.'],
+    areasInvolved: ['Recrutamento e Seleção.', 'Admissão e Contratação.', 'Departamento Pessoal.', 'Departamento Jurídico.', 'Customer Service.'],
+    toolsUsed: ['Software de gestão.', 'ATS.', 'Plataformas de Recrutamento.', 'PowerBi.', 'Softwares de Admissão.', 'Controle de Ponto.'],
     laborType: 'Temporários',
     sla: 'Não se Aplica',
-    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental.'
+    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental. Focada em atrair e selecionar profissionais de TI e áreas correlatas, garante assertividade e velocidade nos processos de contratação.'
   },
   {
     id: 'tech-rs',
     code: 'R&S',
     solutionPackage: 'Tech Recruiter',
-    name: 'R&S Tech',
-    description: 'Processo especializado para atrair e selecionar profissionais de tecnologia, com avaliação técnica e comportamental.',
-    benefits: [
-      'Atração ágil e assertiva de tech.',
-      'Avaliação técnica garantindo alinhamento.',
-      'Reduz tempo e esforço do cliente.',
-      'Decisões de contratação mais seguras.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil técnico.',
-      'Agilidade sem perder qualidade.',
-      'Avaliação técnica profunda.',
-      'Confidencialidade.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Tecnologia', 'Jurídico'],
-    toolsUsed: ['Divulgação Tech', 'ATS', 'Testes Técnicos', 'Dinâmicas'],
+    name: 'R&S',
+    description: 'Processo especializado para atrair, avaliar e selecionar profissionais de tecnologia e áreas correlatas, garantindo alinhamento com as necessidades técnicas.',
+    benefits: ['Atrai profissionais qualificados de TI de forma ágil.', 'Avalia competências técnicas e comportamentais.', 'Facilita contratação de candidatos ideais.', 'Reduz tempo e esforço do cliente.'],
+    publicNeeds: ['Assertividade no perfil', 'Acesso a mais talentos', 'Processo estruturado e objetivo', 'Agilidade sem perder qualidade', 'Avaliação técnica profunda'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D / Desenvolvimento', 'Marketing / Employer Branding', 'Tecnologia / TI', 'Jurídico / Compliance'],
+    toolsUsed: ['Atração e Divulgação: Gupy, LinkedIn...', 'Triagem: ATS, Testes técnicos, Gamificação...', 'Entrevistas: Zoom, Teams...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
     sla: 'Média de 7 a 10 dias úteis para a entrega dos perfis.',
-    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental.'
+    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental. Focada em atrair e selecionar profissionais de TI e áreas correlatas, garante assertividade e velocidade nos processos de contratação.'
   },
   {
-    id: 'tech-mapeamento',
-    code: 'Mapeamento',
+    id: 'tech-map',
+    code: 'Mapeamento de Mercado',
     solutionPackage: 'Tech Recruiter',
-    name: 'Mapeamento de Mercado Tech',
-    description: 'Prática estratégica integrando planejamento de talentos com recrutamento especializado em TI.',
-    benefits: [
-      'Decisões de contratação mais precisas.',
-      'Identifica lacunas e oportunidades em tech.',
-      'Visibilidade sobre densidade de profissionais.',
-      'Auxilia no planejamento estratégico.'
-    ],
-    publicNeeds: [
-      'Entender concorrência por devs.',
-      'Densidade de clientes e talentos tech.',
-      'Otimizar canais de recrutamento especializados.'
-    ],
-    areasInvolved: ['RH', 'Estratégia', 'Comercial', 'Inteligência'],
-    toolsUsed: ['Plataformas Inteligência', 'ATS', 'Web Scraping'],
+    name: 'Mapeamento de Mercado',
+    description: 'Prática estratégica que integra planejamento de talentos com recrutamento especializado, utilizando análises qualitativas e quantitativas para mapear profissionais de tecnologia.',
+    benefits: ['Permite decisões de contratação precisas.', 'Identifica lacunas e oportunidades em TI.', 'Oferece visibilidade sobre densidade de profissionais.', 'Auxilia no planejamento estratégico.'],
+    publicNeeds: ['Entender concorrência e skills em alta.', 'Densidade de talentos tech.', 'Otimizar canais de recrutamento.', 'Inteligência de mercado.'],
+    areasInvolved: ['RH / Aquisição de Talentos.', 'Estratégia Corporativa.', 'Comercial / Marketing.', 'Inteligência de Mercado.'],
+    toolsUsed: ['Plataformas de Inteligência.', 'ATS e Sourcing.', 'Web Scraping.', 'Bancos de Dados.'],
     laborType: 'Não se Aplica',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental.'
+    sla: 'Sob consulta',
+    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental. Focada em atrair e selecionar profissionais de TI e áreas correlatas, garante assertividade e velocidade nos processos de contratação.'
   },
   {
     id: 'tech-marketing',
-    code: 'Marketing',
+    code: 'Marketing Dedicado',
     solutionPackage: 'Tech Recruiter',
-    name: 'Marketing Dedicado Tech',
-    description: 'Estratégias de marketing para atrair, engajar e reter profissionais de tecnologia (Employer Branding Tech).',
-    benefits: [
-      'Aumenta visibilidade da marca para devs.',
-      'Atrai profissionais qualificados.',
-      'Engaja candidatos potenciais.',
-      'Melhora qualidade das candidaturas.'
-    ],
-    publicNeeds: [
-      'Reforçar atração tech.',
-      'Reverberar marca empregadora.',
-      'Conteúdo especializado.'
-    ],
-    areasInvolved: ['Marketing'],
-    toolsUsed: ['RDStation', 'Adobe', 'Ads', 'Gravação'],
-    laborType: 'Redatora',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental.'
+    name: 'Marketing Dedicado',
+    description: 'Conjunto de estratégias de marketing voltadas para atrair, engajar e reter profissionais de tecnologia, envolvendo fortalecimento da marca empregadora.',
+    benefits: ['Aumenta alcance e visibilidade da marca empregadora.', 'Atrai profissionais de TI qualificados.', 'Engaja candidatos potenciais.', 'Melhora qualidade das candidaturas.'],
+    publicNeeds: ['Reforçar processo de atração', 'Reverberar marca empregadora', 'Branding consistente'],
+    areasInvolved: ['Marketing', 'Redatora (terceirizada)'],
+    toolsUsed: ['RDStation', 'Adobe Creative Cloud', 'Linkedin Ads', 'Meta Ads', 'Google Ads', 'Gravação (estúdio)'],
+    laborType: 'Não se Aplica',
+    sla: 'Sob consulta',
+    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental. Focada em atrair e selecionar profissionais de TI e áreas correlatas, garante assertividade e velocidade nos processos de contratação.'
   },
   {
     id: 'tech-hunting',
     code: 'Hunting',
     solutionPackage: 'Tech Recruiter',
-    name: 'Hunting Tech',
-    description: 'Busca ativa de profissionais de tecnologia qualificados para posições estratégicas.',
-    benefits: [
-      'Identificação rápida de profissionais qualificados.',
-      'Avaliação completa de fit técnico e cultural.',
-      'Redução do tempo de contratação.',
-      'Apoio de consultores experts em tecnologia.'
-    ],
-    publicNeeds: [
-      'Acesso a Talentos Tech Escassos.',
-      'RH interno sem rede de contatos tech.',
-      'Alto custo de turnover em projetos.'
-    ],
-    areasInvolved: ['Recrutamento', 'Liderança'],
-    toolsUsed: ['Sistema R&S', 'Linkedin Recruiter', 'PowerBi'],
+    name: 'Hunting',
+    description: 'Processo conduzido por consultores especializados em tecnologia, que realizam busca ativa de profissionais qualificados para posições estratégicas.',
+    benefits: ['Identificação rápida de profissionais qualificados.', 'Avaliação completa do fit técnico e cultural.', 'Redução do tempo de contratação.', 'Maior assertividade na escolha do candidato ideal.'],
+    publicNeeds: ['Acesso a Talentos Tech Escassos.', 'RH interno sem tempo ou rede de contatos.', 'Erros na contratação custam caro.', 'Fit cultural e técnico.'],
+    areasInvolved: ['Time de Recrutamento e Seleção', 'Liderança'],
+    toolsUsed: ['Sistema de Recrutamento e Seleção.', 'Linkedin Recruiter', 'PowerBi.'],
     laborType: 'Não se aplica',
     sla: 'Definir com time de seleção.',
-    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental.'
+    aboutSolution: 'Voltada ao recrutamento especializado em tecnologia, com metodologias ágeis, mapeamento de mercado e avaliação técnica e comportamental. Focada em atrair e selecionar profissionais de TI e áreas correlatas, garante assertividade e velocidade nos processos de contratação.'
   },
-
-  // --- TRILHANDO + ---
   {
-    id: 'trilhando-testes-tecnicos',
+    id: 'trilhando-tecnico',
     code: 'Testes Técnicos',
     solutionPackage: 'Trilhando +',
     name: 'Testes Técnicos',
-    description: 'Ferramentas para avaliar habilidades e conhecimentos técnicos (questionários, provas, testes práticos).',
-    benefits: [
-      'Verifica conhecimentos necessários para a função.',
-      'Aumenta assertividade na seleção técnica.',
-      'Reduz riscos de contratação inadequada.',
-      'Comparação objetiva de candidatos.'
-    ],
-    publicNeeds: [
-      'Confirmar conhecimentos exigidos.',
-      'Avaliar proficiência em ferramentas.',
-      'Reduzir risco de contratar apenas por currículo.',
-      'Simular situações reais.'
-    ],
-    areasInvolved: ['RH Externo', 'RH Interno'],
-    toolsUsed: ['Testes presenciais ou online'],
+    description: 'Ferramentas e métodos utilizados para avaliar habilidades e conhecimentos técnicos dos candidatos.',
+    benefits: ['Verifica conhecimentos necessários para a função.', 'Aumenta assertividade na seleção.', 'Reduz riscos de contratação inadequada.', 'Permite comparação objetiva.'],
+    publicNeeds: ['Confirma conhecimento técnico.', 'Avalia proficiência em ferramentas.', 'Reduz risco de erro.', 'Simula situações reais.', 'Base para treinamento.'],
+    areasInvolved: ['RH Externo (Consultoria).', 'RH interno.'],
+    toolsUsed: ['Teste propriamente dito (presencial ou online).'],
     laborType: 'Não se aplica',
     sla: 'Não se aplica',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
   {
-    id: 'trilhando-testes-psico',
+    id: 'trilhando-psico',
     code: 'Testes Psicológicos',
     solutionPackage: 'Trilhando +',
     name: 'Testes Psicológicos',
-    description: 'Avaliação de aspectos cognitivos e de personalidade para prever desempenho.',
-    benefits: [
-      'Identifica candidatos com maior potencial.',
-      'Alinha perfil comportamental à cultura.',
-      'Reduz riscos de incompatibilidade.',
-      'Complementa avaliação técnica.'
-    ],
-    publicNeeds: [
-      'Avaliar competências comportamentais e cognitivas.',
-      'Identificar traços de personalidade.',
-      'Prever comportamento sob pressão.',
-      'Diminuir turnover.'
-    ],
-    areasInvolved: ['RH Externo', 'RH Interno', 'Psicóloga CRP ativo'],
-    toolsUsed: ['Testes presenciais ou online'],
+    description: 'Testes utilizados para avaliar aspectos cognitivos e de personalidade de candidatos, permitindo prever o desempenho em determinada função.',
+    benefits: ['Identifica candidatos com maior potencial.', 'Alinha perfil à cultura.', 'Reduz riscos de incompatibilidade.', 'Complementa avaliação técnica.'],
+    publicNeeds: ['Avaliar competências comportamentais.', 'Identificar traços de personalidade.', 'Medir habilidades cognitivas.', 'Prever comportamento sob pressão.', 'Diminuir turnover.'],
+    areasInvolved: ['RH Externo (Consultoria).', 'RH interno.', 'Psicóloga com CRP ativo.'],
+    toolsUsed: ['Teste propriamente dito (presencial ou online).'],
     laborType: 'Não se aplica',
     sla: 'Não se aplica',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
   {
-    id: 'trilhando-inventarios',
-    code: 'Inventários',
+    id: 'trilhando-inventario',
+    code: 'Inventários Comportamentais',
     solutionPackage: 'Trilhando +',
     name: 'Inventários Comportamentais',
-    description: 'Avaliação do comportamento em diferentes situações, identificando perfil, motivações e habilidades.',
-    benefits: [
-      'Visão completa do comportamento e competências.',
-      'Ajuda a prever desempenho e integração.',
-      'Decisões mais assertivas.',
-      'Complementa avaliações técnicas.'
-    ],
-    publicNeeds: [
-      'Evitar desalinhamento de personalidade.',
-      'Garantir funções motivadoras.',
-      'Entender dinâmicas de equipe.',
-      'Identificar potencial de liderança.'
-    ],
-    areasInvolved: ['R&S', 'Gestão de Desempenho', 'T&D', 'RH Externo'],
-    toolsUsed: ['DISC Extended', 'Testes e Inventários'],
+    description: 'Serviço que avalia e descreve o comportamento de um profissional em diferentes situações. Permite identificar o perfil comportamental e motivações.',
+    benefits: ['Visão completa do comportamento.', 'Ajuda a prever desempenho e integração.', 'Decisões de contratação mais assertivas.', 'Complementa avaliações técnicas.'],
+    publicNeeds: ['Evitar contratações desalinhadas.', 'Garantir função motivadora.', 'Entender dinâmicas de equipe.', 'Identificar potencial de liderança.'],
+    areasInvolved: ['Recrutamento e Seleção', 'Gestão de Desempenho', 'Desenvolvimento e Treinamento', 'RH Externo'],
+    toolsUsed: ['DISC Extended', 'Testes e Inventários Comportamentais'],
     laborType: 'Não se Aplica',
-    sla: '2 a 5 dias úteis após aplicação.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
-  },
-  {
-    id: 'trilhando-programas',
-    code: 'Programas',
-    solutionPackage: 'Trilhando +',
-    name: 'Programas de Estágio/Trainee (DEIP)',
-    description: 'Programas estruturados com foco em Diversidade, Equidade, Inclusão e Pertencimento. Gestão completa da atração ao desenvolvimento.',
-    benefits: [
-      'Atração estratégica e inclusiva.',
-      'Desenvolvimento de habilidades com acompanhamento.',
-      'Garante oportunidades equitativas.',
-      'Engajamento e retenção.'
-    ],
-    publicNeeds: [
-      'Formar futuros talentos.',
-      'Garantir processo justo e diverso.',
-      'Acompanhamento pós-contratação.'
-    ],
-    areasInvolved: ['RH', 'BP', 'Gestores', 'Diretoria', 'Marketing', 'DHO'],
-    toolsUsed: ['LinkedIn', 'Landing pages', 'ATS', 'Testes', 'Gamificação', 'PDI'],
-    laborType: 'Estágio / Trainee',
-    sla: 'Processo: 8-12 semanas. Acompanhamento: 6-12 meses.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
-  },
-  {
-    id: 'trilhando-rs',
-    code: 'R&S',
-    solutionPackage: 'Trilhando +',
-    name: 'R&S Inclusivo (DEIP)',
-    description: 'Processo de recrutamento conduzido com foco total em Diversidade, Equidade, Inclusão e Pertencimento.',
-    benefits: [
-      'Contratações alinhadas e inclusivas.',
-      'Aumenta assertividade na escolha.',
-      'Experiência inclusiva promovendo DEIP.',
-      'Maior engajamento.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil.',
-      'Acesso a mais talentos diversos.',
-      'Processo estruturado e inclusivo.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Gestores'],
-    toolsUsed: ['Divulgação Inclusiva', 'ATS', 'Dinâmicas', 'PowerBi'],
-    laborType: 'Todos os modelos se aplicam',
-    sla: 'Média de 7 a 10 dias úteis.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
-  },
-  {
-    id: 'trilhando-estagio',
-    code: 'Estágio',
-    solutionPackage: 'Trilhando +',
-    name: 'Vagas Estágio (DEIP)',
-    description: 'Seleção de estagiários com foco em DEIP, garantindo experiências inclusivas e alinhadas à cultura.',
-    benefits: [
-      'Seleção qualificada e diversa.',
-      'Processos inclusivos (DEIP).',
-      'Experiência positiva para candidatos.',
-      'Eficiência na contratação.'
-    ],
-    publicNeeds: [
-      'Atrair talentos diversos.',
-      'Fortalecer marca empregadora.',
-      'Processo criterioso.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Gestores'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas'],
-    laborType: 'Estágio',
-    sla: '15 a 30 dias.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
-  },
-  {
-    id: 'trilhando-trainee',
-    code: 'Trainee',
-    solutionPackage: 'Trilhando +',
-    name: 'Vagas Trainee (DEIP)',
-    description: 'Seleção de trainees com foco em DEIP. Identificação de talentos diversos para cargos estratégicos.',
-    benefits: [
-      'Identificação de trainees qualificados.',
-      'Processos inclusivos (DEIP).',
-      'Avaliação completa de competências.',
-      'Experiência positiva e inclusiva.'
-    ],
-    publicNeeds: [
-      'Atrair talentos diversos.',
-      'Fortalecer marca empregadora.',
-      'Processo criterioso.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Gestores'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas'],
-    laborType: 'CLT Trainee',
-    sla: '15 a 30 dias.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
-  },
-  {
-    id: 'trilhando-mapeamento',
-    code: 'Mapeamento',
-    solutionPackage: 'Trilhando +',
-    name: 'Mapeamento de Mercado (DEIP)',
-    description: 'Análise de mercado focada em diversidade e inclusão para planejamento da força de trabalho.',
-    benefits: [
-      'Decisões de contratação precisas.',
-      'Identifica densidade de talentos diversos.',
-      'Apoia planejamento estratégico.',
-      'Promove práticas inclusivas.'
-    ],
-    publicNeeds: [
-      'Entender concorrência.',
-      'Densidade de clientes e talentos.',
-      'Otimizar canais.'
-    ],
-    areasInvolved: ['RH', 'Estratégia', 'Comercial', 'Inteligência'],
-    toolsUsed: ['Plataformas Inteligência', 'ATS', 'Web Scraping'],
-    laborType: 'Não se Aplica',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    sla: 'Aplicação rápida. Análise em 2 a 5 dias úteis.',
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
   {
     id: 'trilhando-workshop',
     code: 'Workshop',
     solutionPackage: 'Trilhando +',
     name: 'Workshop',
-    description: 'Ações pontuais e interativas para capacitar lideranças e equipes em temas estratégicos de DHO e DEIP.',
-    benefits: [
-      'Aprendizado prático imediato.',
-      'Desenvolvimento de habilidades comportamentais.',
-      'Fortalecimento da cultura e engajamento.',
-      'Promoção de DEIP.'
-    ],
-    publicNeeds: [
-      'Ajustar comportamentos.',
-      'Engajar e sensibilizar.',
-      'Gerar resultado rápido.',
-      'Fortalecer Cultura.'
-    ],
-    areasInvolved: ['RH', 'Liderança', 'T&D', 'Comunicação', 'Tecnologia'],
-    toolsUsed: ['Mentimeter', 'Kahoot', 'Miro', 'Teams/Zoom'],
+    description: 'Ações pontuais e interativas que capacitam lideranças e equipes em temas estratégicos de desenvolvimento humano e organizacional.',
+    benefits: ['Aprendizado prático e imediato.', 'Desenvolvimento de soft skills.', 'Fortalecimento da cultura.', 'Promoção de DEIP.', 'Resultados rápidos.'],
+    publicNeeds: ['Ajustar comportamentos.', 'Engajar e sensibilizar.', 'Gerar resultado rápido.', 'Mobilizar times.', 'Fortalecer Cultura.'],
+    areasInvolved: ['RH / Gente & Gestão', 'Liderança', 'T&D', 'Comunicação Interna', 'Tecnologia', 'Jurídico'],
+    toolsUsed: ['Mentimeter, Kahoot, Forms.', 'Miro / Mural.', 'PowerPoint / Canva.', 'Teams / Zoom.', 'Planos de ação.'],
     laborType: 'Não se Aplica',
-    sla: '20 a 40 dias (customizado) ou 7-15 dias (prateleira).',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    sla: '20 a 40 dias (customizado). 7 a 15 dias (prateleira).',
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
   {
     id: 'trilhando-trilhas',
     code: 'Trilhas',
     solutionPackage: 'Trilhando +',
     name: 'Trilhas de Aprendizagem',
-    description: 'Programas contínuos estruturados para desenvolver competências ao longo do tempo.',
-    benefits: [
-      'Desenvolvimento contínuo e consistente.',
-      'Fortalecimento da cultura.',
-      'Aprendizado estruturado com aplicação prática.',
-      'Promoção de DEIP.'
-    ],
-    publicNeeds: [
-      'Desenvolvimento de competências.',
-      'Evolução gradual.',
-      'Engajamento e retenção.',
-      'Resultados sustentáveis.'
-    ],
-    areasInvolved: ['RH', 'Lideranças', 'T&D', 'TI', 'Diretoria'],
-    toolsUsed: ['Avaliação 360', 'Gamificação', 'LMS'],
+    description: 'Programas contínuos de aprendizado estruturados para desenvolver competências ao longo do tempo.',
+    benefits: ['Desenvolvimento contínuo e consistente.', 'Fortalecimento da cultura.', 'Aprendizado estruturado.', 'Promoção de DEIP.', 'Resultados duradouros.'],
+    publicNeeds: ['Desenvolvimento de competências essenciais.', 'Evolução gradual.', 'Engajamento e retenção.', 'Alinhamento cultural.', 'Resultados sustentáveis.'],
+    areasInvolved: ['RH / Desenvolvimento', 'Lideranças', 'Equipe de Treinamento', 'TI', 'Gestão Estratégica'],
+    toolsUsed: ['Avaliação 360, DISC.', 'Gamificação.', 'People Analytics.', 'LMS corporativo.'],
     laborType: 'Não se Aplica',
-    sla: 'Planejamento: 2-4 semanas.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    sla: 'Planejamento: 2-4 semanas. Entrega conforme cronograma.',
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
   {
     id: 'trilhando-treinamento',
     code: 'Treinamento',
     solutionPackage: 'Trilhando +',
     name: 'Treinamento',
-    description: 'Sessões planejadas para capacitar em gestão de pessoas, cultura e engajamento.',
-    benefits: [
-      'Capacitação prática em gestão.',
-      'Reforço contínuo de conceitos.',
-      'Desenvolvimento de competências reais.',
-      'Promoção de DEIP.'
-    ],
-    publicNeeds: [
-      'Desenvolver habilidades específicas rápido.',
-      'Garantir aplicação prática.',
-      'Alinhar equipe à cultura.',
-      'Melhoria de resultados.'
-    ],
-    areasInvolved: ['RH', 'Lideranças', 'Facilitadores', 'TI'],
-    toolsUsed: ['Avaliação 360', 'Gamificação', 'LMS'],
+    description: 'Sessões planejadas para capacitar lideranças e equipes em habilidades essenciais de gestão de pessoas, cultura organizacional e engajamento.',
+    benefits: ['Capacitação prática.', 'Reforço contínuo de cultura.', 'Desenvolvimento comportamental.', 'Promoção de DEIP.', 'Melhoria consistente.'],
+    publicNeeds: ['Desenvolver habilidades específicas.', 'Aplicação prática.', 'Alinhar equipe à cultura.', 'Melhoria de resultados.', 'Suporte à evolução do RH.'],
+    areasInvolved: ['RH / T&D', 'Lideranças', 'Facilitadores', 'TI', 'Comunicação Interna'],
+    toolsUsed: ['Avaliação 360, DISC.', 'Gamificação.', 'People Analytics.', 'LMS corporativo.'],
     laborType: 'Não se Aplica',
-    sla: 'Planejamento: 2 semanas.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    sla: 'Planejamento: 2 semanas. Entrega conforme cronograma.',
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
   {
     id: 'trilhando-censo',
-    code: 'Diagnóstico',
+    code: 'Censo / Diagnóstico',
     solutionPackage: 'Trilhando +',
     name: 'Censo / Diagnóstico',
-    description: 'Mapeamento de perfil e comportamento das equipes, identificando competências, gaps e clima. Foco em dados confiáveis.',
-    benefits: [
-      'Identificação precisa de gaps.',
-      'Insights estratégicos.',
-      'Compreensão do clima e engajamento.',
-      'Promoção de DEIP baseada em dados.'
-    ],
-    publicNeeds: [
-      'Mapear população interna (demografia).',
-      'Definição de metas de diversidade.',
-      'Diagnóstico antes da intervenção.',
-      'Clareza sobre competências.'
-    ],
-    areasInvolved: ['RH Externo', 'BI', 'Liderança do projeto'],
-    toolsUsed: ['Survey', 'PowerBi'],
+    description: 'Serviço estruturado para mapear o perfil e o comportamento das equipes, identificando competências, gaps, clima organizacional e necessidades de desenvolvimento.',
+    benefits: ['Identificação precisa de competências e gaps.', 'Insights estratégicos.', 'Compreensão do clima organizacional.', 'Promoção de DEIP.', 'Suporte baseado em dados.'],
+    publicNeeds: ['Mapear população interna.', 'Definição de metas de diversidade.', 'Diagnóstico antes da intervenção.', 'Clareza sobre competências.', 'Mapear insatisfações.'],
+    areasInvolved: ['RH Externo', 'Time de BI', 'Liderança do projeto', 'Trilhando+'],
+    toolsUsed: ['Ferramenta de Pesquisa (Survey).', 'PowerBi.'],
     laborType: 'Não se Aplica',
-    sla: '20 a 60 dias dependendo do volume.',
-    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP), diagnósticos estruturados e desenvolvimento.'
+    sla: '20 a 60 dias dependendo do volume de pessoas.',
+    aboutSolution: 'Solução completa de DHO que integra práticas de Diversidade, Equidade, Inclusão e Pertencimento (DEIP). Além de apoiar o desenvolvimento e engajamento de talentos, também amplia o alcance de processos já realizados sob a perspectiva inclusiva.'
   },
-
-  // --- VAREJO PRO ---
   {
-    id: 'varejo-rs',
+    id: 'varejo-pro-rs',
     code: 'R&S',
     solutionPackage: 'Varejo Pro',
-    name: 'R&S Varejo',
-    description: 'Processo estruturado para identificar e contratar profissionais para o varejo com agilidade e volume.',
-    benefits: [
-      'Atrai profissionais aderentes ao perfil.',
-      'Garante assertividade reduzindo turnover.',
-      'Otimiza tempo e recursos.'
-    ],
-    publicNeeds: [
-      'Assertividade no perfil.',
-      'Processo estruturado.',
-      'Agilidade sem perder qualidade.'
-    ],
-    areasInvolved: ['RH', 'T&D', 'Marketing', 'Tecnologia', 'Gestores'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas', 'PowerBi'],
+    name: 'R&S',
+    description: 'Processo estruturado para identificar, avaliar e contratar candidatos qualificados, alinhados às necessidades da organização e com foco em volume e velocidade.',
+    benefits: ['Atrai profissionais aderentes.', 'Garante assertividade.', 'Alinha contratações às estratégias.', 'Otimiza tempo e recursos.'],
+    publicNeeds: ['Assertividade no perfil', 'Acesso a mais talentos', 'Processo estruturado', 'Agilidade e volume'],
+    areasInvolved: ['RH / Talent Acquisition', 'T&D', 'Marketing', 'Tecnologia', 'Jurídico', 'Gestores'],
+    toolsUsed: ['Gupy, 99Jobs, LinkedIn...', 'ATS, Testes...', 'Entrevistas...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
-    sla: 'Média de 7 a 10 dias úteis.',
-    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, com foco em velocidade e volume.'
+    sla: 'Média de 7 a 10 dias úteis para a entrega dos perfis.',
+    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, a solução tem como foco velocidade, alto volume e assertividade na contratação. Ideal para momentos de grande movimentação.'
   },
   {
-    id: 'varejo-celula',
+    id: 'varejo-pro-celula',
     code: 'Célula Dedicada',
     solutionPackage: 'Varejo Pro',
-    name: 'Célula Dedicada Varejo',
-    description: 'Equipe especializada para grandes volumes ou expansão no varejo.',
-    benefits: [
-      'Apoio especializado para projetos complexos.',
-      'Aumento da eficiência.',
-      'Redução de custos operacionais.'
-    ],
-    publicNeeds: [
-      'Volume de vagas alto.',
-      'Necessidade de especialização.',
-      'Escalabilidade e velocidade.'
-    ],
+    name: 'Célula Dedicada',
+    description: 'Estratégia de transferir o recrutamento para equipe especializada, focada em alto volume e velocidade.',
+    benefits: ['Apoio especializado para alto volume.', 'Aumento da eficiência.', 'Redução de custos.', 'Melhoria na experiência.', 'Foco estratégico.'],
+    publicNeeds: ['Volume de vagas alto.', 'Necessidade de especialização.', 'Escalabilidade.', 'Padronização.', 'Redução de custos.'],
     areasInvolved: ['Liderança', 'Equipe R&S', 'Sourcing', 'People Analytics'],
-    toolsUsed: ['ATS', 'Hunting', 'PowerBi', 'CRM'],
+    toolsUsed: ['ATS.', 'Hunting.', 'PowerBi.', 'CRM.', 'Avaliações.'],
     laborType: 'Não se Aplica',
-    sla: 'Baseado em performance e prazo.',
-    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, com foco em velocidade e volume.'
+    sla: 'Acordo composto por SLA de prazo e SLA de performance.',
+    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, a solução tem como foco velocidade, alto volume e assertividade na contratação. Ideal para momentos de grande movimentação.'
   },
   {
-    id: 'varejo-mapeamento',
-    code: 'Mapeamento',
+    id: 'varejo-pro-map',
+    code: 'Mapeamento de Mercado',
     solutionPackage: 'Varejo Pro',
-    name: 'Mapeamento de Mercado Varejo',
-    description: 'Análise de mercado para expansão de lojas e entendimento da mão de obra local.',
-    benefits: [
-      'Previsão de estratégia de atração.',
-      'Identificação de disponibilidade de talentos.',
-      'Diagnóstico da capacidade de absorção.'
-    ],
-    publicNeeds: [
-      'Entender concorrência local.',
-      'Densidade de clientes.',
-      'Otimizar canais regionais.'
-    ],
-    areasInvolved: ['RH', 'Estratégia', 'Comercial'],
-    toolsUsed: ['Plataformas Inteligência', 'ATS', 'Web Scraping'],
+    name: 'Mapeamento de Mercado',
+    description: 'Prática que une planejamento da força de trabalho com recrutamento e seleção, mapeando profissionais do varejo.',
+    benefits: ['Prever estratégia de atração.', 'Identificar disponibilidade de talentos.', 'Diagnóstico da capacidade.', 'Decisões assertivas.'],
+    publicNeeds: ['Entender concorrentes.', 'Densidade de talentos.', 'Otimizar canais.', 'Inteligência de mercado.'],
+    areasInvolved: ['RH', 'Estratégia', 'Comercial', 'Inteligência'],
+    toolsUsed: ['Plataformas de Inteligência.', 'ATS.', 'Web Scraping.', 'Bancos de Dados.'],
     laborType: 'Não se Aplica',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, com foco em velocidade e volume.'
+    sla: 'Sob consulta',
+    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, a solução tem como foco velocidade, alto volume e assertividade na contratação. Ideal para momentos de grande movimentação.'
   },
   {
-    id: 'varejo-marketing',
+    id: 'varejo-pro-marketing',
     code: 'Marketing Dedicado',
     solutionPackage: 'Varejo Pro',
-    name: 'Marketing Dedicado Varejo',
-    description: 'Estratégias de marketing para atrair volume de candidatos para o varejo.',
-    benefits: [
-      'Aumenta atratividade.',
-      'Fortalece marca empregadora.',
-      'Facilita captação em massa.'
-    ],
-    publicNeeds: [
-      'Reforçar atração.',
-      'Reverberar marca empregadora.',
-      'Continuidade de Branding.'
-    ],
-    areasInvolved: ['Marketing'],
-    toolsUsed: ['RDStation', 'Adobe', 'Ads', 'Gravação'],
-    laborType: 'Redatora',
-    sla: 'Conforme projeto.',
-    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, com foco em velocidade e volume.'
+    name: 'Marketing Dedicado',
+    description: 'Estratégias de marketing para atração em massa e fortalecimento da marca empregadora no varejo.',
+    benefits: ['Aumenta atratividade em volume.', 'Fortalece marca.', 'Facilita captação.', 'Melhora comunicação.'],
+    publicNeeds: ['Atração em volume', 'Marca empregadora forte', 'Branding consistente'],
+    areasInvolved: ['Marketing', 'Redatora'],
+    toolsUsed: ['RDStation', 'Adobe', 'Ads (Social/Google)', 'Gravação'],
+    laborType: 'Não se Aplica',
+    sla: 'Sob consulta',
+    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, a solução tem como foco velocidade, alto volume e assertividade na contratação. Ideal para momentos de grande movimentação.'
   },
   {
-    id: 'varejo-rpo',
+    id: 'varejo-pro-rpo',
     code: 'RPO',
     solutionPackage: 'Varejo Pro',
-    name: 'RPO Varejo',
-    description: 'Terceirização do R&S para o varejo, garantindo escala e eficiência.',
-    benefits: [
-      'Processos seletivos de alto nível.',
-      'Reduz custos operacionais.',
-      'Oferece velocidade.'
-    ],
-    publicNeeds: [
-      'Escala e agilidade.',
-      'Foco estratégico do RH.',
-      'Consistência.'
-    ],
-    areasInvolved: ['RH', 'Tecnologia', 'Jurídico', 'Gestores', 'Equipe RPO'],
-    toolsUsed: ['Divulgação', 'ATS', 'Dinâmicas', 'PowerBi'],
+    name: 'RPO',
+    description: 'Serviço de terceirização do recrutamento especializado em varejo e alto volume.',
+    benefits: ['Processos seletivos ágeis.', 'Custos reduzidos.', 'Velocidade.', 'Liberação do RH interno.'],
+    publicNeeds: ['Escala.', 'Foco estratégico.', 'Padronização.', 'Acesso a talentos.', 'Redução de riscos.'],
+    areasInvolved: ['RH', 'TI', 'Jurídico', 'Gestores', 'Equipe RPO'],
+    toolsUsed: ['Gupy...', 'ATS...', 'Entrevistas...', 'PowerBi.'],
     laborType: 'Todos os modelos se aplicam',
-    sla: 'Depende do volume e complexidade.',
-    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, com foco em velocidade e volume.'
+    sla: 'Depende do volume.',
+    aboutSolution: 'Desenvolvida para atender às demandas específicas do varejo e de empresas que enfrentam picos sazonais, a solução tem como foco velocidade, alto volume e assertividade na contratação. Ideal para momentos de grande movimentação.'
   }
 ];
+
+// --- PROJECT PRICING CALCULATOR DATA ---
+
+export const WEIGHT_TABLES = {
+  roles: [
+    { label: 'Diretoria', value: 2.0 },
+    { label: 'Gerência', value: 1.75 },
+    { label: 'Supervisão', value: 1.75 },
+    { label: 'Analista Sr', value: 1.5 },
+    { label: 'Analista Pl/Jr', value: 1.25 },
+    { label: 'Assistente', value: 1.0 },
+    { label: 'Operacional', value: 1.0 },
+    { label: 'Técnico', value: 1.25 }
+  ],
+  complexity: [
+    { label: 'Alto', value: 2.0 },
+    { label: 'Médio', value: 1.5 },
+    { label: 'Baixo', value: 1.0 }
+  ],
+  urgency: [
+    { label: 'Alto', value: 2.0 },
+    { label: 'Médio', value: 1.5 },
+    { label: 'Baixo', value: 1.0 }
+  ],
+  volume: [
+    { label: 'Mais de 200', value: 2.0 },
+    { label: 'De 100 a 199', value: 2.0 },
+    { label: 'De 21 a 99', value: 1.5 },
+    { label: 'Até 20', value: 1.0 }
+  ]
+};
+
+export const HOURLY_RATES = {
+  consultant2: 27.00,
+  consultant1: 22.00,
+  assistant: 15.00
+};
+
+export const DEFAULT_FIXED_ITEMS: FixedCostItem[] = [
+  { id: 'sys', name: 'Sistemas/Operação', cost: 220.00, quantity: 0 },
+  { id: 'trans', name: 'Deslocamento', cost: 300.00, quantity: 0 },
+  { id: 'acco', name: 'Hospedagem', cost: 2000.00, quantity: 0 },
+  { id: 'ads', name: 'Anúncios', cost: 150.00, quantity: 0 },
+  { id: 'tests', name: 'Testes Específicos', cost: 100.00, quantity: 0 }
+];
+
+export const PROFIT_MARGINS = [
+  { label: 'Sem margem (1.00)', value: 1.00 },
+  { label: 'Mínimo (1.15)', value: 1.15 },
+  { label: 'Ajustada (1.25)', value: 1.25 },
+  { label: 'Máximo (1.50)', value: 1.50 }
+];
+
+// ISS fixo para São Paulo
+export const TAX_RATES = {
+  pis: 0.0165, // 1.65%
+  cofins: 0.076, // 7.60%
+  irrf: 0.015, // 1.50%
+  csll: 0.01,  // 1.00%
+  // FIX: Replaced the fixed 'iss' property with 'issOptions' to support multiple locations in the calculator.
+  issOptions: [
+    { city: 'São Paulo - SP', rate: 0.05 },
+    { city: 'Barueri - SP', rate: 0.02 },
+    { city: 'Outra Localidade (5%)', rate: 0.05 },
+  ],
+  retentionIR: 0.015 // 1.5% Retention on Gross
+};

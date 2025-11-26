@@ -41,6 +41,42 @@
                 yellow: '#fff24d',  // Accent Yellow
                 gray: '#f3f4f6',
               }
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out',
+              'fade-in-down': 'fadeInDown 0.5s ease-out',
+              'slide-up': 'slideUp 0.5s ease-out',
+              'slide-down-stagger': 'slideDownStagger 0.5s ease-out forwards',
+              'spin-slow': 'spin 8s linear infinite',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'breathing': 'breathing 4s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              fadeInDown: {
+                '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              slideUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              slideDownStagger: {
+                '0%': { opacity: '0', transform: 'translateY(-100%)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+              breathing: {
+                '0%, 100%': { transform: 'scale(1) rotate(0deg)' },
+                '50%': { transform: 'scale(1.1) rotate(5deg)' },
+              }
             }
           }
         }
@@ -67,6 +103,16 @@
         z-index: 0;
         filter: blur(40px);
         opacity: 0.4;
+      }
+      
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
       }
     </style>
   <script type="importmap">

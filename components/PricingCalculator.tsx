@@ -135,8 +135,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const referenceSalaryTotal = salary * vacancies;
     const baseCost = referenceSalaryTotal + totalOperationalCost;
 
-    // Profit Margin applied first (on entire base cost)
-    const profitMargin = baseCost * (profitMarginPct / 100);
+    // Profit Margin applied to Total Operational Cost only
+    const profitMargin = totalOperationalCost * (profitMarginPct / 100);
     const subtotalAfterProfit = baseCost + profitMargin;
 
     // Admin Fee applied ONLY to Reference Salary Total
@@ -493,7 +493,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       <span className="text-2xl font-bold text-metarh-lime">{fmtCurrency(result.profitMargin)}</span>
                     </div>
                     <p className="text-xs text-gray-300 text-right -mt-1">
-                      {profitMarginPct}% sobre base
+                      {profitMarginPct}% sobre total operacional
                     </p>
 
                     <div className="border-t border-white/20 my-2"></div>

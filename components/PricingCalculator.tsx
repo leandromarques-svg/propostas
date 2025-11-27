@@ -227,7 +227,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-metarh-dark flex items-center gap-3">
-              <Calculator size={32} className="text-metarh-medium" /> Precificação de Projetos
+              <Calculator size={32} className="text-metarh-medium" /> Precificação de Projetos de R&S
             </h1>
             <p className="text-gray-500 mt-1">Calculadora baseada em custos operacionais e tributação SP.</p>
           </div>

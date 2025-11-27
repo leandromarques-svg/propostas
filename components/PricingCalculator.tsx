@@ -136,7 +136,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     // 3. Pricing (Profit Margin BEFORE Admin Fee)
     // Order: Base → Profit Margin → Admin Fee → Taxes
     const referenceSalaryTotal = salary * vacancies;
-    const baseCost = referenceSalaryTotal + totalOperationalCost;
+    const baseCost = totalOperationalCost; // Salary is NOT part of the agency cost/invoice in R&S
 
     // Profit Margin applied to Total Operational Cost only
     const profitMargin = totalOperationalCost * (profitMarginPct / 100);

@@ -135,12 +135,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const referenceSalaryTotal = salary * vacancies;
     const baseCost = referenceSalaryTotal + totalOperationalCost;
 
-    // Profit Margin applied first
+    // Profit Margin applied first (on entire base cost)
     const profitMargin = baseCost * (profitMarginPct / 100);
     const subtotalAfterProfit = baseCost + profitMargin;
 
-    // Admin Fee applied to (Base + Profit)
-    const adminFee = subtotalAfterProfit * (marginMultiplier / 100);
+    // Admin Fee applied ONLY to Reference Salary Total
+    const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
     const totalPreTax = subtotalAfterProfit + adminFee;
 
     // 4. Taxes
@@ -504,7 +504,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       <span className="text-xl font-bold text-white">{fmtCurrency(result.adminFee)}</span>
                     </div>
                     <p className="text-xs text-gray-300 text-right -mt-1">
-                      {inputs.marginMultiplier}% sobre (base + lucro)
+                      {inputs.marginMultiplier}% sobre salário referência
                     </p>
                   </div>
 

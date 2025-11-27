@@ -410,16 +410,17 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
               </div>
             </div>
 
-            {/* 3. MARGIN & TAXES */}
+            {/* 3. MARGIN */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                <DollarSign size={18} /> 3. Margem e Tributação
+                <DollarSign size={18} /> 3. Margem e Taxa
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Margem de Lucro (%)</label>
-                  <div className="flex items-center gap-2 mb-4">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Profit Margin */}
+                <div className="bg-gradient-to-br from-metarh-lime/10 to-metarh-medium/10 border-2 border-metarh-lime/30 p-4 rounded-xl">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Margem de Lucro</label>
+                  <div className="flex items-center gap-2 mb-3">
                     <input
                       type="number"
                       step="1"
@@ -427,40 +428,45 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       max="100"
                       value={profitMarginPct}
                       onChange={(e) => setProfitMarginPct(parseFloat(e.target.value) || 0)}
-                      className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                      className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
                     />
                     <span className="text-sm text-gray-600">%</span>
-                  </div>
-
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="number"
-                      step="1"
-                      min="10"
-                      max="100"
-                      value={inputs.marginMultiplier}
-                      onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
-                      className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
-                    />
-                    <span className="text-sm text-gray-600">%</span>
+                    <span className="text-xs text-gray-500">sobre total operacional</span>
                   </div>
                   {result && (
-                    <div className="flex items-center gap-2 text-xs text-metarh-medium">
-                      <AlertCircle size={12} />
-                      <span>Sugestão (Peso): {result.suggestedMargin.toFixed(2)}</span>
+                    <div className="bg-white/80 rounded-lg p-3 border border-metarh-lime/40">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-600">Valor:</span>
+                        <span className="text-lg font-bold text-metarh-medium">{fmtCurrency(result.profitMargin)}</span>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Localidade (ISS)</label>
-                  <div className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700">
-                    São Paulo - SP (5.00%)
+                {/* Admin Fee */}
+                <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-xl">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
+                  <div className="flex items-center gap-2 mb-3">
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="100"
+                      value={inputs.marginMultiplier}
+                      onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+                      className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                    <span className="text-xs text-gray-500">sobre salário referência</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Aplicando PIS (1.65%), COFINS (7.6%), IRRF (1.5%), CSLL (1%)
-                  </p>
+                  {result && (
+                    <div className="bg-white rounded-lg p-3 border border-gray-300">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-600">Valor:</span>
+                        <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

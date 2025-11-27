@@ -436,8 +436,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   {result && (
                     <div className="bg-white/80 rounded-lg p-3 border border-metarh-lime/40">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-gray-600">Valor:</span>
-                        <span className="text-lg font-bold text-metarh-medium">{fmtCurrency(result.profitMargin)}</span>
+                        <span className="text-xs font-bold text-gray-600">Valor Total:</span>
+                        <span className="text-lg font-bold text-metarh-medium">{fmtCurrency(result.totalOperationalCost + result.profitMargin)}</span>
                       </div>
                     </div>
                   )}
@@ -462,8 +462,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   {result && (
                     <div className="bg-white rounded-lg p-3 border border-gray-300">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-gray-600">Valor:</span>
-                        <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
+                        <span className="text-xs font-bold text-gray-600">Valor Total:</span>
+                        <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.referenceSalaryTotal + result.adminFee)}</span>
                       </div>
                     </div>
                   )}

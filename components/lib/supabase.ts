@@ -8,14 +8,20 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase credentials not found. Please add them to your .env.local file.');
-}
-
 // Fallback to prevent crash if credentials are missing
+// Support both Next.js (process.env) and Vite (import.meta.env)
+const getEnv = (key: string, viteKey: string) => {
+    if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
+    try {
+        // @ts-ignore
+        if (import.meta && import.meta.env && import.meta.env[viteKey]) return import.meta.env[viteKey];
+    } catch (e) { }
+    return '';
+};
+
+const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL');
+const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY');
+
 const url = supabaseUrl || 'https://placeholder.supabase.co';
 const key = supabaseAnonKey || 'placeholder-key';
 

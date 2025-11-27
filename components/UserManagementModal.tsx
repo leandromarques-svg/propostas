@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { User } from '../types';
-import { X, UserPlus, Edit, Trash2, Shield, Save } from 'lucide-react';
+import { X, UserPlus, Edit, Trash2, Shield, Save, Loader2 } from 'lucide-react';
+import { getUsers, saveUser, deleteUser, UserProfile } from './lib/userService';
 
 interface UserManagementModalProps {
   currentUser: User;
@@ -25,6 +26,22 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<User>>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [userList, setUserList] = useState<User[]>(users);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadUsers();
+    }
+  }, [isOpen]);
+
+  const loadUsers = async () => {
+    setIsLoading(true);
+    const data = await getUsers();
+    // Map UserProfile to User if needed, or just use as is since they are compatible
+    setUserList(data as unknown as User[]);
+    setIsLoading(false);
+  };
 
   if (!isOpen) return null;
 
@@ -52,24 +69,46 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     setShowPassword(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.username || !formData.password || !formData.name) {
       alert('Preencha os campos obrigatórios (Usuário, Senha, Nome)');
       return;
     }
 
-    if (editingId === 'new') {
-      onCreateUser(formData as User);
-    } else {
-      onUpdateUser(formData as User);
+    setIsLoading(true);
+    try {
+      // @ts-ignore
+      await saveUser(formData as UserProfile);
+      await loadUsers();
+
+      if (editingId === 'new') {
+        onCreateUser(formData as User);
+      } else {
+        onUpdateUser(formData as User);
+      }
+      setEditingId(null);
+      setFormData({});
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao salvar usuário');
+    } finally {
+      setIsLoading(false);
     }
-    setEditingId(null);
-    setFormData({});
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja remover este usuário?')) {
-      onDeleteUser(id);
+      setIsLoading(true);
+      try {
+        await deleteUser(id);
+        await loadUsers();
+        onDeleteUser(id);
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao excluir usuário');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -77,7 +116,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     const { name, value, type } = e.target;
     // @ts-ignore
     const checked = e.target.checked;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -87,7 +126,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-white w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-        
+
         {/* Header */}
         <div className="bg-metarh-dark text-white p-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -99,20 +138,22 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          
+
           {/* List Sidebar */}
           <div className="w-1/3 border-r border-gray-100 bg-gray-50 flex flex-col">
             <div className="p-4 border-b border-gray-100">
-               <button 
-                 onClick={startCreate}
-                 className="w-full py-3 bg-metarh-medium text-white rounded-xl font-bold shadow-md hover:bg-metarh-dark transition-colors flex items-center justify-center gap-2"
-               >
-                 <UserPlus size={18} /> Novo Usuário
-               </button>
+              <button
+                onClick={startCreate}
+                className="w-full py-3 bg-metarh-medium text-white rounded-xl font-bold shadow-md hover:bg-metarh-dark transition-colors flex items-center justify-center gap-2"
+              >
+                <UserPlus size={18} /> Novo Usuário
+              </button>
             </div>
             <div className="overflow-y-auto flex-1 p-2 space-y-2">
-              {users.map(u => (
-                <div 
+              {isLoading ? (
+                <div className="flex justify-center p-4"><Loader2 className="animate-spin text-metarh-medium" /></div>
+              ) : userList.map(u => (
+                <div
                   key={u.id}
                   onClick={() => startEdit(u)}
                   className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3
@@ -141,7 +182,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                     {editingId === 'new' ? 'Criar Novo Usuário' : 'Editar Usuário'}
                   </h3>
                   {editingId !== 'new' && editingId !== currentUser.id && (
-                    <button 
+                    <button
                       onClick={() => handleDelete(editingId)}
                       className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                     >
@@ -173,8 +214,8 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 </div>
 
                 <div>
-                   <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
-                   <input name="email" value={formData.email || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                  <input name="email" value={formData.email || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -189,31 +230,31 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 </div>
 
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Avatar URL</label>
-                    <input name="avatarUrl" value={formData.avatarUrl || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Avatar URL</label>
+                  <input name="avatarUrl" value={formData.avatarUrl || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
                 </div>
-                
+
                 <div>
-                   <label className="block text-sm font-bold text-gray-700 mb-1">Bio (para assinatura)</label>
-                   <input name="bio" value={formData.bio || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Bio (para assinatura)</label>
+                  <input name="bio" value={formData.bio || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
                 </div>
 
                 <div className="flex items-center gap-2 pt-2">
-                   <input 
-                      type="checkbox" 
-                      name="isAdmin" 
-                      id="isAdmin"
-                      checked={formData.isAdmin || false} 
-                      onChange={handleChange}
-                      className="w-5 h-5 text-metarh-medium rounded focus:ring-metarh-medium"
-                   />
-                   <label htmlFor="isAdmin" className="text-sm font-bold text-gray-700">Conceder acesso de Administrador (Master)</label>
+                  <input
+                    type="checkbox"
+                    name="isAdmin"
+                    id="isAdmin"
+                    checked={formData.isAdmin || false}
+                    onChange={handleChange}
+                    className="w-5 h-5 text-metarh-medium rounded focus:ring-metarh-medium"
+                  />
+                  <label htmlFor="isAdmin" className="text-sm font-bold text-gray-700">Conceder acesso de Administrador (Master)</label>
                 </div>
 
                 <div className="pt-6 border-t border-gray-100 flex justify-end gap-3">
                   <button onClick={() => setEditingId(null)} className="px-6 py-2 border rounded-xl hover:bg-gray-50">Cancelar</button>
                   <button onClick={handleSave} className="px-8 py-2 bg-metarh-medium text-white font-bold rounded-xl shadow-lg hover:bg-metarh-dark flex items-center gap-2">
-                    <Save size={18} /> Salvar
+                    {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Salvar
                   </button>
                 </div>
 

@@ -3,6 +3,7 @@ import { ProjectPricingInputs, PricingResult, FixedCostItem } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
 import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2 } from 'lucide-react';
 import { saveProposal } from './lib/proposalService';
+import { SupabaseStatus } from './SupabaseStatus';
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -226,21 +227,24 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-metarh-dark flex items-center gap-3">
-              <Calculator size={32} className="text-metarh-medium" /> Precificação de Projetos de R&S
-            </h1>
-            <p className="text-gray-500 mt-1">Calculadora baseada em custos operacionais e tributação SP.</p>
+            <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Precificação de Projetos de R&S</h1>
+            <p className="text-gray-500 mt-1">Configure os parâmetros para calcular o valor da proposta</p>
           </div>
-          <button onClick={onCancel} className="px-6 py-2 border rounded-full text-gray-600 hover:bg-gray-100 transition-colors">
-            Voltar
-          </button>
+          <div className="flex items-center gap-3">
+            <SupabaseStatus />
+            <button
+              onClick={onCancel}
+              className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Trash2 size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
 
-          {/* --- LEFT COLUMN: INPUTS --- */}
           <div className="lg:col-span-2 space-y-6">
 
             {/* 1. SCOPE & COMPLEXITY */}

@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo';
 import { User } from '../types';
+import { User } from '../types';
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { getUsers } from './lib/userService';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User) => void;
@@ -17,24 +19,39 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    // Local Authentication Logic
-    const foundUser = users.find(u => 
-      (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) && 
-      u.password === password
-    );
+    try {
+      // Fetch users from Supabase
+      const remoteUsers = await getUsers();
+      // Combine with local users if needed, or just use remote
+      const allUsers = [...(users || []), ...remoteUsers];
 
-    if (foundUser) {
-      setIsLoading(true);
-      // Simulate loading delay for better UX before switching screens
-      setTimeout(() => {
-        onLoginSuccess(foundUser);
-      }, 2500);
-    } else {
-      setError('Usuário ou senha incorretos');
+      // Remove duplicates if any (by username)
+      const uniqueUsers = Array.from(new Map(allUsers.map(item => [item.username, item])).values());
+
+      // Local Authentication Logic
+      const foundUser = uniqueUsers.find(u =>
+        (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) &&
+        u.password === password
+      );
+
+      if (foundUser) {
+        // Simulate loading delay for better UX before switching screens
+        setTimeout(() => {
+          onLoginSuccess(foundUser);
+        }, 1500);
+      } else {
+        setError('Usuário ou senha incorretos');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao conectar ao servidor');
+      setIsLoading(false);
     }
   };
 
@@ -44,8 +61,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
       <div className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 scale-110 filter blur-lg' : 'opacity-100'}`}>
         {/* Abstract Background Shapes for Loading - More animated */}
         <div className="absolute inset-0 flex items-center justify-center">
-             <div className="w-[800px] h-[800px] border-[1px] border-metarh-medium/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s' }}></div>
-             <div className="w-[600px] h-[600px] border-[1px] border-metarh-pink/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s', animationDelay: '0.5s' }}></div>
+          <div className="w-[800px] h-[800px] border-[1px] border-metarh-medium/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s' }}></div>
+          <div className="w-[600px] h-[600px] border-[1px] border-metarh-pink/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s', animationDelay: '0.5s' }}></div>
         </div>
 
         <div className="blob-shape bg-metarh-medium w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-multiply filter blur-[80px] opacity-10 animate-float"></div>
@@ -55,11 +72,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
           <div className="mb-8 relative">
             <div className="absolute inset-0 bg-metarh-medium/20 rounded-full blur-xl animate-pulse-slow"></div>
             <div className="animate-breathing relative z-10">
-                {/* Using the 'icon' (ball) orientation as requested */}
-                <Logo variant="purple" orientation="icon" className="h-32 w-32 drop-shadow-2xl" />
+              {/* Using the 'icon' (ball) orientation as requested */}
+              <Logo variant="purple" orientation="icon" className="h-32 w-32 drop-shadow-2xl" />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center gap-2">
             <h3 className="text-2xl font-bold text-metarh-dark tracking-tight animate-fade-in-down">Bem vindo, {users.find(u => u.username === username || u.email === username)?.name.split(' ')[0]}</h3>
             <p className="text-metarh-medium/80 font-medium text-sm animate-pulse tracking-widest uppercase">Preparando ambiente...</p>
@@ -72,7 +89,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
   // Main Login Form
   return (
     <div className={`min-h-screen bg-metarh-dark flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 -translate-y-20 scale-95' : 'opacity-100'}`}>
-      
+
       {/* Background blobs */}
       <div className="blob-shape bg-metarh-medium w-[800px] h-[800px] rounded-full top-[-400px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20 animate-float"></div>
       <div className="blob-shape bg-metarh-pink w-[600px] h-[600px] rounded-full bottom-[-200px] left-[-200px] mix-blend-screen filter blur-[80px] opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
@@ -130,11 +147,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
               type="submit"
               className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group mt-4 transform active:scale-95"
             >
-              Entrar <LogIn size={18} className="group-hover:translate-x-1 transition-transform"/>
+              Entrar <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
         </div>
-        
+
         <div className="bg-gray-50 p-4 text-center border-t border-gray-100">
           <p className="text-xs text-gray-400">
             METARH Recursos Humanos &copy; {new Date().getFullYear()}

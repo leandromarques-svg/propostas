@@ -29,6 +29,19 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
   const [result, setResult] = useState<PricingResult | null>(null);
 
+  const ROLE_OPTIONS = [
+    { label: 'Diretoria', value: 2 },
+    { label: 'Gerência', value: 1.75 },
+    { label: 'Supervisão', value: 1.75 },
+    { label: 'Analista Sr', value: 1.5 },
+    { label: 'Analista Pl/Jr', value: 1.25 },
+    { label: 'Técnico', value: 1.25 },
+    { label: 'Assistente', value: 1 },
+    { label: 'Operacional', value: 1 }
+  ];
+
+  const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
+
   // --- CALCULATION LOGIC ---
   useEffect(() => {
     calculatePricing();
@@ -93,7 +106,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const totalTaxes = taxIss + taxPis + taxCofins + taxIrrf + taxCsll;
 
     // 5. Final
-    const grossNF = adminFee + totalTaxes;
+    const referenceSalaryTotal = salary * vacancies;
+    const grossNF = adminFee + totalTaxes + referenceSalaryTotal;
     const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
     const netLiquid = grossNF - retentionIR;
 
@@ -105,7 +119,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       fixedItemsCostTotal,
       totalOperationalCost,
       adminFee,
-      referenceSalaryTotal: salary * vacancies, // Multiplier fixed
+      referenceSalaryTotal,
       taxIss,
       taxPis,
       taxCofins,
@@ -189,21 +203,21 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
               </div>
 
               <div className="grid md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl">
-                <SelectField
-                  label="Nível do Cargo"
-                  value={inputs.weightRole}
-                  onChange={(v) => handleSelectChange('weightRole', Number(v))}
-                  options={[
-                    { label: 'Diretoria', value: 2 },
-                    { label: 'Gerência', value: 1.75 },
-                    { label: 'Supervisão', value: 1.75 },
-                    { label: 'Analista Sr', value: 1.5 },
-                    { label: 'Analista Pl/Jr', value: 1.25 },
-                    { label: 'Técnico', value: 1.25 },
-                    { label: 'Assistente', value: 1 },
-                    { label: 'Operacional', value: 1 }
-                  ]}
-                />
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nível do Cargo</label>
+                  <select
+                    value={selectedRoleLabel}
+                    onChange={(e) => {
+                      const label = e.target.value;
+                      setSelectedRoleLabel(label);
+                      const weight = ROLE_OPTIONS.find(r => r.label === label)?.value || 1;
+                      handleSelectChange('weightRole', weight);
+                    }}
+                    className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
+                  >
+                    {ROLE_OPTIONS.map((opt, i) => <option key={i} value={opt.label}>{opt.label}</option>)}
+                  </select>
+                </div>
                 <SelectField
                   label="Complexidade"
                   value={inputs.weightComplexity}

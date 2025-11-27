@@ -24,7 +24,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     qtyConsultant1: 0,
     qtyAssistant: 0,
     fixedItems: DEFAULT_FIXED_ITEMS,
-    marginMultiplier: 20,
+    marginMultiplier: 100,
     selectedCity: 'São Paulo - SP'
   });
 

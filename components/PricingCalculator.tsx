@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectPricingInputs, PricingResult, FixedCostItem } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
-import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2 } from 'lucide-react';
+import { saveProposal } from './lib/proposalService';
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -79,6 +80,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
   const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
+  const [isSaving, setIsSaving] = useState(false);
 
   // --- CALCULATION LOGIC ---
   useEffect(() => {
@@ -546,10 +548,56 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   </div>
 
                   <button
-                    onClick={() => alert("Proposta salva no histórico!")}
-                    className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
+                    onClick={async () => {
+                      if (!result) return;
+                      setIsSaving(true);
+
+                      const proposalData = {
+                        role_name: inputs.roleName,
+                        vacancies: inputs.vacancies,
+                        salary: inputs.salary,
+
+                        weight_job_level: weightJobLevel,
+                        weight_location: weightLocation,
+                        weight_work_model: weightWorkModel,
+                        weight_urgency: weightUrgency,
+                        weight_profile_difficulty: weightProfileDifficulty,
+
+                        demanded_days: inputs.demandedDays,
+                        qty_senior: inputs.qtyConsultant2,
+                        qty_plena: inputs.qtyConsultant1,
+                        qty_junior: inputs.qtyAssistant,
+
+                        fixed_items: inputs.fixedItems,
+
+                        profit_margin_pct: profitMarginPct,
+                        admin_fee_pct: inputs.marginMultiplier,
+
+                        results: result
+                      };
+
+                      const { success, error } = await saveProposal(proposalData);
+                      setIsSaving(false);
+
+                      if (success) {
+                        alert("Proposta salva com sucesso!");
+                      } else {
+                        alert("Erro ao salvar proposta. Verifique o console.");
+                        console.error(error);
+                      }
+                    }}
+                    disabled={isSaving}
+                    className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <DollarSign size={18} /> Salvar Proposta
+                    {isSaving ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" /> Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={18} /> Salvar Proposta
+                      </>
+                    )}
                   </button>
                 </div>
               )}

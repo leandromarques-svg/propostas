@@ -49,21 +49,29 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const totalWeight = weightRole + weightComplexity + weightUrgency + weightVolume;
     const maxWeight = 8;
     const weightPercentage = (totalWeight / maxWeight) * 100;
-    
+
     // Suggestion Logic (Simple heuristic based on prompts)
     let suggestedMargin = 1.15;
     if (totalWeight > 6) suggestedMargin = 1.50;
     else if (totalWeight > 4) suggestedMargin = 1.25;
 
     // 2. Operational Costs
-    const teamHourlyCost = 
-      (qtyConsultant2 * HOURLY_RATES.consultant2) +
-      (qtyConsultant1 * HOURLY_RATES.consultant1) +
-      (qtyAssistant * HOURLY_RATES.assistant);
-    
+    const LOCAL_HOURLY_RATES = {
+      consultant2: 27.00,
+      consultant1: 22.00,
+      assistant: 15.00
+    };
+
+    const teamHourlyCost =
+      (qtyConsultant2 * LOCAL_HOURLY_RATES.consultant2) +
+      (qtyConsultant1 * LOCAL_HOURLY_RATES.consultant1) +
+      (qtyAssistant * LOCAL_HOURLY_RATES.assistant);
+
     // Calculate Total Team Cost based on Demand Hours
-    // FIX: Renamed 'estimatedProjectHours' to 'demandedDays'.
-    const teamCostTotal = teamHourlyCost * demandedDays;
+    // 1 Day = 9 Hours
+    const hoursPerDay = 9;
+    const projectHours = demandedDays * hoursPerDay;
+    const teamCostTotal = teamHourlyCost * projectHours;
 
     const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
@@ -73,14 +81,15 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const adminFee = totalOperationalCost * marginMultiplier;
 
     // 4. Taxes
-    const issRate = TAX_RATES.issOptions.find(c => c.city === selectedCity)?.rate || 0.05;
-    
+    // Fixed to São Paulo
+    const issRate = 0.05; // São Paulo default
+
     const taxIss = adminFee * issRate;
     const taxPis = adminFee * TAX_RATES.pis;
     const taxCofins = adminFee * TAX_RATES.cofins;
     const taxIrrf = adminFee * TAX_RATES.irrf;
     const taxCsll = adminFee * TAX_RATES.csll;
-    
+
     const totalTaxes = taxIss + taxPis + taxCofins + taxIrrf + taxCsll;
 
     // 5. Final
@@ -122,7 +131,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const handleUpdateFixedItem = (id: string, field: 'quantity' | 'cost' | 'name', value: string) => {
     setInputs(prev => ({
       ...prev,
-      fixedItems: prev.fixedItems.map(item => 
+      fixedItems: prev.fixedItems.map(item =>
         item.id === id ? { ...item, [field]: field === 'name' ? value : (parseFloat(value) || 0) } : item
       )
     }));
@@ -148,7 +157,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -163,49 +172,58 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          
+
           {/* --- LEFT COLUMN: INPUTS --- */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* 1. SCOPE & COMPLEXITY */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                 <Users size={18} /> 1. Escopo e Complexidade
               </h2>
-              
+
               <div className="grid md:grid-cols-3 gap-4 mb-6">
-                <InputField label="Cargo" type="text" value={inputs.roleName} onChange={(v) => setInputs(p => ({...p, roleName: v}))} />
+                <InputField label="Cargo" type="text" value={inputs.roleName} onChange={(v) => setInputs(p => ({ ...p, roleName: v }))} />
                 <InputField label="Vagas (Qtd)" type="number" value={inputs.vacancies} onChange={(v) => handleNumberChange('vacancies', v)} />
                 <InputField label="Salário Base (R$)" type="number" value={inputs.salary} onChange={(v) => handleNumberChange('salary', v)} />
               </div>
 
               <div className="grid md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl">
-                <SelectField 
-                  label="Nível do Cargo" 
-                  value={inputs.weightRole} 
+                <SelectField
+                  label="Nível do Cargo"
+                  value={inputs.weightRole}
                   onChange={(v) => handleSelectChange('weightRole', Number(v))}
-                  options={WEIGHT_TABLES.roles}
+                  options={[
+                    { label: 'Diretoria', value: 2 },
+                    { label: 'Gerência', value: 1.75 },
+                    { label: 'Supervisão', value: 1.75 },
+                    { label: 'Analista Sr', value: 1.5 },
+                    { label: 'Analista Pl/Jr', value: 1.25 },
+                    { label: 'Técnico', value: 1.25 },
+                    { label: 'Assistente', value: 1 },
+                    { label: 'Operacional', value: 1 }
+                  ]}
                 />
-                <SelectField 
-                  label="Complexidade" 
-                  value={inputs.weightComplexity} 
+                <SelectField
+                  label="Complexidade"
+                  value={inputs.weightComplexity}
                   onChange={(v) => handleSelectChange('weightComplexity', Number(v))}
                   options={WEIGHT_TABLES.complexity}
                 />
-                <SelectField 
-                  label="Urgência" 
-                  value={inputs.weightUrgency} 
+                <SelectField
+                  label="Urgência"
+                  value={inputs.weightUrgency}
                   onChange={(v) => handleSelectChange('weightUrgency', Number(v))}
                   options={WEIGHT_TABLES.urgency}
                 />
-                <SelectField 
-                  label="Volumetria" 
-                  value={inputs.weightVolume} 
+                <SelectField
+                  label="Volumetria"
+                  value={inputs.weightVolume}
                   onChange={(v) => handleSelectChange('weightVolume', Number(v))}
                   options={WEIGHT_TABLES.volume}
                 />
               </div>
-              
+
               {result && (
                 <div className="mt-4 flex items-center justify-between text-sm text-gray-600 px-2">
                   <span>Coeficiente: <strong>{result.totalWeight.toFixed(2)}</strong></span>
@@ -222,19 +240,22 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
               <div className="mb-6 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
                 <div className="flex justify-between items-center mb-3">
-                    <label className="block text-xs font-bold text-gray-700 uppercase">Equipe (Qtd Profissionais)</label>
-                    <div className="w-40">
-                        <label className="block text-[10px] font-bold text-metarh-medium uppercase mb-1">Total de Horas Demandadas</label>
-                        <input 
-                            type="number" 
-                            // FIX: Renamed 'estimatedProjectHours' to 'demandedDays'.
-                            value={inputs.demandedDays || ''} 
-                            // FIX: Renamed 'estimatedProjectHours' to 'demandedDays'.
-                            onChange={(e) => handleNumberChange('demandedDays', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
-                            placeholder="0"
-                        />
+                  <label className="block text-xs font-bold text-gray-700 uppercase">Equipe (Qtd Profissionais)</label>
+                  <div className="w-40">
+                    <label className="block text-[10px] font-bold text-metarh-medium uppercase mb-1">Dias Demandados</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={inputs.demandedDays || ''}
+                        onChange={(e) => handleNumberChange('demandedDays', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
+                        placeholder="0"
+                      />
+                      <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                        = {inputs.demandedDays * 9}h úteis
+                      </span>
                     </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <InputField label="Consultor 2" type="number" value={inputs.qtyConsultant2} onChange={(v) => handleNumberChange('qtyConsultant2', v)} />
@@ -245,45 +266,45 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
               <div className="border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center mb-3">
-                    <label className="block text-xs font-bold text-gray-500 uppercase">Custos Fixos</label>
-                    <button onClick={handleAddFixedItem} className="text-xs flex items-center gap-1 text-metarh-medium font-bold hover:underline">
-                        <Plus size={14} /> Adicionar Item
-                    </button>
+                  <label className="block text-xs font-bold text-gray-500 uppercase">Custos Fixos</label>
+                  <button onClick={handleAddFixedItem} className="text-xs flex items-center gap-1 text-metarh-medium font-bold hover:underline">
+                    <Plus size={14} /> Adicionar Item
+                  </button>
                 </div>
-                
+
                 <div className="space-y-2">
-                    {inputs.fixedItems.map((item) => (
-                        <div key={item.id} className="flex items-center gap-3">
-                            <input 
-                                type="text" 
-                                value={item.name} 
-                                onChange={(e) => handleUpdateFixedItem(item.id, 'name', e.target.value)}
-                                className="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm"
-                                placeholder="Nome do item"
-                            />
-                            <div className="w-24">
-                                <input 
-                                    type="number" 
-                                    value={item.cost || ''} 
-                                    onChange={(e) => handleUpdateFixedItem(item.id, 'cost', e.target.value)}
-                                    className="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-right"
-                                    placeholder="R$ Unit."
-                                />
-                            </div>
-                            <div className="w-20">
-                                <input 
-                                    type="number" 
-                                    value={item.quantity || ''} 
-                                    onChange={(e) => handleUpdateFixedItem(item.id, 'quantity', e.target.value)}
-                                    className="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-center"
-                                    placeholder="Qtd"
-                                />
-                            </div>
-                            <button onClick={() => handleDeleteFixedItem(item.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                                <Trash2 size={16} />
-                            </button>
-                        </div>
-                    ))}
+                  {inputs.fixedItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => handleUpdateFixedItem(item.id, 'name', e.target.value)}
+                        className="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm"
+                        placeholder="Nome do item"
+                      />
+                      <div className="w-24">
+                        <input
+                          type="number"
+                          value={item.cost || ''}
+                          onChange={(e) => handleUpdateFixedItem(item.id, 'cost', e.target.value)}
+                          className="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-right"
+                          placeholder="R$ Unit."
+                        />
+                      </div>
+                      <div className="w-20">
+                        <input
+                          type="number"
+                          value={item.quantity || ''}
+                          onChange={(e) => handleUpdateFixedItem(item.id, 'quantity', e.target.value)}
+                          className="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-center"
+                          placeholder="Qtd"
+                        />
+                      </div>
+                      <button onClick={() => handleDeleteFixedItem(item.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -293,39 +314,33 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                 <DollarSign size={18} /> 3. Margem e Tributação
               </h2>
-              
+
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="bg-gray-50 p-4 rounded-xl">
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Margem de Lucro</label>
-                    <div className="flex items-center gap-2 mb-2">
-                        <input 
-                            type="number" 
-                            step="0.01"
-                            value={inputs.marginMultiplier}
-                            onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
-                            className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
-                        />
-                        <span className="text-sm text-gray-600">Multiplicador</span>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Margem de Lucro</label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={inputs.marginMultiplier}
+                      onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+                      className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                    />
+                    <span className="text-sm text-gray-600">Multiplicador</span>
+                  </div>
+                  {result && (
+                    <div className="flex items-center gap-2 text-xs text-metarh-medium">
+                      <AlertCircle size={12} />
+                      <span>Sugestão (Peso): {result.suggestedMargin.toFixed(2)}</span>
                     </div>
-                    {result && (
-                        <div className="flex items-center gap-2 text-xs text-metarh-medium">
-                            <AlertCircle size={12} />
-                            <span>Sugestão (Peso): {result.suggestedMargin.toFixed(2)}</span>
-                        </div>
-                    )}
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Localidade (ISS)</label>
-                  <select 
-                    value={inputs.selectedCity}
-                    onChange={(e) => handleSelectChange('selectedCity', e.target.value)}
-                    className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
-                  >
-                    {TAX_RATES.issOptions.map((opt, idx) => (
-                      <option key={idx} value={opt.city}>{opt.city} ({fmtPercent(opt.rate)})</option>
-                    ))}
-                  </select>
+                  <div className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700">
+                    São Paulo - SP (5.00%)
+                  </div>
                   <p className="text-xs text-gray-400 mt-2">
                     Aplicando PIS (1.65%), COFINS (7.6%), IRRF (1.5%), CSLL (1%)
                   </p>
@@ -354,11 +369,11 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   {/* Pricing */}
                   <div className="space-y-2 pb-4 border-b border-white/10">
                     <div className="flex justify-between items-end">
-                        <span className="text-sm text-gray-300">Taxa Administrativa</span>
-                        <span className="text-xl font-bold text-metarh-lime">{fmtCurrency(result.adminFee)}</span>
+                      <span className="text-sm text-gray-300">Taxa Administrativa</span>
+                      <span className="text-xl font-bold text-metarh-lime">{fmtCurrency(result.adminFee)}</span>
                     </div>
                     <p className="text-xs text-gray-400 text-right">
-                       Baseado na margem {inputs.marginMultiplier}x
+                      Baseado na margem {inputs.marginMultiplier}x
                     </p>
                   </div>
 
@@ -371,29 +386,29 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     <Row label="IRRF (1.5%)" value={fmtCurrency(result.taxIrrf)} small />
                     <Row label="CSLL (1%)" value={fmtCurrency(result.taxCsll)} small />
                     <div className="pt-2 border-t border-white/10">
-                        <Row label="Total Tributos" value={fmtCurrency(result.totalTaxes)} />
+                      <Row label="Total Tributos" value={fmtCurrency(result.totalTaxes)} />
                     </div>
                   </div>
 
                   {/* Final */}
                   <div className="pt-2 space-y-3">
                     <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-                        <p className="text-xs text-gray-300 uppercase font-bold mb-1">Total Bruto (NF)</p>
-                        <p className="text-3xl font-bold text-white">{fmtCurrency(result.grossNF)}</p>
+                      <p className="text-xs text-gray-300 uppercase font-bold mb-1">Total Bruto (NF)</p>
+                      <p className="text-3xl font-bold text-white">{fmtCurrency(result.grossNF)}</p>
                     </div>
 
                     <div className="flex justify-between text-xs text-red-300 px-2">
-                        <span>Retenção IR (1.5%)</span>
-                        <span>- {fmtCurrency(result.retentionIR)}</span>
+                      <span>Retenção IR (1.5%)</span>
+                      <span>- {fmtCurrency(result.retentionIR)}</span>
                     </div>
 
                     <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg">
-                        <p className="text-xs uppercase font-bold mb-1 opacity-80">Total Líquido (Recebido)</p>
-                        <p className="text-3xl font-bold">{fmtCurrency(result.netLiquid)}</p>
+                      <p className="text-xs uppercase font-bold mb-1 opacity-80">Total Líquido (Recebido)</p>
+                      <p className="text-3xl font-bold">{fmtCurrency(result.netLiquid)}</p>
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => alert("Proposta salva no histórico!")}
                     className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
                   >
@@ -415,10 +430,10 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 const InputField: React.FC<{ label: string, type: string, value: any, onChange: (val: string) => void }> = ({ label, type, value, onChange }) => (
   <div>
     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{label}</label>
-    <input 
-      type={type} 
-      value={value || ''} 
-      onChange={(e) => onChange(e.target.value)} 
+    <input
+      type={type}
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
       className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
     />
   </div>
@@ -427,9 +442,9 @@ const InputField: React.FC<{ label: string, type: string, value: any, onChange: 
 const SelectField: React.FC<{ label: string, value: number, onChange: (val: string) => void, options: { label: string, value: number }[] }> = ({ label, value, onChange, options }) => (
   <div>
     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{label}</label>
-    <select 
-      value={value} 
-      onChange={(e) => onChange(e.target.value)} 
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
       className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
     >
       {options.map((opt, i) => <option key={i} value={opt.value}>{opt.label}</option>)}

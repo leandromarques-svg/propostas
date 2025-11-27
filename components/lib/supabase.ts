@@ -15,4 +15,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('Supabase credentials not found. Please add them to your .env.local file.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Fallback to prevent crash if credentials are missing
+const url = supabaseUrl || 'https://placeholder.supabase.co';
+const key = supabaseAnonKey || 'placeholder-key';
+
+export const supabase = createClient(url, key);

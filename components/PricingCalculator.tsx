@@ -586,7 +586,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       if (success) {
                         alert("Proposta salva com sucesso!");
                       } else {
-                        alert("Erro ao salvar proposta. Verifique o console.");
+                        alert("Erro ao salvar proposta: " + JSON.stringify(error));
                         console.error(error);
                       }
                     }}

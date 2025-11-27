@@ -50,7 +50,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
       }
     } catch (err) {
       console.error(err);
-      setError('Erro ao conectar ao servidor');
+      setError('Erro ao conectar ao servidor: ' + JSON.stringify(err));
       setIsLoading(false);
     }
   };

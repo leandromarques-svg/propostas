@@ -90,7 +90,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       setFormData({});
     } catch (error) {
       console.error(error);
-      alert('Erro ao salvar usuário');
+      alert('Erro ao salvar usuário: ' + JSON.stringify(error));
     } finally {
       setIsLoading(false);
     }

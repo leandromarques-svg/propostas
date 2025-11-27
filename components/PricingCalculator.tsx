@@ -90,24 +90,46 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
     // 3. Pricing (Admin Fee)
-    // User manually inputs marginMultiplier, applied to Operational Costs
-    const adminFee = totalOperationalCost * marginMultiplier;
+    // User inputs percentage (10-100), applied to (Salary + Operational Costs)
+    const referenceSalaryTotal = salary * vacancies;
+    const baseCost = referenceSalaryTotal + totalOperationalCost;
+    const adminFee = baseCost * (marginMultiplier / 100);
 
     // 4. Taxes
     // Fixed to São Paulo
     const issRate = 0.05; // São Paulo default
 
-    const taxIss = adminFee * issRate;
-    const taxPis = adminFee * TAX_RATES.pis;
-    const taxCofins = adminFee * TAX_RATES.cofins;
-    const taxIrrf = adminFee * TAX_RATES.irrf;
-    const taxCsll = adminFee * TAX_RATES.csll;
+    // Taxes are calculated on the Gross Revenue (which covers Base + Fee + Taxes)
+    // Formula: Gross = (Base + Fee) / (1 - TotalTaxRate)
+    // But the current logic seems to add taxes on top. 
+    // "Aplicando PIS... em cima do valor..." usually means Gross = (Cost + Fee) / (1 - Taxes).
+    // However, the previous logic was additive: Gross = Fee + Taxes. 
+    // The user said "fica antes dos tributos", implying:
+    // Cost + Fee + Taxes = Gross.
+    // Let's stick to the additive logic for now unless specified otherwise, but applied to the new base.
+    // Actually, usually taxes are inside the Gross. 
+    // Let's follow the previous pattern: Tax = (Base + Fee) * Rate? Or Tax = Gross * Rate?
+    // Previous: taxIss = adminFee * issRate. (This was weird, tax on fee only?)
+    // User said: "Taxa administrativa... fica antes dos tributos".
+    // Let's assume: PreTax = Base + Fee. Taxes calculated on PreTax (or Gross).
+    // Given the previous code: `grossNF = adminFee + totalTaxes`. It seemed the "adminFee" WAS the revenue.
+    // Now "Admin Fee" is a markup.
+    // Let's calculate: TotalPreTax = Base + Fee.
+    // Taxes = TotalPreTax * Rates.
+    // Gross = TotalPreTax + Taxes.
+
+    const totalPreTax = baseCost + adminFee;
+
+    const taxIss = totalPreTax * issRate;
+    const taxPis = totalPreTax * TAX_RATES.pis;
+    const taxCofins = totalPreTax * TAX_RATES.cofins;
+    const taxIrrf = totalPreTax * TAX_RATES.irrf;
+    const taxCsll = totalPreTax * TAX_RATES.csll;
 
     const totalTaxes = taxIss + taxPis + taxCofins + taxIrrf + taxCsll;
 
     // 5. Final
-    const referenceSalaryTotal = salary * vacancies;
-    const grossNF = adminFee + totalTaxes + referenceSalaryTotal;
+    const grossNF = totalPreTax + totalTaxes;
     const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
     const netLiquid = grossNF - retentionIR;
 
@@ -272,9 +294,9 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <InputField label="Consultor 2" type="number" value={inputs.qtyConsultant2} onChange={(v) => handleNumberChange('qtyConsultant2', v)} />
-                  <InputField label="Consultor 1" type="number" value={inputs.qtyConsultant1} onChange={(v) => handleNumberChange('qtyConsultant1', v)} />
-                  <InputField label="Assistente" type="number" value={inputs.qtyAssistant} onChange={(v) => handleNumberChange('qtyAssistant', v)} />
+                  <InputField label="Equipe Senior" type="number" value={inputs.qtyConsultant2} onChange={(v) => handleNumberChange('qtyConsultant2', v)} />
+                  <InputField label="Equipe Plena" type="number" value={inputs.qtyConsultant1} onChange={(v) => handleNumberChange('qtyConsultant1', v)} />
+                  <InputField label="Equipe Junior" type="number" value={inputs.qtyAssistant} onChange={(v) => handleNumberChange('qtyAssistant', v)} />
                 </div>
               </div>
 
@@ -331,16 +353,18 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="bg-gray-50 p-4 rounded-xl">
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Margem de Lucro</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
                   <div className="flex items-center gap-2 mb-2">
                     <input
                       type="number"
-                      step="0.01"
+                      step="1"
+                      min="10"
+                      max="100"
                       value={inputs.marginMultiplier}
                       onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
                       className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
                     />
-                    <span className="text-sm text-gray-600">Multiplicador</span>
+                    <span className="text-sm text-gray-600">%</span>
                   </div>
                   {result && (
                     <div className="flex items-center gap-2 text-xs text-metarh-medium">

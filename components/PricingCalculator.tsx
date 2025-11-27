@@ -13,19 +13,25 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     roleName: '',
     vacancies: 1,
     salary: 0,
-    weightRole: 1.0, // Default Assistente
-    weightComplexity: 1.0, // Default Baixo
-    weightUrgency: 1.0, // Default Baixo
-    weightVolume: 1.0, // Default Ate 20
-    // FIX: Renamed 'estimatedProjectHours' to 'demandedDays' to match the type definition.
+    weightRole: 1.0,
+    weightComplexity: 0.5,
+    weightUrgency: 0.5,
+    weightVolume: 0.5,
     demandedDays: 0,
     qtyConsultant2: 0,
     qtyConsultant1: 0,
     qtyAssistant: 0,
     fixedItems: DEFAULT_FIXED_ITEMS,
-    marginMultiplier: 1.25, // Default Adjusted
+    marginMultiplier: 20,
     selectedCity: 'São Paulo - SP'
   });
+
+  // New coefficient categories (max 10 points)
+  const [weightJobLevel, setWeightJobLevel] = useState<number>(1); // max 3
+  const [weightLocation, setWeightLocation] = useState<number>(0.5); // max 1.5
+  const [weightWorkModel, setWeightWorkModel] = useState<number>(0.5); // max 1.5
+  const [weightUrgency, setWeightUrgency] = useState<number>(0.5); // max 2
+  const [weightProfileDifficulty, setWeightProfileDifficulty] = useState<number>(0.5); // max 2
 
   const [result, setResult] = useState<PricingResult | null>(null);
 
@@ -40,34 +46,68 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     { label: 'Operacional', value: 1 }
   ];
 
+  // New weight options
+  const WEIGHT_JOB_LEVEL = [
+    { label: 'Júnior', value: 1 },
+    { label: 'Pleno', value: 2 },
+    { label: 'Sênior/Liderança', value: 3 }
+  ];
+
+  const WEIGHT_LOCATION = [
+    { label: 'Grande Centro', value: 0.5 },
+    { label: 'Cidade Média', value: 1 },
+    { label: 'Interior/Difícil Acesso', value: 1.5 }
+  ];
+
+  const WEIGHT_WORK_MODEL = [
+    { label: 'Remoto', value: 0.5 },
+    { label: 'Híbrido', value: 1 },
+    { label: 'Presencial', value: 1.5 }
+  ];
+
+  const WEIGHT_URGENCY = [
+    { label: 'Baixa', value: 0.5 },
+    { label: 'Média', value: 1 },
+    { label: 'Alta', value: 2 }
+  ];
+
+  const WEIGHT_PROFILE_DIFFICULTY = [
+    { label: 'Fácil', value: 0.5 },
+    { label: 'Médio', value: 1 },
+    { label: 'Difícil', value: 2 }
+  ];
+
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
   const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
 
   // --- CALCULATION LOGIC ---
   useEffect(() => {
     calculatePricing();
-  }, [inputs]);
+  }, [inputs, profitMarginPct, weightJobLevel, weightLocation, weightWorkModel, weightUrgency, weightProfileDifficulty]);
 
   const calculatePricing = () => {
     const {
       vacancies, salary,
-      weightRole, weightComplexity, weightUrgency, weightVolume,
-      // FIX: Renamed 'estimatedProjectHours' to 'demandedDays'.
       demandedDays,
       qtyConsultant2, qtyConsultant1, qtyAssistant,
       fixedItems,
-      marginMultiplier, selectedCity
+      marginMultiplier
     } = inputs;
 
-    // 1. Coefficients & Suggested Margin
-    const totalWeight = weightRole + weightComplexity + weightUrgency + weightVolume;
-    const maxWeight = 8;
+    // 1. Coefficients & Team Suggestion
+    const totalWeight = weightJobLevel + weightLocation + weightWorkModel + weightUrgency + weightProfileDifficulty;
+    const maxWeight = 10;
     const weightPercentage = (totalWeight / maxWeight) * 100;
 
-    // Suggestion Logic (Simple heuristic based on prompts)
+    // Team suggestion based on coefficient
+    let suggestedTeam = 'Júnior';
+    if (totalWeight > 6) suggestedTeam = 'Sênior';
+    else if (totalWeight > 3) suggestedTeam = 'Plena';
+
+    // Suggested margin (keeping for compatibility)
     let suggestedMargin = 1.15;
     if (totalWeight > 6) suggestedMargin = 1.50;
-    else if (totalWeight > 4) suggestedMargin = 1.25;
+    else if (totalWeight > 3) suggestedMargin = 1.25;
 
     // 2. Operational Costs
     const LOCAL_HOURLY_RATES = {
@@ -90,16 +130,18 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
-    // 3. Pricing (Admin Fee + Profit Margin)
-    // User inputs two percentages:
-    // - Admin Fee: applied to (Salary + Operational Costs)
-    // - Profit Margin: applied to (Base + Admin Fee)
+    // 3. Pricing (Profit Margin BEFORE Admin Fee)
+    // Order: Base → Profit Margin → Admin Fee → Taxes
     const referenceSalaryTotal = salary * vacancies;
     const baseCost = referenceSalaryTotal + totalOperationalCost;
-    const adminFee = baseCost * (marginMultiplier / 100);
-    const subtotalAfterAdmin = baseCost + adminFee;
-    const profitMargin = subtotalAfterAdmin * (profitMarginPct / 100);
-    const totalPreTax = subtotalAfterAdmin + profitMargin;
+
+    // Profit Margin applied first
+    const profitMargin = baseCost * (profitMarginPct / 100);
+    const subtotalAfterProfit = baseCost + profitMargin;
+
+    // Admin Fee applied to (Base + Profit)
+    const adminFee = subtotalAfterProfit * (marginMultiplier / 100);
+    const totalPreTax = subtotalAfterProfit + adminFee;
 
     // 4. Taxes
     // Fixed to São Paulo
@@ -122,11 +164,13 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       totalWeight,
       weightPercentage,
       suggestedMargin,
+      suggestedTeam,
       teamCostTotal,
       fixedItemsCostTotal,
       totalOperationalCost,
       adminFee,
       referenceSalaryTotal,
+      profitMargin,
       taxIss,
       taxPis,
       taxCofins,
@@ -135,8 +179,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       totalTaxes,
       grossNF,
       retentionIR,
-      netLiquid,
-      profitMargin: profitMargin
+      netLiquid
     });
   };
 
@@ -210,46 +253,58 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                 <InputField label="Salário Base (R$)" type="number" value={inputs.salary} onChange={(v) => handleNumberChange('salary', v)} />
               </div>
 
-              <div className="grid md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nível do Cargo</label>
-                  <select
-                    value={selectedRoleLabel}
-                    onChange={(e) => {
-                      const label = e.target.value;
-                      setSelectedRoleLabel(label);
-                      const weight = ROLE_OPTIONS.find(r => r.label === label)?.value || 1;
-                      handleSelectChange('weightRole', weight);
-                    }}
-                    className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
-                  >
-                    {ROLE_OPTIONS.map((opt, i) => <option key={i} value={opt.label}>{opt.label}</option>)}
-                  </select>
-                </div>
+              <div className="grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-xl">
                 <SelectField
-                  label="Complexidade"
-                  value={inputs.weightComplexity}
-                  onChange={(v) => handleSelectChange('weightComplexity', Number(v))}
-                  options={WEIGHT_TABLES.complexity}
+                  label="Nível da Vaga"
+                  value={weightJobLevel}
+                  onChange={(v) => setWeightJobLevel(Number(v))}
+                  options={WEIGHT_JOB_LEVEL}
+                />
+                <SelectField
+                  label="Localidade"
+                  value={weightLocation}
+                  onChange={(v) => setWeightLocation(Number(v))}
+                  options={WEIGHT_LOCATION}
+                />
+                <SelectField
+                  label="Modelo de Trabalho"
+                  value={weightWorkModel}
+                  onChange={(v) => setWeightWorkModel(Number(v))}
+                  options={WEIGHT_WORK_MODEL}
                 />
                 <SelectField
                   label="Urgência"
-                  value={inputs.weightUrgency}
-                  onChange={(v) => handleSelectChange('weightUrgency', Number(v))}
-                  options={WEIGHT_TABLES.urgency}
+                  value={weightUrgency}
+                  onChange={(v) => setWeightUrgency(Number(v))}
+                  options={WEIGHT_URGENCY}
                 />
                 <SelectField
-                  label="Volumetria"
-                  value={inputs.weightVolume}
-                  onChange={(v) => handleSelectChange('weightVolume', Number(v))}
-                  options={WEIGHT_TABLES.volume}
+                  label="Facilidade do Perfil"
+                  value={weightProfileDifficulty}
+                  onChange={(v) => setWeightProfileDifficulty(Number(v))}
+                  options={WEIGHT_PROFILE_DIFFICULTY}
                 />
               </div>
 
               {result && (
-                <div className="mt-4 flex items-center justify-between text-sm text-gray-600 px-2">
-                  <span>Coeficiente: <strong>{result.totalWeight.toFixed(2)}</strong></span>
-                  <span className="text-metarh-medium font-bold">Salário Referência Total: {fmtCurrency(result.referenceSalaryTotal)}</span>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm text-gray-600 px-2">
+                    <span>Coeficiente: <strong className="text-metarh-medium text-lg">{result.totalWeight.toFixed(1)}</strong> / 10</span>
+                    <span className="text-gray-500">Salário Referência Total: {fmtCurrency(result.referenceSalaryTotal)}</span>
+                  </div>
+                  <div className="bg-metarh-medium/10 border border-metarh-medium/30 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle size={16} className="text-metarh-medium" />
+                      <span className="text-sm font-bold text-metarh-dark">
+                        Sugestão de Equipe: <span className="text-metarh-medium">{result.suggestedTeam}</span>
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1 ml-6">
+                      {result.totalWeight <= 3 && "Vaga tranquila, júnior dá conta sem sofrer. Custo menor, margem maior."}
+                      {result.totalWeight > 3 && result.totalWeight <= 6 && "Vagas medianas, pleno segura a bronca. Custo ok, margem equilibrada."}
+                      {result.totalWeight > 6 && "Vaga complexa, só sênior fecha rápido. Custo maior, mas evita retrabalho."}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -339,22 +394,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="bg-gray-50 p-4 rounded-xl">
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
-                  <div className="flex items-center gap-2 mb-4">
-                    <input
-                      type="number"
-                      step="1"
-                      min="10"
-                      max="100"
-                      value={inputs.marginMultiplier}
-                      onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
-                      className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
-                    />
-                    <span className="text-sm text-gray-600">%</span>
-                  </div>
-
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Margem de Lucro (%)</label>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-4">
                     <input
                       type="number"
                       step="1"
@@ -362,6 +403,20 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       max="100"
                       value={profitMarginPct}
                       onChange={(e) => setProfitMarginPct(parseFloat(e.target.value) || 0)}
+                      className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="number"
+                      step="1"
+                      min="10"
+                      max="100"
+                      value={inputs.marginMultiplier}
+                      onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
                       className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
                     />
                     <span className="text-sm text-gray-600">%</span>
@@ -406,12 +461,24 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
                   {/* Pricing */}
                   <div className="space-y-2 pb-4 border-b border-white/10">
-                    <div className="flex justify-between items-end">
+                    {/* Profit Margin - HIGHLIGHTED */}
+                    <div className="bg-metarh-lime/20 border-2 border-metarh-lime rounded-xl p-3">
+                      <div className="flex justify-between items-end">
+                        <span className="text-sm font-bold text-metarh-lime">Margem de Lucro</span>
+                        <span className="text-2xl font-bold text-metarh-lime">{fmtCurrency(result.profitMargin)}</span>
+                      </div>
+                      <p className="text-xs text-gray-300 text-right mt-1">
+                        {profitMarginPct}% sobre base
+                      </p>
+                    </div>
+
+                    {/* Admin Fee */}
+                    <div className="flex justify-between items-end pt-2">
                       <span className="text-sm text-gray-300">Taxa Administrativa</span>
-                      <span className="text-xl font-bold text-metarh-lime">{fmtCurrency(result.adminFee)}</span>
+                      <span className="text-xl font-bold text-white">{fmtCurrency(result.adminFee)}</span>
                     </div>
                     <p className="text-xs text-gray-400 text-right">
-                      Baseado na margem {inputs.marginMultiplier}x
+                      {inputs.marginMultiplier}% sobre (base + lucro)
                     </p>
                   </div>
 

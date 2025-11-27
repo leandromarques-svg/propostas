@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { X, UserPlus, Edit, Trash2, Shield, Save, Loader2 } from 'lucide-react';
 import { getUsers, saveUser, deleteUser, UserProfile } from './lib/userService';

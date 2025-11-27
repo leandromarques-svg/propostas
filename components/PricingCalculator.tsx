@@ -41,6 +41,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   ];
 
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
+  const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
 
   // --- CALCULATION LOGIC ---
   useEffect(() => {
@@ -89,36 +90,20 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
-    // 3. Pricing (Admin Fee)
-    // User inputs percentage (10-100), applied to (Salary + Operational Costs)
+    // 3. Pricing (Admin Fee + Profit Margin)
+    // User inputs two percentages:
+    // - Admin Fee: applied to (Salary + Operational Costs)
+    // - Profit Margin: applied to (Base + Admin Fee)
     const referenceSalaryTotal = salary * vacancies;
     const baseCost = referenceSalaryTotal + totalOperationalCost;
     const adminFee = baseCost * (marginMultiplier / 100);
+    const subtotalAfterAdmin = baseCost + adminFee;
+    const profitMargin = subtotalAfterAdmin * (profitMarginPct / 100);
+    const totalPreTax = subtotalAfterAdmin + profitMargin;
 
     // 4. Taxes
     // Fixed to São Paulo
     const issRate = 0.05; // São Paulo default
-
-    // Taxes are calculated on the Gross Revenue (which covers Base + Fee + Taxes)
-    // Formula: Gross = (Base + Fee) / (1 - TotalTaxRate)
-    // But the current logic seems to add taxes on top. 
-    // "Aplicando PIS... em cima do valor..." usually means Gross = (Cost + Fee) / (1 - Taxes).
-    // However, the previous logic was additive: Gross = Fee + Taxes. 
-    // The user said "fica antes dos tributos", implying:
-    // Cost + Fee + Taxes = Gross.
-    // Let's stick to the additive logic for now unless specified otherwise, but applied to the new base.
-    // Actually, usually taxes are inside the Gross. 
-    // Let's follow the previous pattern: Tax = (Base + Fee) * Rate? Or Tax = Gross * Rate?
-    // Previous: taxIss = adminFee * issRate. (This was weird, tax on fee only?)
-    // User said: "Taxa administrativa... fica antes dos tributos".
-    // Let's assume: PreTax = Base + Fee. Taxes calculated on PreTax (or Gross).
-    // Given the previous code: `grossNF = adminFee + totalTaxes`. It seemed the "adminFee" WAS the revenue.
-    // Now "Admin Fee" is a markup.
-    // Let's calculate: TotalPreTax = Base + Fee.
-    // Taxes = TotalPreTax * Rates.
-    // Gross = TotalPreTax + Taxes.
-
-    const totalPreTax = baseCost + adminFee;
 
     const taxIss = totalPreTax * issRate;
     const taxPis = totalPreTax * TAX_RATES.pis;
@@ -150,7 +135,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       totalTaxes,
       grossNF,
       retentionIR,
-      netLiquid
+      netLiquid,
+      profitMargin: profitMargin
     });
   };
 
@@ -354,7 +340,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-4">
                     <input
                       type="number"
                       step="1"
@@ -362,6 +348,20 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       max="100"
                       value={inputs.marginMultiplier}
                       onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+                      className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Margem de Lucro (%)</label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="100"
+                      value={profitMarginPct}
+                      onChange={(e) => setProfitMarginPct(parseFloat(e.target.value) || 0)}
                       className="w-24 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
                     />
                     <span className="text-sm text-gray-600">%</span>

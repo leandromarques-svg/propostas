@@ -339,6 +339,20 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   <InputField label="Equipe Plena" type="number" value={inputs.qtyConsultant1} onChange={(v) => handleNumberChange('qtyConsultant1', v)} />
                   <InputField label="Equipe Junior" type="number" value={inputs.qtyAssistant} onChange={(v) => handleNumberChange('qtyAssistant', v)} />
                 </div>
+
+                {/* Team Totals */}
+                {result && (
+                  <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-lg p-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-bold text-gray-700">Total da Equipe:</span>
+                      <span className="font-bold text-metarh-dark">{inputs.qtyConsultant2 + inputs.qtyConsultant1 + inputs.qtyAssistant} profissionais</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mt-2">
+                      <span className="font-bold text-gray-700">Custo da Equipe:</span>
+                      <span className="font-bold text-metarh-medium text-lg">{fmtCurrency(result.teamCostTotal)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-gray-100 pt-4">
@@ -383,6 +397,16 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     </div>
                   ))}
                 </div>
+
+                {/* Fixed Costs Total */}
+                {result && (
+                  <div className="mt-4 bg-gray-100 border border-gray-300 rounded-lg p-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-bold text-gray-700">Total Custos Fixos:</span>
+                      <span className="font-bold text-gray-900 text-lg">{fmtCurrency(result.fixedItemsCostTotal)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

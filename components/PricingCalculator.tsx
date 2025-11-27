@@ -483,25 +483,27 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     <Row label="Total Operacional" value={fmtCurrency(result.totalOperationalCost)} highlight />
                   </div>
 
-                  {/* Pricing */}
-                  <div className="space-y-2 pb-4 border-b border-white/10">
-                    {/* Profit Margin - HIGHLIGHTED */}
-                    <div className="bg-metarh-lime/20 border-2 border-metarh-lime rounded-xl p-3">
-                      <div className="flex justify-between items-end">
-                        <span className="text-sm font-bold text-metarh-lime">Margem de Lucro</span>
-                        <span className="text-2xl font-bold text-metarh-lime">{fmtCurrency(result.profitMargin)}</span>
-                      </div>
-                      <p className="text-xs text-gray-300 text-right mt-1">
-                        {profitMarginPct}% sobre base
-                      </p>
+                  {/* Pricing - Separate Box */}
+                  <div className="bg-gradient-to-br from-metarh-lime/20 to-metarh-medium/20 border-2 border-metarh-lime rounded-2xl p-4 space-y-3">
+                    <p className="text-xs font-bold text-metarh-lime uppercase tracking-wider">Margem & Taxa</p>
+
+                    {/* Profit Margin */}
+                    <div className="flex justify-between items-end">
+                      <span className="text-sm font-bold text-white">Margem de Lucro</span>
+                      <span className="text-2xl font-bold text-metarh-lime">{fmtCurrency(result.profitMargin)}</span>
                     </div>
+                    <p className="text-xs text-gray-300 text-right -mt-1">
+                      {profitMarginPct}% sobre base
+                    </p>
+
+                    <div className="border-t border-white/20 my-2"></div>
 
                     {/* Admin Fee */}
-                    <div className="flex justify-between items-end pt-2">
-                      <span className="text-sm text-gray-300">Taxa Administrativa</span>
+                    <div className="flex justify-between items-end">
+                      <span className="text-sm font-bold text-white">Taxa Administrativa</span>
                       <span className="text-xl font-bold text-white">{fmtCurrency(result.adminFee)}</span>
                     </div>
-                    <p className="text-xs text-gray-400 text-right">
+                    <p className="text-xs text-gray-300 text-right -mt-1">
                       {inputs.marginMultiplier}% sobre (base + lucro)
                     </p>
                   </div>

@@ -568,6 +568,43 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                       <p className="text-xs uppercase font-bold mb-1 opacity-80">Total Líquido (Recebido)</p>
                       <p className="text-3xl font-bold">{fmtCurrency(result.netLiquid)}</p>
                     </div>
+
+                    {/* Real Profit Section */}
+                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400 p-4 rounded-2xl">
+                      <p className="text-xs uppercase font-bold mb-2 text-purple-300 tracking-wider">💰 Lucro Real</p>
+                      <p className="text-2xl font-bold text-white mb-1">{fmtCurrency(result.realProfit)}</p>
+                      <p className="text-xs text-gray-300">
+                        {result.profitMarginPercentage.toFixed(1)}% do valor recebido
+                      </p>
+                      <div className="mt-2 text-[10px] text-gray-400">
+                        Líquido - Custos Equipe - Custos Fixos
+                      </div>
+                    </div>
+
+                    {/* Fun Tips Section */}
+                    <div className={`p-4 rounded-2xl border-2 ${result.realProfit < 0
+                        ? 'bg-red-500/10 border-red-400'
+                        : result.profitMarginPercentage < 10
+                          ? 'bg-orange-500/10 border-orange-400'
+                          : result.profitMarginPercentage < 20
+                            ? 'bg-yellow-500/10 border-yellow-400'
+                            : 'bg-green-500/10 border-green-400'
+                      }`}>
+                      <p className="text-xs font-bold mb-2 flex items-center gap-1">
+                        {result.realProfit < 0 ? '🚨' : result.profitMarginPercentage < 10 ? '😅' : result.profitMarginPercentage < 20 ? '😉' : '🚀'}
+                        <span className="text-white">Dica do Especialista</span>
+                      </p>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {result.realProfit < 0
+                          ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
+                          : result.profitMarginPercentage < 10
+                            ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
+                            : result.profitMarginPercentage < 20
+                              ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
+                              : 'Aí sim! Margem top. O comercial tá voando! Pode fechar sem medo. 🚀'
+                        }
+                      </p>
+                    </div>
                   </div>
 
                   <button

@@ -163,10 +163,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     // 5. Final
     const grossNF = totalPreTax + totalTaxes;
     const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
-    const netLiquid = grossNF - retentionIR;
 
-    // 6. Real Profit = What we receive - What we spend
-    const realProfit = netLiquid - totalOperationalCost;
+    // Net Liquid = Gross - Retention - Taxes - Fixed Costs
+    const netLiquid = grossNF - retentionIR - totalTaxes - fixedItemsCostTotal;
+
+    // 6. Real Profit = What we receive - What we spend on team
+    const realProfit = netLiquid - teamCostTotal;
     const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
 
     setResult({

@@ -144,7 +144,9 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
     // Admin Fee applied ONLY to Reference Salary Total
     const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
-    const totalPreTax = subtotalAfterProfit + adminFee;
+    
+    // NEW LOGIC: Reference Salary IS now part of the total proposal value
+    const totalPreTax = subtotalAfterProfit + adminFee + referenceSalaryTotal;
 
     // 4. Taxes
     // Fixed to São Paulo
@@ -492,7 +494,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                   <div className="space-y-2 pb-4 border-b border-white/10">
                     <Row label="Custo Equipe" value={fmtCurrency(result.teamCostTotal)} />
                     <Row label="Custos Fixos" value={fmtCurrency(result.fixedItemsCostTotal)} />
-                    <Row label="Total Operacional" value={fmtCurrency(result.totalOperationalCost)} highlight />
+                    <Row label="Total Operacional" value={fmtCurrency(result.totalOperationalCost)} />
+                    
+                    {/* Highlighted Reference Salary */}
+                    <div className="py-2 border-y border-white/10 my-2">
+                       <Row label="Salário Referência (Total)" value={fmtCurrency(result.referenceSalaryTotal)} highlight />
+                    </div>
                   </div>
 
                   {/* Pricing - Separate Box */}

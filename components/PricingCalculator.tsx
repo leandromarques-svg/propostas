@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectPricingInputs, PricingResult, FixedCostItem } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
-import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2 } from 'lucide-react';
+import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2, Sparkles } from 'lucide-react';
 import { saveProposal } from './lib/proposalService';
 import { SupabaseStatus } from './SupabaseStatus';
+import { GoogleGenAI } from "@google/genai";
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -36,6 +37,10 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const [weightProfileDifficulty, setWeightProfileDifficulty] = useState<number>(0.5); // max 2
 
   const [result, setResult] = useState<PricingResult | null>(null);
+
+  // AI Analysis State
+  const [projectDescription, setProjectDescription] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const ROLE_OPTIONS = [
     { label: 'Diretoria', value: 2 },
@@ -229,6 +234,59 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     setInputs(prev => ({ ...prev, fixedItems: prev.fixedItems.filter(i => i.id !== id) }));
   };
 
+  // AI Analysis Handler
+  const handleAnalyzeWithAI = async () => {
+    if (!projectDescription.trim()) {
+      alert('Por favor, insira uma descrição do projeto primeiro.');
+      return;
+    }
+
+    setIsAnalyzing(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+      const prompt = `Analise a seguinte descrição de projeto de R&S e retorne APENAS um JSON válido com os seguintes campos numéricos:
+- weightJobLevel: 1 (Júnior), 2 (Pleno), ou 3 (Sênior/Liderança)
+- weightLocation: 0.5 (Grande Centro), 1 (Cidade Média), ou 1.5 (Interior/Difícil Acesso)
+- weightWorkModel: 0.5 (Remoto), 1 (Híbrido), ou 1.5 (Presencial)
+- weightUrgency: 0.5 (Baixa), 1 (Média), ou 2 (Alta)
+- weightProfileDifficulty: 0.5 (Fácil), 1 (Médio), ou 2 (Difícil)
+
+Descrição: ${projectDescription}
+
+Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          temperature: 0.3,
+        }
+      });
+
+      const responseText = response.text.trim();
+
+      // Remove markdown code blocks if present
+      const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+      const weights = JSON.parse(jsonText);
+
+      // Set the weights
+      setWeightJobLevel(weights.weightJobLevel || 1);
+      setWeightLocation(weights.weightLocation || 0.5);
+      setWeightWorkModel(weights.weightWorkModel || 0.5);
+      setWeightUrgency(weights.weightUrgency || 0.5);
+      setWeightProfileDifficulty(weights.weightProfileDifficulty || 0.5);
+
+    } catch (error) {
+      console.error('Erro na análise IA:', error);
+      alert('Erro ao analisar com IA. Verifique a conexão e tente novamente.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const fmtCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   const fmtPercent = (val: number) => `${(val * 100).toFixed(2)}%`;
 
@@ -267,6 +325,37 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                 <InputField label="Cargo" type="text" value={inputs.roleName} onChange={(v) => setInputs(p => ({ ...p, roleName: v }))} />
                 <InputField label="Vagas (Qtd)" type="number" value={inputs.vacancies} onChange={(v) => handleNumberChange('vacancies', v)} />
                 <InputField label="Salário Base (R$)" type="number" value={inputs.salary} onChange={(v) => handleNumberChange('salary', v)} />
+              </div>
+
+              {/* AI Project Description */}
+              <div className="mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-4 rounded-xl">
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                  📝 Descrição do Projeto (IA)
+                </label>
+                <textarea
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  placeholder="Descreva o projeto: cargo, localização, urgência, modelo de trabalho, dificuldade do perfil..."
+                  className="w-full p-3 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none bg-white"
+                  rows={3}
+                />
+                <button
+                  onClick={handleAnalyzeWithAI}
+                  disabled={isAnalyzing || !projectDescription.trim()}
+                  className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-bold text-sm hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Analisando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={16} />
+                      Analisar com IA
+                    </>
+                  )}
+                </button>
               </div>
 
               <div className="grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-xl">

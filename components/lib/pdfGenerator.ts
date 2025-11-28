@@ -1,7 +1,12 @@
-import { jsPDF } from 'jspdf';
+// @ts-ignore - jsPDF loaded from CDN
+const { jsPDF } = window.jspdf || {};
 import { ProjectPricingInputs, PricingResult } from '../../types';
 
 export const generateProposalPDF = (inputs: ProjectPricingInputs, result: PricingResult) => {
+    if (!jsPDF) {
+        alert('Erro: biblioteca jsPDF não carregada. Recarregue a página.');
+        return;
+    }
     const doc = new jsPDF();
 
     const primaryColor = '#470082';

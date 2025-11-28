@@ -132,24 +132,21 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
     const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
 
-    // Fixed costs are internal costs, NOT part of the invoice
-    const totalOperationalCost = teamCostTotal; // Only team costs for pricing
+    // Total Operacional = Team Costs + Fixed Costs (internal tracking only)
+    const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
-    // 3. Pricing (Profit Margin BEFORE Admin Fee)
-    // Order: Base → Profit Margin → Admin Fee → Taxes
+    // 3. Pricing - ONLY Admin Fee is charged to client
     const referenceSalaryTotal = salary * vacancies;
-    const baseCost = totalOperationalCost; // Only team costs
-
-    // Profit Margin applied to Team Cost only
-    const profitMargin = totalOperationalCost * (profitMarginPct / 100);
-    const subtotalAfterProfit = baseCost + profitMargin;
 
     // Admin Fee: Input is the Target % of Salary.
     // 100% -> Fee = 1.0 * Salary. 120% -> Fee = 1.2 * Salary.
     const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
 
-    // NEW LOGIC: Reference Salary is NOT part of the total proposal value, only the Fee is.
-    const totalPreTax = subtotalAfterProfit + adminFee;
+    // Profit Margin (for display purposes, but not added to invoice)
+    const profitMargin = totalOperationalCost * (profitMarginPct / 100);
+
+    // NEW LOGIC: Invoice ONLY includes Admin Fee (no operational costs)
+    const totalPreTax = adminFee;
 
     // 4. Taxes
     // Fixed to São Paulo
@@ -168,8 +165,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
     const netLiquid = grossNF - retentionIR;
 
-    // 6. Real Profit (what we actually make after all costs)
-    const realProfit = netLiquid - teamCostTotal - fixedItemsCostTotal;
+    // 6. Real Profit = What we receive - What we spend
+    const realProfit = netLiquid - totalOperationalCost;
     const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
 
     setResult({
@@ -583,12 +580,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
                     {/* Fun Tips Section */}
                     <div className={`p-4 rounded-2xl border-2 ${result.realProfit < 0
-                        ? 'bg-red-500/10 border-red-400'
-                        : result.profitMarginPercentage < 10
-                          ? 'bg-orange-500/10 border-orange-400'
-                          : result.profitMarginPercentage < 20
-                            ? 'bg-yellow-500/10 border-yellow-400'
-                            : 'bg-green-500/10 border-green-400'
+                      ? 'bg-red-500/10 border-red-400'
+                      : result.profitMarginPercentage < 10
+                        ? 'bg-orange-500/10 border-orange-400'
+                        : result.profitMarginPercentage < 20
+                          ? 'bg-yellow-500/10 border-yellow-400'
+                          : 'bg-green-500/10 border-green-400'
                       }`}>
                       <p className="text-xs font-bold mb-2 flex items-center gap-1">
                         {result.realProfit < 0 ? '🚨' : result.profitMarginPercentage < 10 ? '😅' : result.profitMarginPercentage < 20 ? '😉' : '🚀'}

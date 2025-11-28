@@ -5,7 +5,7 @@ import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../
 import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2, Sparkles } from 'lucide-react';
 import { saveProposal } from './lib/proposalService';
 import { SupabaseStatus } from './SupabaseStatus';
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -220,7 +220,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
         return;
       }
 
-      const ai = new GoogleGenerativeAI(apiKey);
+      const ai = new GoogleGenAI({ apiKey });
 
       const prompt = `Analise a seguinte descrição de projeto de R&S e retorne APENAS um JSON válido com o seguinte campo numérico:
 - complexityScale: Um valor de 0 a 5 representando a complexidade geral da posição (0=Muito Baixa, 5=Muito Alta).
@@ -231,8 +231,15 @@ Descrição: ${projectDescription}
 
 Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
-      const result = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent(prompt);
-      const responseText = result.response.text().trim();
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          temperature: 0.3,
+        }
+      });
+
+      const responseText = response.text?.trim() || '';
 
       // Remove markdown code blocks if present
       const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();

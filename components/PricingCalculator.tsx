@@ -470,7 +470,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     <div className="bg-white rounded-lg p-3 border border-gray-300">
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-gray-600">Valor Total:</span>
-                        <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.referenceSalaryTotal + result.adminFee)}</span>
+                        <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
                       </div>
                     </div>
                   )}

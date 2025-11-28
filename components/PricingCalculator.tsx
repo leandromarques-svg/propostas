@@ -30,11 +30,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   });
 
   // New coefficient categories (max 10 points)
-  const [weightJobLevel, setWeightJobLevel] = useState<number>(1); // max 3
-  const [weightLocation, setWeightLocation] = useState<number>(0.5); // max 1.5
-  const [weightWorkModel, setWeightWorkModel] = useState<number>(0.5); // max 1.5
-  const [weightUrgency, setWeightUrgency] = useState<number>(0.5); // max 2
-  const [weightProfileDifficulty, setWeightProfileDifficulty] = useState<number>(0.5); // max 2
+  const [complexityScale, setComplexityScale] = useState<number>(1); // 0-5 scale
 
   const [result, setResult] = useState<PricingResult | null>(null);
 
@@ -51,37 +47,6 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     { label: 'Técnico', value: 1.25 },
     { label: 'Assistente', value: 1 },
     { label: 'Operacional', value: 1 }
-  ];
-
-  // New weight options
-  const WEIGHT_JOB_LEVEL = [
-    { label: 'Júnior', value: 1 },
-    { label: 'Pleno', value: 2 },
-    { label: 'Sênior/Liderança', value: 3 }
-  ];
-
-  const WEIGHT_LOCATION = [
-    { label: 'Grande Centro', value: 0.5 },
-    { label: 'Cidade Média', value: 1 },
-    { label: 'Interior/Difícil Acesso', value: 1.5 }
-  ];
-
-  const WEIGHT_WORK_MODEL = [
-    { label: 'Remoto', value: 0.5 },
-    { label: 'Híbrido', value: 1 },
-    { label: 'Presencial', value: 1.5 }
-  ];
-
-  const WEIGHT_URGENCY = [
-    { label: 'Baixa', value: 0.5 },
-    { label: 'Média', value: 1 },
-    { label: 'Alta', value: 2 }
-  ];
-
-  const WEIGHT_PROFILE_DIFFICULTY = [
-    { label: 'Fácil', value: 0.5 },
-    { label: 'Médio', value: 1 },
-    { label: 'Difícil', value: 2 }
   ];
 
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
@@ -102,30 +67,26 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       marginMultiplier
     } = inputs;
 
-    // 1. Coefficients & Team Suggestion
-    const totalWeight = weightJobLevel + weightLocation + weightWorkModel + weightUrgency + weightProfileDifficulty;
-    const maxWeight = 10;
-    const weightPercentage = (totalWeight / maxWeight) * 100;
-
-    // Team suggestion based on coefficient
-    let suggestedTeam = 'Júnior';
-    if (totalWeight > 6) suggestedTeam = 'Sênior';
-    else if (totalWeight > 3) suggestedTeam = 'Plena';
-
-    // Suggested margin (keeping for compatibility)
-    let suggestedMargin = 1.15;
-    if (totalWeight > 6) suggestedMargin = 1.50;
-    else if (totalWeight > 3) suggestedMargin = 1.25;
+    // 1. Team Suggestion based on Complexity Scale (0-5)
+    // This logic can be refined. For now:
+    // 0-1: Mostly Assistant/Junior
+    // 2-3: Balanced
+    // 4-5: Senior heavy
+    let suggestedTeam = 'Equipe Padrão';
+    if (complexityScale <= 1.5) suggestedTeam = 'Foco em Assistente/Jr';
+    else if (complexityScale <= 3.5) suggestedTeam = 'Equipe Mista (Pleno)';
+    else suggestedTeam = 'Foco em Sênior/Especialista';
 
     // 2. Operational Costs
+    // Define hourly rates locally if not imported, or use constants
     const LOCAL_HOURLY_RATES = {
-      consultant2: 27.00,
-      consultant1: 22.00,
-      assistant: 15.00
+      consultant2: 150, // Senior
+      consultant1: 100, // Pleno
+      assistant: 50     // Junior
     };
 
     const teamHourlyCost =
-      (qtyConsultant2 * LOCAL_HOURLY_RATES.consultant2) +
+      (qtyConsultant2 * LOCAL_HOURLY_RUTE.consultant2) +
       (qtyConsultant1 * LOCAL_HOURLY_RATES.consultant1) +
       (qtyAssistant * LOCAL_HOURLY_RATES.assistant);
 
@@ -137,26 +98,32 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
     const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
 
-    // Total Operacional = Team Costs + Fixed Costs (internal tracking only)
+    // Total Operacional = Team Costs + Fixed Costs
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
-    // 3. Pricing - ONLY Admin Fee is charged to client
+    // 3. Pricing
     const referenceSalaryTotal = salary * vacancies;
 
     // Admin Fee: Input is the Target % of Salary.
-    // 100% -> Fee = 1.0 * Salary. 120% -> Fee = 1.2 * Salary.
     const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
 
-    // Profit Margin (for display purposes, but not added to invoice)
+    // Profit Margin (Legacy calculation, kept for reference if needed, but not used in new logic)
     const profitMargin = totalOperationalCost * (profitMarginPct / 100);
 
-    // NEW LOGIC: Invoice ONLY includes Admin Fee (no operational costs)
+    // Invoice Total (Gross NF) = Admin Fee + Taxes
+    // We need to calculate Taxes ON TOP of the Admin Fee so that:
+    // Gross NF = Admin Fee + Taxes
+    // And Net Liquid (after retention) covers the Admin Fee.
+
+    // However, user said: "O total Bruto (NF) é o valor da Taxa Administrativa + Impostos"
+    // Let's assume standard gross up logic or simple addition depending on interpretation.
+    // Usually: Gross = Net / (1 - TaxRate). 
+    // But here, let's stick to the previous flow: Base = Admin Fee.
+
     const totalPreTax = adminFee;
 
     // 4. Taxes
-    // Fixed to São Paulo
     const issRate = 0.05; // São Paulo default
-
     const taxIss = totalPreTax * issRate;
     const taxPis = totalPreTax * TAX_RATES.pis;
     const taxCofins = totalPreTax * TAX_RATES.cofins;
@@ -169,17 +136,21 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const grossNF = totalPreTax + totalTaxes;
     const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
 
-    // Net Liquid = Gross - Retention - Taxes - Fixed Costs
-    const netLiquid = grossNF - retentionIR - totalTaxes - fixedItemsCostTotal;
+    // Total Líquido (Recebido) = Valor da Nota - Retenção de IR
+    const netLiquid = grossNF - retentionIR;
 
-    // 6. Real Profit = What we receive - What we spend on team
-    const realProfit = netLiquid - teamCostTotal;
-    const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
+    // 6. Real Profit Calculation
+    // Lucro real = Total Líquido - repasse de tributos - Custos Operacionais
+    // "Repasse de tributos" here likely means the taxes we collected and need to pay (Total Taxes).
+    const realProfit = netLiquid - totalTaxes - totalOperationalCost;
+
+    // Profit Margin %: "a porcentagem é o quanto isso representa da minha taxa administrativa"
+    const profitMarginPercentage = adminFee > 0 ? (realProfit / adminFee) * 100 : 0;
 
     setResult({
-      totalWeight,
-      weightPercentage,
-      suggestedMargin,
+      totalWeight: complexityScale, // Using complexity scale as total weight
+      weightPercentage: (complexityScale / 5) * 100,
+      suggestedMargin: 0, // Not used
       suggestedTeam,
       teamCostTotal,
       fixedItemsCostTotal,
@@ -253,32 +224,25 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
       const ai = new GoogleGenerativeAI(apiKey);
 
-      const prompt = `Analise a seguinte descrição de projeto de R&S e retorne APENAS um JSON válido com os seguintes campos numéricos:
-- weightJobLevel: 1 (Júnior), 2 (Pleno), ou 3 (Sênior/Liderança)
-- weightLocation: 0.5 (Grande Centro), 1 (Cidade Média), ou 1.5 (Interior/Difícil Acesso)
-- weightWorkModel: 0.5 (Remoto), 1 (Híbrido), ou 1.5 (Presencial)
-- weightUrgency: 0.5 (Baixa), 1 (Média), ou 2 (Alta)
-- weightProfileDifficulty: 0.5 (Fácil), 1 (Médio), ou 2 (Difícil)
+      const prompt = `Analise a seguinte descrição de projeto de R&S e retorne APENAS um JSON válido com o seguinte campo numérico:
+- complexityScale: Um valor de 0 a 5 representando a complexidade geral da posição (0=Muito Baixa, 5=Muito Alta).
+
+Considere: Nível da vaga, Localidade, Modelo de trabalho, Urgência e Dificuldade do perfil.
 
 Descrição: ${projectDescription}
 
 Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
-      const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent(prompt);
+      const result = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent(prompt);
       const responseText = result.response.text().trim();
 
       // Remove markdown code blocks if present
       const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-      const weights = JSON.parse(jsonText);
+      const analysis = JSON.parse(jsonText);
 
-      // Set the weights
-      setWeightJobLevel(weights.weightJobLevel || 1);
-      setWeightLocation(weights.weightLocation || 0.5);
-      setWeightWorkModel(weights.weightWorkModel || 0.5);
-      setWeightUrgency(weights.weightUrgency || 0.5);
-      setWeightProfileDifficulty(weights.weightProfileDifficulty || 0.5);
+      // Set the complexity scale
+      setComplexityScale(analysis.complexityScale || 2.5);
 
     } catch (error) {
       console.error('Erro na análise IA:', error);
@@ -360,36 +324,30 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               </div>
 
               <div className="grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-xl">
-                <SelectField
-                  label="Nível da Vaga"
-                  value={weightJobLevel}
-                  onChange={(v) => setWeightJobLevel(Number(v))}
-                  options={WEIGHT_JOB_LEVEL}
-                />
-                <SelectField
-                  label="Localidade"
-                  value={weightLocation}
-                  onChange={(v) => setWeightLocation(Number(v))}
-                  options={WEIGHT_LOCATION}
-                />
-                <SelectField
-                  label="Modelo de Trabalho"
-                  value={weightWorkModel}
-                  onChange={(v) => setWeightWorkModel(Number(v))}
-                  options={WEIGHT_WORK_MODEL}
-                />
-                <SelectField
-                  label="Urgência"
-                  value={weightUrgency}
-                  onChange={(v) => setWeightUrgency(Number(v))}
-                  options={WEIGHT_URGENCY}
-                />
-                <SelectField
-                  label="Facilidade do Perfil"
-                  value={weightProfileDifficulty}
-                  onChange={(v) => setWeightProfileDifficulty(Number(v))}
-                  options={WEIGHT_PROFILE_DIFFICULTY}
-                />
+                <div className="md:col-span-5">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                    Escala de Complexidade (0-5)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="0.5"
+                      value={complexityScale}
+                      onChange={(e) => setComplexityScale(parseFloat(e.target.value))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-metarh-medium"
+                    />
+                    <div className="w-16 text-center font-bold text-lg text-metarh-medium border border-gray-200 rounded-lg py-1 bg-white">
+                      {complexityScale}
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
+                    <span>Baixa (Jr)</span>
+                    <span>Média (Pl)</span>
+                    <span>Alta (Sr/Esp)</span>
+                  </div>
+                </div>
               </div>
 
               {result && (
@@ -676,11 +634,12 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                         vacancies: inputs.vacancies,
                         salary: inputs.salary,
 
-                        weight_job_level: weightJobLevel,
-                        weight_location: weightLocation,
-                        weight_work_model: weightWorkModel,
-                        weight_urgency: weightUrgency,
-                        weight_profile_difficulty: weightProfileDifficulty,
+                        weight_complexity: complexityScale,
+                        // weight_job_level: weightJobLevel, // Removed
+                        // weight_location: weightLocation, // Removed
+                        // weight_work_model: weightWorkModel, // Removed
+                        // weight_urgency: weightUrgency, // Removed
+                        // weight_profile_difficulty: weightProfileDifficulty, // Removed
 
                         demanded_days: inputs.demandedDays,
                         qty_senior: inputs.qtyConsultant2,

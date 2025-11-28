@@ -101,10 +101,12 @@ export interface ProjectPricingInputs {
   salary: number;
 
   // Weights (Dropdown Selections)
-  weightRole: number;
-  weightComplexity: number;
-  weightUrgency: number;
-  weightVolume: number;
+  weight_complexity: number;
+  // weight_job_level: number; // Removed
+  // weight_location: number; // Removed
+  // weight_work_model: number; // Removed
+  // weight_urgency: number; // Removed
+  // weight_profile_difficulty: number; // Removed
 
   // Team Costs (Inputs)
   demandedDays: number; // Alterado para receber dias

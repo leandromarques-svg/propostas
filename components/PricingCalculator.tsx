@@ -458,7 +458,6 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     <input
                       type="number"
                       step="1"
-                      min="0"
                       value={inputs.marginMultiplier}
                       onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
                       className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"

@@ -244,7 +244,14 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     setIsAnalyzing(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+      if (!apiKey) {
+        alert('Chave da API do Gemini não configurada. Configure VITE_GEMINI_API_KEY no arquivo .env.local');
+        return;
+      }
+
+      const ai = new GoogleGenAI(apiKey);
 
       const prompt = `Analise a seguinte descrição de projeto de R&S e retorne APENAS um JSON válido com os seguintes campos numéricos:
 - weightJobLevel: 1 (Júnior), 2 (Pleno), ou 3 (Sênior/Liderança)
@@ -257,15 +264,10 @@ Descrição: ${projectDescription}
 
 Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          temperature: 0.3,
-        }
-      });
-
-      const responseText = response.text.trim();
+      const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const responseText = response.text().trim();
 
       // Remove markdown code blocks if present
       const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();

@@ -496,29 +496,13 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     </div>
                   </div>
 
-                  {/* Pricing - Separate Box */}
-                  <div className="bg-gradient-to-br from-metarh-lime/20 to-metarh-medium/20 border-2 border-metarh-lime rounded-2xl p-4 space-y-3">
-                    <p className="text-xs font-bold text-metarh-lime uppercase tracking-wider">Margem & Taxa</p>
-
-                    {/* Profit Margin */}
-                    <div className="flex justify-between items-end">
-                      <span className="text-sm font-bold text-white">Margem de Lucro</span>
-                      <span className="text-2xl font-bold text-metarh-lime">{fmtCurrency(result.profitMargin)}</span>
+                  {/* Revenue & Costs */}
+                  <div className="space-y-2 pb-4 border-b border-white/10">
+                    <Row label="Taxa Administrativa" value={fmtCurrency(result.adminFee)} />
+                    <div className="flex justify-between text-red-300">
+                      <span>Custo Operacional</span>
+                      <span>- {fmtCurrency(result.totalOperationalCost)}</span>
                     </div>
-                    <p className="text-xs text-gray-300 text-right -mt-1">
-                      {profitMarginPct}% sobre total operacional
-                    </p>
-
-                    <div className="border-t border-white/20 my-2"></div>
-
-                    {/* Admin Fee */}
-                    <div className="flex justify-between items-end">
-                      <span className="text-sm font-bold text-white">Taxa Administrativa</span>
-                      <span className="text-xl font-bold text-white">{fmtCurrency(result.adminFee)}</span>
-                    </div>
-                    <p className="text-xs text-gray-300 text-right -mt-1">
-                      {inputs.marginMultiplier}% sobre salário referência
-                    </p>
                   </div>
 
                   {/* Taxes Breakdown */}

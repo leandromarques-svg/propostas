@@ -1,17 +1,23 @@
+// Supabase Client Configuration
+//
+// IMPORTANT: Create a .env.local file in the root of your project with:
+// VITE_SUPABASE_URL=your-project-url
+// VITE_SUPABASE_ANON_KEY=your-anon-key
+//
+// Get these values from: https://app.supabase.com/project/_/settings/api
+
 import { createClient } from '@supabase/supabase-js';
 
-// Fallback keys provided by user to ensure app works in preview environment
-const FALLBACK_URL = 'https://xveyftsamksweozahmdu.supabase.co';
-const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2ZXlmdHNhbWtzd2VvemFobWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxMDkzNDEsImV4cCI6MjA3OTY4NTM0MX0.FPvEo_6xDfCqLeB6sq_Fb_qI-cCOkvzjyo2gTduQ7WM';
-
-// Use cast to avoid type errors with import.meta.env
-const env = (import.meta as any).env;
-
-const supabaseUrl = env?.VITE_SUPABASE_URL || FALLBACK_URL;
-const supabaseAnonKey = env?.VITE_SUPABASE_ANON_KEY || FALLBACK_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('CRITICAL: Supabase keys missing.');
+  console.warn('Supabase credentials not found. Please check your .env.local file.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create the client only if keys are present, otherwise create a dummy client or handle gracefully
+// For now, we allow it to be created but it might fail on requests if keys are empty.
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);

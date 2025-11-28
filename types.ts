@@ -137,7 +137,7 @@ export interface PricingResult {
   // Pricing
   adminFee: number; // Taxa Administrativa (Revenue)
   referenceSalaryTotal: number; // Salary * Vacancies
-  
+
   // Taxes
   taxIss: number;
   taxPis: number;
@@ -150,4 +150,10 @@ export interface PricingResult {
   grossNF: number; // Total Bruto NF
   retentionIR: number; // 1.5% Retention
   netLiquid: number; // Total Líquido
+
+  // Profit Analysis
+  realProfit: number; // Net Liquid - All Costs
+  profitMarginPercentage: number; // (Real Profit / Net Liquid) * 100
+  suggestedTeam: string; // Team suggestion based on complexity
+  profitMargin: number; // Profit margin value
 }

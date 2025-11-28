@@ -131,14 +131,16 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const teamCostTotal = teamHourlyCost * projectHours;
 
     const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
-    const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
+
+    // Fixed costs are internal costs, NOT part of the invoice
+    const totalOperationalCost = teamCostTotal; // Only team costs for pricing
 
     // 3. Pricing (Profit Margin BEFORE Admin Fee)
     // Order: Base → Profit Margin → Admin Fee → Taxes
     const referenceSalaryTotal = salary * vacancies;
-    const baseCost = totalOperationalCost; // Salary is NOT part of the agency cost/invoice in R&S
+    const baseCost = totalOperationalCost; // Only team costs
 
-    // Profit Margin applied to Total Operational Cost only
+    // Profit Margin applied to Team Cost only
     const profitMargin = totalOperationalCost * (profitMarginPct / 100);
     const subtotalAfterProfit = baseCost + profitMargin;
 
@@ -166,6 +168,10 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
     const netLiquid = grossNF - retentionIR;
 
+    // 6. Real Profit (what we actually make after all costs)
+    const realProfit = netLiquid - teamCostTotal - fixedItemsCostTotal;
+    const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
+
     setResult({
       totalWeight,
       weightPercentage,
@@ -185,7 +191,9 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       totalTaxes,
       grossNF,
       retentionIR,
-      netLiquid
+      netLiquid,
+      realProfit,
+      profitMarginPercentage
     });
   };
 

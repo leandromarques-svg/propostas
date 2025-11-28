@@ -1,120 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>METARH - Árvore de Soluções</title>
-    
-    <!-- Polyfill para process.env.API_KEY -->
-    <script>
-      window.process = {
-        env: {
-          API_KEY: 'AIzaSyALN7SSF2P78DOgwwbHS4gCztnU-OLcE60'
-        }
-      };
-    </script>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts: Barlow -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100&display=swap" rel="stylesheet">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>METARH - Árvore de Soluções</title>
 
-    <!-- jsPDF for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Polyfill para process.env.API_KEY -->
+  <script>
+    window.process = {
+      env: {
+        API_KEY: 'AIzaSyALN7SSF2P78DOgwwbHS4gCztnU-OLcE60'
+      }
+    };
+  </script>
 
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Barlow', 'sans-serif'],
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Barlow -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100&display=swap"
+    rel="stylesheet">
+
+  <!-- jsPDF for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Barlow', 'sans-serif'],
+          },
+          colors: {
+            metarh: {
+              dark: '#470082',    // Primary Dark
+              medium: '#aa3ffe',  // Primary Medium
+              pink: '#ff27f9',    // Accent Pink
+              lime: '#c9f545',    // Accent Lime
+              yellow: '#fff24d',  // Accent Yellow
+              gray: '#f3f4f6',
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'fade-in-down': 'fadeInDown 0.5s ease-out',
+            'slide-up': 'slideUp 0.5s ease-out',
+            'slide-down-stagger': 'slideDownStagger 0.5s ease-out forwards',
+            'spin-slow': 'spin 8s linear infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'breathing': 'breathing 4s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
             },
-            colors: {
-              metarh: {
-                dark: '#470082',    // Primary Dark
-                medium: '#aa3ffe',  // Primary Medium
-                pink: '#ff27f9',    // Accent Pink
-                lime: '#c9f545',    // Accent Lime
-                yellow: '#fff24d',  // Accent Yellow
-                gray: '#f3f4f6',
-              }
+            fadeInDown: {
+              '0%': { opacity: '0', transform: 'translateY(-20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
             },
-            animation: {
-              'fade-in': 'fadeIn 0.5s ease-out',
-              'fade-in-down': 'fadeInDown 0.5s ease-out',
-              'slide-up': 'slideUp 0.5s ease-out',
-              'slide-down-stagger': 'slideDownStagger 0.5s ease-out forwards',
-              'spin-slow': 'spin 8s linear infinite',
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'float': 'float 6s ease-in-out infinite',
-              'breathing': 'breathing 4s ease-in-out infinite',
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
             },
-            keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              fadeInDown: {
-                '0%': { opacity: '0', transform: 'translateY(-20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              slideUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              slideDownStagger: {
-                '0%': { opacity: '0', transform: 'translateY(-100%)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-20px)' },
-              },
-              breathing: {
-                '0%, 100%': { transform: 'scale(1) rotate(0deg)' },
-                '50%': { transform: 'scale(1.1) rotate(5deg)' },
-              }
+            slideDownStagger: {
+              '0%': { opacity: '0', transform: 'translateY(-100%)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            breathing: {
+              '0%, 100%': { transform: 'scale(1) rotate(0deg)' },
+              '50%': { transform: 'scale(1.1) rotate(5deg)' },
             }
           }
         }
       }
-    </script>
-    <style>
-      /* Custom scrollbar for webkit */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #9ca3af; /* Gray-400 */
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #6b7280; /* Gray-500 */
-      }
-      
-      .blob-shape {
-        position: absolute;
-        z-index: 0;
-        filter: blur(40px);
-        opacity: 0.4;
-      }
-      
-      /* Hide scrollbar for Chrome, Safari and Opera */
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      /* Hide scrollbar for IE, Edge and Firefox */
-      .hide-scrollbar {
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-      }
-    </style>
+    }
+  </script>
+  <style>
+    /* Custom scrollbar for webkit */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #9ca3af;
+      /* Gray-400 */
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+      /* Gray-500 */
+    }
+
+    .blob-shape {
+      position: absolute;
+      z-index: 0;
+      filter: blur(40px);
+      opacity: 0.4;
+    }
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -129,10 +141,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-gray-50 font-sans text-gray-800">
-    <div id="root"></div>
+
+<body class="bg-gray-50 font-sans text-gray-800">
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

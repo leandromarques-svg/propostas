@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 // Force update check
-import { ProjectPricingInputs, PricingResult, FixedCostItem } from '../types';
+import { ProjectPricingInputs, PricingResult, FixedCostItem, Position } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
-import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2, Sparkles } from 'lucide-react';
-import { saveProposal } from './lib/proposalService';
+import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, FileText, Loader2, Sparkles } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import { GoogleGenAI } from "@google/genai";
+import { generateProposalPDF } from './lib/pdfGenerator';
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -14,9 +14,12 @@ interface PricingCalculatorProps {
 export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }) => {
   // --- STATE ---
   const [inputs, setInputs] = useState<ProjectPricingInputs>({
-    roleName: '',
-    vacancies: 1,
-    salary: 0,
+    positions: [{
+      id: 'pos-1',
+      roleName: '',
+      salary: 0,
+      vacancies: 1
+    }],
     weight_complexity: 1.0,
     demandedDays: 0,
     qtyConsultant2: 0,
@@ -49,7 +52,6 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
   const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
-  const [isSaving, setIsSaving] = useState(false);
 
   // --- CALCULATION LOGIC ---
   useEffect(() => {
@@ -58,7 +60,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
   const calculatePricing = () => {
     const {
-      vacancies, salary,
+      positions,
       demandedDays,
       qtyConsultant2, qtyConsultant1, qtyAssistant,
       fixedItems,
@@ -66,17 +68,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     } = inputs;
 
     // 1. Team Suggestion based on Complexity Scale (0-5)
-    // This logic can be refined. For now:
-    // 0-1: Mostly Assistant/Junior
-    // 2-3: Balanced
-    // 4-5: Senior heavy
     let suggestedTeam = 'Equipe Padrão';
     if (complexityScale <= 1.5) suggestedTeam = 'Foco em Assistente/Jr';
     else if (complexityScale <= 3.5) suggestedTeam = 'Equipe Mista (Pleno)';
     else suggestedTeam = 'Foco em Sênior/Especialista';
 
     // 2. Operational Costs
-    // Define hourly rates locally if not imported, or use constants
     const LOCAL_HOURLY_RATES = {
       consultant2: 150, // Senior
       consultant1: 100, // Pleno
@@ -99,8 +96,11 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     // Total Operacional = Team Costs + Fixed Costs
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
-    // 3. Pricing
-    const referenceSalaryTotal = salary * vacancies;
+    // 3. Pricing - Calculate Reference Salary from all positions
+    const referenceSalaryTotal = positions.reduce(
+      (sum, pos) => sum + (pos.salary * pos.vacancies),
+      0
+    );
 
     // Admin Fee: Input is the Target % of Salary.
     const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
@@ -137,13 +137,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     // Total Líquido (Recebido) = Valor da Nota - Retenção de IR
     const netLiquid = grossNF - retentionIR;
 
-    // 6. Real Profit Calculation
-    // Lucro real = Total Líquido - repasse de tributos - Custos Operacionais
-    // "Repasse de tributos" here likely means the taxes we collected and need to pay (Total Taxes).
-    const realProfit = netLiquid - totalTaxes - totalOperationalCost;
+    // 6. Lucro L. Operacional Calculation
+    // Lucro L. Operacional = Total Líquido Recebido - Custo Operacional
+    const realProfit = netLiquid - totalOperationalCost;
 
-    // Profit Margin %: "a porcentagem é o quanto isso representa da minha taxa administrativa"
-    const profitMarginPercentage = adminFee > 0 ? (realProfit / adminFee) * 100 : 0;
+    // Profit Margin %: percentage of net liquid received
+    const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
 
     setResult({
       totalWeight: complexityScale, // Using complexity scale as total weight
@@ -295,10 +294,95 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 <Users size={18} /> 1. Escopo e Complexidade
               </h2>
 
-              <div className="grid md:grid-cols-3 gap-4 mb-6">
-                <InputField label="Cargo" type="text" value={inputs.roleName} onChange={(v) => setInputs(p => ({ ...p, roleName: v }))} />
-                <InputField label="Vagas (Qtd)" type="number" value={inputs.vacancies} onChange={(v) => handleNumberChange('vacancies', v)} />
-                <InputField label="Salário Base (R$)" type="number" value={inputs.salary} onChange={(v) => handleNumberChange('salary', v)} />
+              {/* Multiple Positions */}
+              <div className="mb-6 space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-gray-700 uppercase">Cargos para Contratação</label>
+                  <button
+                    onClick={() => {
+                      const newPosition: Position = {
+                        id: `pos-${Date.now()}`,
+                        roleName: '',
+                        salary: 0,
+                        vacancies: 1
+                      };
+                      setInputs(prev => ({ ...prev, positions: [...prev.positions, newPosition] }));
+                    }}
+                    className="text-xs flex items-center gap-1 text-metarh-medium font-bold hover:underline"
+                  >
+                    <Plus size={14} /> Adicionar Cargo
+                  </button>
+                </div>
+
+                {inputs.positions.map((position, idx) => (
+                  <div key={position.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-gray-600">Cargo {idx + 1}</span>
+                      {inputs.positions.length > 1 && (
+                        <button
+                          onClick={() => setInputs(prev => ({
+                            ...prev,
+                            positions: prev.positions.filter(p => p.id !== position.id)
+                          }))}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nome do Cargo</label>
+                        <input
+                          type="text"
+                          value={position.roleName}
+                          onChange={(e) => {
+                            setInputs(prev => ({
+                              ...prev,
+                              positions: prev.positions.map(p =>
+                                p.id === position.id ? { ...p, roleName: e.target.value } : p
+                              )
+                            }));
+                          }}
+                          className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+                          placeholder="Ex: Analista Sr"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Vagas (Qtd)</label>
+                        <input
+                          type="number"
+                          value={position.vacancies || ''}
+                          onChange={(e) => {
+                            setInputs(prev => ({
+                              ...prev,
+                              positions: prev.positions.map(p =>
+                                p.id === position.id ? { ...p, vacancies: parseFloat(e.target.value) || 0 } : p
+                              )
+                            }));
+                          }}
+                          className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Salário Base (R$)</label>
+                        <input
+                          type="number"
+                          value={position.salary || ''}
+                          onChange={(e) => {
+                            setInputs(prev => ({
+                              ...prev,
+                              positions: prev.positions.map(p =>
+                                p.id === position.id ? { ...p, salary: parseFloat(e.target.value) || 0 } : p
+                              )
+                            }));
+                          }}
+                          className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* AI Project Description */}
@@ -373,9 +457,9 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 mt-1 ml-6">
-                      {result.totalWeight <= 3 && "Vaga tranquila, júnior dá conta sem sofrer. Custo menor, margem maior."}
-                      {result.totalWeight > 3 && result.totalWeight <= 6 && "Vagas medianas, pleno segura a bronca. Custo ok, margem equilibrada."}
-                      {result.totalWeight > 6 && "Vaga complexa, só sênior fecha rápido. Custo maior, mas evita retrabalho."}
+                      {result.totalWeight <= 1.5 && "Vaga tranquila, júnior dá conta sem sofrer. Custo menor, margem maior."}
+                      {result.totalWeight > 1.5 && result.totalWeight <= 3.5 && "Vagas medianas, pleno segura a bronca. Custo ok, margem equilibrada."}
+                      {result.totalWeight > 3.5 && "Vaga complexa, só sênior fecha rápido. Custo maior, mas evita retrabalho."}
                     </p>
                   </div>
                 </div>
@@ -588,9 +672,9 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                       <p className="text-3xl font-bold">{fmtCurrency(result.netLiquid)}</p>
                     </div>
 
-                    {/* Real Profit Section */}
+                    {/* Lucro L. Operacional Section */}
                     <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400 p-4 rounded-2xl">
-                      <p className="text-xs uppercase font-bold mb-2 text-purple-300 tracking-wider">💰 Lucro Real</p>
+                      <p className="text-xs uppercase font-bold mb-2 text-purple-300 tracking-wider">💰 Lucro L. Operacional</p>
                       <p className="text-2xl font-bold text-white mb-1">{fmtCurrency(result.realProfit)}</p>
                       <div className="bg-white/10 rounded-lg p-2 mt-2 border border-purple-300/30">
                         <p className="text-2xl font-bold text-purple-200 text-center">
@@ -599,7 +683,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                         <p className="text-[10px] text-gray-400 text-center mt-1">do valor recebido</p>
                       </div>
                       <div className="mt-2 text-[10px] text-gray-400">
-                        Líquido - Custos Equipe - Custos Fixos
+                        Líquido Recebido - Custo Operacional
                       </div>
                     </div>
 
@@ -630,57 +714,13 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   </div>
 
                   <button
-                    onClick={async () => {
+                    onClick={() => {
                       if (!result) return;
-                      setIsSaving(true);
-
-                      const proposalData = {
-                        role_name: inputs.roleName,
-                        vacancies: inputs.vacancies,
-                        salary: inputs.salary,
-
-                        weight_complexity: complexityScale,
-                        // weight_job_level: weightJobLevel, // Removed
-                        // weight_location: weightLocation, // Removed
-                        // weight_work_model: weightWorkModel, // Removed
-                        // weight_urgency: weightUrgency, // Removed
-                        // weight_profile_difficulty: weightProfileDifficulty, // Removed
-
-                        demanded_days: inputs.demandedDays,
-                        qty_senior: inputs.qtyConsultant2,
-                        qty_plena: inputs.qtyConsultant1,
-                        qty_junior: inputs.qtyAssistant,
-
-                        fixed_items: inputs.fixedItems,
-
-                        profit_margin_pct: profitMarginPct,
-                        admin_fee_pct: inputs.marginMultiplier,
-
-                        results: result
-                      };
-
-                      const { success, error } = await saveProposal(proposalData);
-                      setIsSaving(false);
-
-                      if (success) {
-                        alert("Proposta salva com sucesso!");
-                      } else {
-                        alert("Erro ao salvar proposta: " + JSON.stringify(error));
-                        console.error(error);
-                      }
+                      generateProposalPDF(inputs, result);
                     }}
-                    disabled={isSaving}
-                    className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
                   >
-                    {isSaving ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" /> Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={18} /> Salvar Proposta
-                      </>
-                    )}
+                    <FileText size={18} /> Gerar PDF
                   </button>
                 </div>
               )}

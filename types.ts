@@ -87,6 +87,13 @@ export interface WeightOption {
   value: number;
 }
 
+export interface Position {
+  id: string;
+  roleName: string;
+  salary: number;
+  vacancies: number;
+}
+
 export interface FixedCostItem {
   id: string;
   name: string;
@@ -95,10 +102,8 @@ export interface FixedCostItem {
 }
 
 export interface ProjectPricingInputs {
-  // Scope
-  roleName: string;
-  vacancies: number;
-  salary: number;
+  // Scope - Multiple Positions
+  positions: Position[];
 
   // Weights (Dropdown Selections)
   weight_complexity: number;

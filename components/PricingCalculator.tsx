@@ -142,11 +142,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const profitMargin = totalOperationalCost * (profitMarginPct / 100);
     const subtotalAfterProfit = baseCost + profitMargin;
 
-    // Admin Fee applied ONLY to Reference Salary Total
+    // Admin Fee: Input is the Target % of Salary.
+    // 100% -> Fee = 1.0 * Salary. 120% -> Fee = 1.2 * Salary.
     const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
 
-    // NEW LOGIC: Reference Salary IS now part of the total proposal value
-    const totalPreTax = subtotalAfterProfit + adminFee + referenceSalaryTotal;
+    // NEW LOGIC: Reference Salary is NOT part of the total proposal value, only the Fee is.
+    const totalPreTax = subtotalAfterProfit + adminFee;
 
     // 4. Taxes
     // Fixed to São Paulo

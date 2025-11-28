@@ -213,10 +213,13 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     setIsAnalyzing(true);
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      // Try multiple sources for the API Key
+      // 1. VITE_GEMINI_API_KEY (Recommended in guide)
+      // 2. process.env.API_KEY (Mapped in vite.config.ts from VITE_API_KEY)
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY;
 
       if (!apiKey) {
-        alert('Chave da API do Gemini não configurada. Configure VITE_GEMINI_API_KEY no arquivo .env.local');
+        alert('Chave da API não encontrada. Verifique se VITE_GEMINI_API_KEY ou VITE_API_KEY está configurada no .env.local');
         return;
       }
 
@@ -358,7 +361,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               {result && (
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-sm text-gray-600 px-2">
-                    <span>Coeficiente: <strong className="text-metarh-medium text-lg">{result.totalWeight.toFixed(1)}</strong> / 10</span>
+                    <span>Coeficiente: <strong className="text-metarh-medium text-lg">{result.totalWeight.toFixed(1)}</strong> / 5</span>
                     <span className="text-gray-500">Salário Referência Total: {fmtCurrency(result.referenceSalaryTotal)}</span>
                   </div>
                   <div className="bg-metarh-medium/10 border border-metarh-medium/30 rounded-lg p-3">
@@ -552,15 +555,11 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   {/* Revenue & Costs */}
                   <div className="space-y-2 pb-4 border-b border-white/10">
                     <Row label="Taxa Administrativa" value={fmtCurrency(result.adminFee)} />
-                    <div className="flex justify-between text-red-300">
-                      <span>Custo Operacional</span>
-                      <span>- {fmtCurrency(result.totalOperationalCost)}</span>
-                    </div>
                   </div>
 
                   {/* Taxes Breakdown */}
                   <div className="bg-white/5 p-4 rounded-xl space-y-1 text-xs">
-                    <p className="font-bold text-gray-300 mb-2 uppercase tracking-wider">Tributos (Adicionados)</p>
+                    <p className="font-bold text-gray-300 mb-2 uppercase tracking-wider">Impostos (NF)</p>
                     <Row label="ISS" value={fmtCurrency(result.taxIss)} small />
                     <Row label="PIS (1.65%)" value={fmtCurrency(result.taxPis)} small />
                     <Row label="COFINS (7.6%)" value={fmtCurrency(result.taxCofins)} small />

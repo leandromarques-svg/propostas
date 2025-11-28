@@ -216,7 +216,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       // Try multiple sources for the API Key
       // 1. VITE_GEMINI_API_KEY (Recommended in guide)
       // 2. process.env.API_KEY (Mapped in vite.config.ts from VITE_API_KEY)
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY;
+      // 3. Hardcoded fallback (Temporary for debugging)
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY || "AIzaSyDBRUONE3aqaXs3OtOf7ZlOpjCUcij3OV0";
 
       if (!apiKey) {
         alert('Chave da API não encontrada. Verifique se VITE_GEMINI_API_KEY ou VITE_API_KEY está configurada no .env.local');

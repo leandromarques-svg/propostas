@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// Force update check
 import { ProjectPricingInputs, PricingResult, FixedCostItem } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
 import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Save, Loader2, Sparkles } from 'lucide-react';
@@ -56,7 +57,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   // --- CALCULATION LOGIC ---
   useEffect(() => {
     calculatePricing();
-  }, [inputs, profitMarginPct, weightJobLevel, weightLocation, weightWorkModel, weightUrgency, weightProfileDifficulty]);
+  }, [inputs, profitMarginPct, complexityScale]);
 
   const calculatePricing = () => {
     const {
@@ -86,7 +87,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     };
 
     const teamHourlyCost =
-      (qtyConsultant2 * LOCAL_HOURLY_RUTE.consultant2) +
+      (qtyConsultant2 * LOCAL_HOURLY_RATES.consultant2) +
       (qtyConsultant1 * LOCAL_HOURLY_RATES.consultant1) +
       (qtyAssistant * LOCAL_HOURLY_RATES.assistant);
 

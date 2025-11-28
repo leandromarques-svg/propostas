@@ -11,11 +11,12 @@ export interface ProposalData {
     salary: number;
 
     // Coefficients
-    weight_job_level: number;
-    weight_location: number;
-    weight_work_model: number;
-    weight_urgency: number;
-    weight_profile_difficulty: number;
+    weight_complexity: number;
+    // weight_job_level: number; // Removed
+    // weight_location: number; // Removed
+    // weight_work_model: number; // Removed
+    // weight_urgency: number; // Removed
+    // weight_profile_difficulty: number; // Removed
 
     // Team
     demanded_days: number;

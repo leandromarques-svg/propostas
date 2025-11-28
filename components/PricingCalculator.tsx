@@ -416,72 +416,55 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
 
                 {/* Fixed Costs Total */}
                 {result && (
-                  <div className="mt-4 bg-gray-100 border border-gray-300 rounded-lg p-3">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-gray-700">Total Custos Fixos:</span>
-                      <span className="font-bold text-gray-900 text-lg">{fmtCurrency(result.fixedItemsCostTotal)}</span>
+                  <>
+                    <div className="mt-4 bg-gray-100 border border-gray-300 rounded-lg p-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-bold text-gray-700">Total Custos Fixos:</span>
+                        <span className="font-bold text-gray-900 text-lg">{fmtCurrency(result.fixedItemsCostTotal)}</span>
+                      </div>
                     </div>
-                  </div>
+
+                    {/* Total Operational Costs */}
+                    <div className="mt-4 bg-gradient-to-br from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-metarh-dark uppercase text-sm">Total Custos Operacionais:</span>
+                        <span className="font-bold text-metarh-dark text-xl">{fmtCurrency(result.totalOperationalCost)}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1 text-right">Equipe + Custos Fixos</p>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* 3. MARGIN */}
+            {/* 3. TAXA ADMINISTRATIVA */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                <DollarSign size={18} /> 3. Margem e Taxa
+                <DollarSign size={18} /> 3. Taxa Administrativa
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Profit Margin */}
-                <div className="bg-gradient-to-br from-metarh-lime/10 to-metarh-medium/10 border-2 border-metarh-lime/30 p-4 rounded-xl">
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Margem de Lucro</label>
-                  <div className="flex items-center gap-2 mb-3">
-                    <input
-                      type="number"
-                      step="1"
-                      min="0"
-                      max="100"
-                      value={profitMarginPct}
-                      onChange={(e) => setProfitMarginPct(parseFloat(e.target.value) || 0)}
-                      className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
-                    />
-                    <span className="text-sm text-gray-600">%</span>
-                    <span className="text-xs text-gray-500">sobre total operacional</span>
-                  </div>
-                  {result && (
-                    <div className="bg-white/80 rounded-lg p-3 border border-metarh-lime/40">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-gray-600">Valor Total:</span>
-                        <span className="text-lg font-bold text-metarh-medium">{fmtCurrency(result.totalOperationalCost + result.profitMargin)}</span>
-                      </div>
-                    </div>
-                  )}
+              {/* Admin Fee */}
+              <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-xl">
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="number"
+                    step="1"
+                    value={inputs.marginMultiplier}
+                    onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+                    className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                  />
+                  <span className="text-sm text-gray-600">%</span>
+                  <span className="text-xs text-gray-500">sobre salário referência</span>
                 </div>
-
-                {/* Admin Fee */}
-                <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-xl">
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
-                  <div className="flex items-center gap-2 mb-3">
-                    <input
-                      type="number"
-                      step="1"
-                      value={inputs.marginMultiplier}
-                      onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
-                      className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
-                    />
-                    <span className="text-sm text-gray-600">%</span>
-                    <span className="text-xs text-gray-500">sobre salário referência</span>
-                  </div>
-                  {result && (
-                    <div className="bg-white rounded-lg p-3 border border-gray-300">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-gray-600">Valor Total:</span>
-                        <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
-                      </div>
+                {result && (
+                  <div className="bg-white rounded-lg p-3 border border-gray-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-600">Valor Total:</span>
+                      <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
 

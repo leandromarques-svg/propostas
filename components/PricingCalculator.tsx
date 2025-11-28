@@ -555,9 +555,12 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
                     <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400 p-4 rounded-2xl">
                       <p className="text-xs uppercase font-bold mb-2 text-purple-300 tracking-wider">💰 Lucro Real</p>
                       <p className="text-2xl font-bold text-white mb-1">{fmtCurrency(result.realProfit)}</p>
-                      <p className="text-xs text-gray-300">
-                        {result.profitMarginPercentage.toFixed(1)}% do valor recebido
-                      </p>
+                      <div className="bg-white/10 rounded-lg p-2 mt-2 border border-purple-300/30">
+                        <p className="text-2xl font-bold text-purple-200 text-center">
+                          {result.profitMarginPercentage.toFixed(1)}%
+                        </p>
+                        <p className="text-[10px] text-gray-400 text-center mt-1">do valor recebido</p>
+                      </div>
                       <div className="mt-2 text-[10px] text-gray-400">
                         Líquido - Custos Equipe - Custos Fixos
                       </div>

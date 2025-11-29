@@ -61,13 +61,21 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
   const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
 
-  // Load team rates on mount
+  // Load team rates on mount and refresh every 5 seconds
   useEffect(() => {
     const loadRates = async () => {
       const rates = await getTeamRates();
       setTeamRates(rates);
     };
+
+    // Load immediately
     loadRates();
+
+    // Refresh every 5 seconds
+    const interval = setInterval(loadRates, 5000);
+
+    // Cleanup
+    return () => clearInterval(interval);
   }, []);
 
   // --- CALCULATION LOGIC ---

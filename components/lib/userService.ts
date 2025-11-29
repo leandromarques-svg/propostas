@@ -1,22 +1,7 @@
-import { supabase } from './supabase';
-import { User } from '../../types'; // We might not be able to import types if it's outside components
+import { supabase } from '../../lib/supabase';
+import { User } from '../../types';
 
-// Define User type locally if we can't import it
-export interface UserProfile {
-    id: string;
-    username: string;
-    password?: string;
-    name: string;
-    role: string;
-    email: string;
-    phone: string;
-    linkedin: string;
-    bio: string;
-    avatarUrl: string;
-    isAdmin: boolean;
-}
-
-export async function getUsers() {
+export async function getUsers(): Promise<User[]> {
     const { data, error } = await supabase
         .from('profiles')
         .select('*');
@@ -26,7 +11,7 @@ export async function getUsers() {
         return [];
     }
 
-    return data.map(p => ({
+    return data.map((p: any) => ({
         id: p.id,
         username: p.username,
         password: p.password,
@@ -41,10 +26,10 @@ export async function getUsers() {
     }));
 }
 
-export async function saveUser(user: UserProfile) {
+export async function saveUser(user: User): Promise<boolean> {
     const profile = {
         id: user.id,
-        username: user.username,
+        username: user.username || user.email.split('@')[0], // Fallback for username
         password: user.password,
         name: user.name,
         role: user.role,
@@ -60,16 +45,22 @@ export async function saveUser(user: UserProfile) {
         .from('profiles')
         .upsert(profile);
 
-    if (error) throw error;
+    if (error) {
+        console.error('Error saving user:', error);
+        throw error;
+    }
     return true;
 }
 
-export async function deleteUser(id: string) {
+export async function deleteUser(id: string): Promise<boolean> {
     const { error } = await supabase
         .from('profiles')
         .delete()
         .eq('id', id);
 
-    if (error) throw error;
+    if (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+    }
     return true;
 }

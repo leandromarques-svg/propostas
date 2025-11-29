@@ -29,7 +29,7 @@ export async function getUsers(): Promise<User[]> {
 export async function saveUser(user: User): Promise<boolean> {
     const profile = {
         id: user.id,
-        username: user.username || user.email.split('@')[0], // Fallback for username
+        username: user.username || (user.email ? user.email.split('@')[0] : 'user'), // Fallback for username
         password: user.password,
         name: user.name,
         role: user.role,
@@ -41,12 +41,15 @@ export async function saveUser(user: User): Promise<boolean> {
         is_admin: user.isAdmin
     };
 
+    console.log('Saving user profile:', profile);
+
     const { error } = await supabase
         .from('profiles')
         .upsert(profile);
 
     if (error) {
         console.error('Error saving user:', error);
+        console.error('Profile data:', profile);
         throw error;
     }
     return true;

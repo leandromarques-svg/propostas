@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from './lib/supabase';
+import { supabase } from '../lib/supabase';
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 
 export const SupabaseStatus: React.FC = () => {

@@ -6,6 +6,7 @@ import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Fi
 import { SupabaseStatus } from './SupabaseStatus';
 import { GoogleGenAI } from "@google/genai";
 import { generateProposalPDF } from './lib/pdfGenerator';
+import { getTeamRates, TeamRates } from './lib/teamRatesService';
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -39,6 +40,13 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const [projectDescription, setProjectDescription] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Team Rates from Supabase
+  const [teamRates, setTeamRates] = useState<TeamRates>({
+    senior: 150,
+    plena: 100,
+    junior: 60
+  });
+
   const ROLE_OPTIONS = [
     { label: 'Diretoria', value: 2 },
     { label: 'Gerência', value: 1.75 },
@@ -53,10 +61,19 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
   const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
 
+  // Load team rates on mount
+  useEffect(() => {
+    const loadRates = async () => {
+      const rates = await getTeamRates();
+      setTeamRates(rates);
+    };
+    loadRates();
+  }, []);
+
   // --- CALCULATION LOGIC ---
   useEffect(() => {
     calculatePricing();
-  }, [inputs, profitMarginPct, complexityScale]);
+  }, [inputs, profitMarginPct, complexityScale, teamRates]);
 
   const calculatePricing = () => {
     const {
@@ -73,11 +90,11 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     else if (complexityScale <= 3.5) suggestedTeam = 'Equipe Mista (Pleno)';
     else suggestedTeam = 'Foco em Sênior/Especialista';
 
-    // 2. Operational Costs
+    // 2. Operational Costs - Use dynamic rates from Supabase
     const LOCAL_HOURLY_RATES = {
-      consultant2: 150, // Senior
-      consultant1: 100, // Pleno
-      assistant: 50     // Junior
+      consultant2: teamRates.senior,  // Senior
+      consultant1: teamRates.plena,   // Pleno
+      assistant: teamRates.junior     // Junior
     };
 
     const teamHourlyCost =

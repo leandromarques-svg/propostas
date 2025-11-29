@@ -54,7 +54,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const startCreate = () => {
     setEditingId('new');
     setFormData({
-      id: `u${Date.now()}`,
+      id: crypto.randomUUID(),
       username: '',
       password: '',
       name: '',

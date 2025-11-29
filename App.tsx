@@ -14,7 +14,8 @@ import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayou
 import { PricingCalculator } from './components/PricingCalculator';
 import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
-import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator } from 'lucide-react';
+import { TeamRatesModal } from './components/TeamRatesModal';
+import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings } from 'lucide-react';
 
 // Package Themes Helper
 const getPackageTheme = (packageKey: string) => {
@@ -67,6 +68,7 @@ const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [isTeamRatesModalOpen, setIsTeamRatesModalOpen] = useState(false);
   const [selectedSummaryPackage, setSelectedSummaryPackage] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -331,6 +333,13 @@ const App: React.FC = () => {
                       title="Gerenciar Equipe (Admin)"
                     >
                       <Crown className="w-4 h-4 text-yellow-500 fill-yellow-400" />
+                    </button>
+                    <button
+                      onClick={() => setIsTeamRatesModalOpen(true)}
+                      className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium"
+                      title="Configurar Valores (Admin)"
+                    >
+                      <Settings size={16} />
                     </button>
                   </div>
                 )}
@@ -634,6 +643,13 @@ const App: React.FC = () => {
           isOpen={isSummaryModalOpen}
           onClose={() => setIsSummaryModalOpen(false)}
           theme={getPackageTheme(selectedSummaryPackage)}
+        />
+      )}
+
+      {currentUser && currentUser.isAdmin && (
+        <TeamRatesModal
+          isOpen={isTeamRatesModalOpen}
+          onClose={() => setIsTeamRatesModalOpen(false)}
         />
       )}
 

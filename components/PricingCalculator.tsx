@@ -4,7 +4,7 @@ import { ProjectPricingInputs, PricingResult, FixedCostItem, Position } from '..
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
 import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, FileText, Loader2, Sparkles } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateProposalPDF } from './lib/pdfGenerator';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
 
@@ -241,14 +241,15 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       // 1. VITE_GEMINI_API_KEY (Recommended in guide)
       // 2. process.env.API_KEY (Mapped in vite.config.ts from VITE_API_KEY)
       // 3. Hardcoded fallback (Temporary for debugging)
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY || "AIzaSyDBRUONE3aqaXs3OtOf7ZlOpjCUcij3OV0";
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY;
 
       if (!apiKey) {
-        alert('Chave da API não encontrada. Verifique se VITE_GEMINI_API_KEY ou VITE_API_KEY está configurada no .env.local');
+        alert('Chave da API não encontrada. Verifique se VITE_GEMINI_API_KEY está configurada no .env.local');
         return;
       }
 
-      const ai = new GoogleGenAI({ apiKey });
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `Analise a seguinte descrição de projeto de R&S e retorne APENAS um JSON válido com o seguinte campo numérico:
 - complexityScale: Um valor de 0 a 5 representando a complexidade geral da posição (0=Muito Baixa, 5=Muito Alta).
@@ -259,15 +260,9 @@ Descrição: ${projectDescription}
 
 Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          temperature: 0.3,
-        }
-      });
-
-      const responseText = response.text?.trim() || '';
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const responseText = response.text();
 
       // Remove markdown code blocks if present
       const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();

@@ -4,7 +4,6 @@ import { ProjectPricingInputs, PricingResult, FixedCostItem, Position } from '..
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
 import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, FileText, Loader2, Sparkles } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateProposalPDF } from './lib/pdfGenerator';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
 
@@ -247,6 +246,9 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
         alert('Chave da API não encontrada. Verifique se VITE_GEMINI_API_KEY está configurada no .env.local');
         return;
       }
+
+      // Dynamic import to avoid build-time resolution issues
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
 
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });

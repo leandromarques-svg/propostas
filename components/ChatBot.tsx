@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Bot, Sparkles, AlertCircle } from 'lucide-react';
 import { SolutionData } from '../types';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 interface ChatBotProps {
     solutions: SolutionData[];
@@ -79,6 +78,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ solutions, userName }) => {
             if (!apiKey) {
                 throw new Error('API Key não configurada');
             }
+
+            // Dynamic import to avoid build-time resolution issues
+            const { GoogleGenerativeAI } = await import("@google/generative-ai");
 
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({

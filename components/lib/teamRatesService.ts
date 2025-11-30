@@ -46,15 +46,36 @@ export async function getTeamRates(): Promise<TeamRates> {
 }
 
 export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', hourlyRate: number): Promise<boolean> {
-    const { error } = await supabase
+    // First, try to check if the record exists
+    const { data: existing } = await supabase
         .from('team_rates')
-        .upsert({
-            rate_type: rateType,
-            hourly_rate: hourlyRate,
-            updated_at: new Date().toISOString()
-        }, {
-            onConflict: 'rate_type'
-        });
+        .select('id')
+        .eq('rate_type', rateType)
+        .single();
+
+    let error;
+
+    if (existing) {
+        // Update existing record
+        const result = await supabase
+            .from('team_rates')
+            .update({
+                hourly_rate: hourlyRate,
+                updated_at: new Date().toISOString()
+            })
+            .eq('rate_type', rateType);
+        error = result.error;
+    } else {
+        // Insert new record
+        const result = await supabase
+            .from('team_rates')
+            .insert({
+                rate_type: rateType,
+                hourly_rate: hourlyRate,
+                updated_at: new Date().toISOString()
+            });
+        error = result.error;
+    }
 
     if (error) {
         console.error(`Error updating ${rateType} rate:`, error);

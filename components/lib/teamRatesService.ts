@@ -62,7 +62,7 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
         let result;
 
         if (existing) {
-            // Update existing record
+            // Update existing record - DON'T use .select() to avoid RLS issues
             console.log(`Updating existing ${rateType} rate from ${existing.hourly_rate} to ${hourlyRate}`);
             result = await supabase
                 .from('team_rates')
@@ -70,10 +70,9 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
                     hourly_rate: hourlyRate,
                     updated_at: new Date().toISOString()
                 })
-                .eq('rate_type', rateType)
-                .select();
+                .eq('rate_type', rateType);
         } else {
-            // Insert new record
+            // Insert new record - DON'T use .select() to avoid RLS issues
             console.log(`Inserting new ${rateType} rate: ${hourlyRate}`);
             result = await supabase
                 .from('team_rates')
@@ -81,8 +80,7 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
                     rate_type: rateType,
                     hourly_rate: hourlyRate,
                     updated_at: new Date().toISOString()
-                })
-                .select();
+                });
         }
 
         if (result.error) {
@@ -96,15 +94,12 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
             throw new Error(`Erro ao salvar: ${result.error.message}`);
         }
 
-        if (!result.data || result.data.length === 0) {
-            throw new Error(`Nenhum dado retornado após salvar ${rateType}`);
-        }
-
-        console.log(`Successfully saved ${rateType} rate:`, result.data[0]);
+        // Success - the operation completed without error
+        console.log(`✅ Successfully saved ${rateType} rate: ${hourlyRate}`);
         return true;
 
     } catch (error: any) {
-        console.error(`Error in updateTeamRate for ${rateType}:`, error);
+        console.error(`❌ Error in updateTeamRate for ${rateType}:`, error);
         throw error;
     }
 }

@@ -334,15 +334,16 @@ const App: React.FC = () => {
                     >
                       <Crown className="w-4 h-4 text-yellow-500 fill-yellow-400" />
                     </button>
-                    <button
-                      onClick={() => setIsTeamRatesModalOpen(true)}
-                      className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium"
-                      title="Configurar Valores (Admin)"
-                    >
-                      <Settings size={16} />
-                    </button>
                   </div>
                 )}
+
+                <button
+                  onClick={() => setIsTeamRatesModalOpen(true)}
+                  className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium ml-2"
+                  title="Configurar Valores"
+                >
+                  <Settings size={16} />
+                </button>
               </div>
             </div>
 
@@ -640,7 +641,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {currentUser && currentUser.isAdmin && (
+      {currentUser && (
         <TeamRatesModal
           isOpen={isTeamRatesModalOpen}
           onClose={() => setIsTeamRatesModalOpen(false)}

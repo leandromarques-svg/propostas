@@ -79,20 +79,35 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
                 .insert({
                     rate_type: rateType,
                     hourly_rate: hourlyRate,
-                } catch (error: any) {
-                    console.error(`❌ Error in updateTeamRate for ${rateType}:`, error);
-                    throw error;
-                }
+                });
         }
 
-        export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {
-            try {
-                await updateTeamRate('senior', rates.senior);
-                await updateTeamRate('plena', rates.plena);
-                await updateTeamRate('junior', rates.junior);
-                return true;
-            } catch (error) {
-                console.error('Error updating team rates:', error);
-                throw error;
-            }
+        if (result.error) {
+            console.error(`Error saving ${rateType} rate:`, result.error);
+            throw new Error(`Erro ao salvar: ${result.error.message}`);
         }
+
+        // Check if any rows were actually affected (only for updates)
+        if (existing && result.count === 0) {
+            console.error(`No rows affected for ${rateType}. Likely RLS policy blocking update.`);
+            throw new Error(`Erro de permissão: Nenhuma alteração foi salva. Tente recarregar a página.`);
+        }
+
+        return true;
+    } catch (error: any) {
+        console.error(`❌ Error in updateTeamRate for ${rateType}:`, error);
+        throw error;
+    }
+}
+
+export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {
+    try {
+        await updateTeamRate('senior', rates.senior);
+        await updateTeamRate('plena', rates.plena);
+        await updateTeamRate('junior', rates.junior);
+        return true;
+    } catch (error) {
+        console.error('Error updating team rates:', error);
+        throw error;
+    }
+}

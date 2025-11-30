@@ -79,45 +79,20 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
                 .insert({
                     rate_type: rateType,
                     hourly_rate: hourlyRate,
-                    updated_at: new Date().toISOString()
-                }, { count: 'exact' }); // Request exact count of inserted rows
+                } catch (error: any) {
+                    console.error(`❌ Error in updateTeamRate for ${rateType}:`, error);
+                    throw error;
+                }
         }
 
-        if (result.error) {
-            console.error(`Error saving ${rateType} rate:`, result.error);
-
-            // Check if it's a permission error
-            if (result.error.code === 'PGRST301' || result.error.message.includes('policy')) {
-                throw new Error(`Erro de permissão: Você precisa ser admin para alterar os valores. Verifique se seu usuário tem is_admin=true no Supabase.`);
+        export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {
+            try {
+                await updateTeamRate('senior', rates.senior);
+                await updateTeamRate('plena', rates.plena);
+                await updateTeamRate('junior', rates.junior);
+                return true;
+            } catch (error) {
+                console.error('Error updating team rates:', error);
+                throw error;
             }
-
-            throw new Error(`Erro ao salvar: ${result.error.message}`);
         }
-
-        // Check if any rows were actually affected
-        if (result.count === 0) {
-            console.error(`No rows affected for ${rateType}. Likely RLS policy blocking update.`);
-            throw new Error(`Erro de permissão: Nenhuma alteração foi salva. Verifique se seu usuário é administrador.`);
-        }
-
-        // Success
-        console.log(`✅ Successfully saved ${rateType} rate: ${hourlyRate} (Rows affected: ${result.count})`);
-        return true;
-
-    } catch (error: any) {
-        console.error(`❌ Error in updateTeamRate for ${rateType}:`, error);
-        throw error;
-    }
-}
-
-export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {
-    try {
-        await updateTeamRate('senior', rates.senior);
-        await updateTeamRate('plena', rates.plena);
-        await updateTeamRate('junior', rates.junior);
-        return true;
-    } catch (error) {
-        console.error('Error updating team rates:', error);
-        throw error;
-    }
-}

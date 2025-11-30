@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Save, Loader2, Settings } from 'lucide-react';
 import { getTeamRates, updateAllTeamRates, TeamRates } from './lib/teamRatesService';
-import { supabase } from './lib/supabase';
+import { supabase } from '../lib/supabase';
 
 interface TeamRatesModalProps {
     isOpen: boolean;

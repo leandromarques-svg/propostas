@@ -48,11 +48,13 @@ export async function getTeamRates(): Promise<TeamRates> {
 export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', hourlyRate: number): Promise<boolean> {
     const { error } = await supabase
         .from('team_rates')
-        .update({
+        .upsert({
+            rate_type: rateType,
             hourly_rate: hourlyRate,
             updated_at: new Date().toISOString()
-        })
-        .eq('rate_type', rateType);
+        }, {
+            onConflict: 'rate_type'
+        });
 
     if (error) {
         console.error(`Error updating ${rateType} rate:`, error);

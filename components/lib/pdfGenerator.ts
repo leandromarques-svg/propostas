@@ -55,8 +55,14 @@ export const generateProposalPDF = (inputs: ProjectPricingInputs, result: Pricin
         }
     };
 
-    // Header
-    addTitle('PROPOSTA COMERCIAL - METARH');
+    // Header with METARH Logo/Branding
+    doc.setFontSize(24);
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('METARH', 20, yPos);
+    yPos += lineHeight + 2;
+
+    addTitle('PROPOSTA COMERCIAL');
     doc.setFontSize(9);
     doc.setTextColor('#666666');
     doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 20, yPos);

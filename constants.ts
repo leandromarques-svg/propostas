@@ -641,11 +641,7 @@ export const HOURLY_RATES = {
 };
 
 export const DEFAULT_FIXED_ITEMS: FixedCostItem[] = [
-  { id: 'sys', name: 'Sistemas/Operação', cost: 220.00, quantity: 0 },
-  { id: 'trans', name: 'Deslocamento', cost: 300.00, quantity: 0 },
-  { id: 'acco', name: 'Hospedagem', cost: 2000.00, quantity: 0 },
-  { id: 'ads', name: 'Anúncios', cost: 150.00, quantity: 0 },
-  { id: 'tests', name: 'Testes Específicos', cost: 100.00, quantity: 0 }
+  { id: 'item-1', name: '', cost: 0, quantity: 1 }
 ];
 
 export const PROFIT_MARGINS = [

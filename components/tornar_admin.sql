@@ -1,15 +1,21 @@
--- PASSO A PASSO PARA CORRIGIR O ERRO DE PERMISSÃO
+-- SCRIPT DE VERIFICAÇÃO E CORREÇÃO
 
--- 1. Acesse o painel do Supabase (https://supabase.com/dashboard)
--- 2. Entre no seu projeto
--- 3. No menu lateral esquerdo, clique em "SQL Editor"
--- 4. Clique em "New Query"
--- 5. Cole o código abaixo (substitua o email pelo seu email de login) e clique em "Run"
+-- 1. Primeiro, vamos verificar se o usuário existe (independente de maiúsculas/minúsculas)
+SELECT id, email, is_admin 
+FROM profiles 
+WHERE email ILIKE 'leandromarques@metarh.com.br';
 
--- Substitua 'seu_email@aqui.com' pelo email que você usa para logar no sistema
+-- SE A CONSULTA ACIMA NÃO RETORNAR NADA:
+-- Significa que o email está errado ou o usuário ainda não tem perfil criado na tabela 'profiles'.
+
+-- 2. Se o usuário apareceu, execute a atualização forçada:
 UPDATE profiles
 SET is_admin = true
-WHERE email = 'seu_email@aqui.com';  -- <--- COLOQUE SEU EMAIL AQUI
+WHERE email ILIKE 'leandromarques@metarh.com.br';
 
--- Verifique se funcionou rodando esta linha:
-SELECT email, is_admin FROM profiles WHERE is_admin = true;
+-- 3. Confirme se funcionou:
+SELECT email, is_admin 
+FROM profiles 
+WHERE email ILIKE 'leandromarques@metarh.com.br';
+
+-- O resultado deve mostrar "t" ou "true" na coluna is_admin.

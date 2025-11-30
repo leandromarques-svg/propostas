@@ -54,14 +54,70 @@ export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', ho
             .eq('rate_type', rateType)
             .maybeSingle();
 
-        export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {
-            try {
-                await updateTeamRate('senior', rates.senior);
-                await updateTeamRate('plena', rates.plena);
-                await updateTeamRate('junior', rates.junior);
-                return true;
-            } catch (error) {
-                console.error('Error updating team rates:', error);
-                throw error;
-            }
+        if (selectError) {
+            console.error(`Error checking existing ${rateType} rate:`, selectError);
+            throw new Error(`Erro ao verificar taxa existente: ${selectError.message}`);
         }
+
+        let result;
+
+        if (existing) {
+            // Update existing record
+            console.log(`Updating existing ${rateType} rate from ${existing.hourly_rate} to ${hourlyRate}`);
+            result = await supabase
+                .from('team_rates')
+                .update({
+                    hourly_rate: hourlyRate,
+                    updated_at: new Date().toISOString()
+                }, { count: 'exact' }) // Request exact count of updated rows
+                .eq('rate_type', rateType);
+        } else {
+            // Insert new record
+            console.log(`Inserting new ${rateType} rate: ${hourlyRate}`);
+            result = await supabase
+                .from('team_rates')
+                .insert({
+                    rate_type: rateType,
+                    hourly_rate: hourlyRate,
+                    updated_at: new Date().toISOString()
+                }, { count: 'exact' }); // Request exact count of inserted rows
+        }
+
+        if (result.error) {
+            console.error(`Error saving ${rateType} rate:`, result.error);
+
+            // Check if it's a permission error
+            if (result.error.code === 'PGRST301' || result.error.message.includes('policy')) {
+                throw new Error(`Erro de permissão: Você precisa ser admin para alterar os valores. Verifique se seu usuário tem is_admin=true no Supabase.`);
+            }
+
+            throw new Error(`Erro ao salvar: ${result.error.message}`);
+        }
+
+        // Check if any rows were actually affected
+        if (result.count === 0) {
+            console.error(`No rows affected for ${rateType}. Likely RLS policy blocking update.`);
+            throw new Error(`Erro de permissão: Nenhuma alteração foi salva. Verifique se seu usuário é administrador.`);
+        }
+
+        // Success
+        console.log(`✅ Successfully saved ${rateType} rate: ${hourlyRate} (Rows affected: ${result.count})`);
+        return true;
+
+    } catch (error: any) {
+        console.error(`❌ Error in updateTeamRate for ${rateType}:`, error);
+        throw error;
+    }
+}
+
+export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {
+    try {
+        await updateTeamRate('senior', rates.senior);
+        await updateTeamRate('plena', rates.plena);
+        await updateTeamRate('junior', rates.junior);
+        return true;
+    } catch (error) {
+        console.error('Error updating team rates:', error);
+        throw error;
+    }
+}

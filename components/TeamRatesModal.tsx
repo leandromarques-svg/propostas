@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Save, Loader2, Settings } from 'lucide-react';
 import { getTeamRates, updateAllTeamRates, TeamRates } from './lib/teamRatesService';
+import { supabase } from './lib/supabase';
 
 interface TeamRatesModalProps {
     isOpen: boolean;
@@ -15,12 +16,21 @@ export const TeamRatesModal: React.FC<TeamRatesModalProps> = ({ isOpen, onClose 
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [userInfo, setUserInfo] = useState<{ id: string, email: string } | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             loadRates();
+            loadUserInfo();
         }
     }, [isOpen]);
+
+    const loadUserInfo = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            setUserInfo({ id: user.id, email: user.email || '' });
+        }
+    };
 
     const loadRates = async () => {
         setIsLoading(true);
@@ -62,9 +72,16 @@ export const TeamRatesModal: React.FC<TeamRatesModalProps> = ({ isOpen, onClose 
 
                 {/* Header */}
                 <div className="bg-metarh-dark text-white p-6 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <Settings className="text-metarh-lime" /> Configurar Valores da Equipe
-                    </h2>
+                    <div>
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                            <Settings className="text-metarh-lime" /> Configurar Valores da Equipe
+                        </h2>
+                        {/* Debug Info */}
+                        <div className="mt-2 text-xs text-gray-400 font-mono bg-black/30 p-2 rounded border border-white/10 select-all">
+                            <p>Seu ID: <span className="text-metarh-lime">{userInfo?.id || 'Carregando...'}</span></p>
+                            <p>Seu Email: <span className="text-metarh-lime">{userInfo?.email || 'Carregando...'}</span></p>
+                        </div>
+                    </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                         <X size={24} />
                     </button>

@@ -5,7 +5,7 @@
 
 DO $$
 DECLARE
-  v_user_id uuid := 'COLE_SEU_ID_AQUI'; -- <--- COLE O ID AQUI
+  v_user_id uuid := 'leandromarques@metarh.com.br'; -- <--- COLE O ID AQUI
 BEGIN
   -- Atualiza o perfil para ser admin
   UPDATE profiles

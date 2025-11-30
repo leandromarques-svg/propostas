@@ -45,8 +45,9 @@ export const TeamRatesModal: React.FC<TeamRatesModalProps> = ({ isOpen, onClose 
             await updateAllTeamRates(rates);
             alert('Valores atualizados com sucesso!');
             onClose();
-        } catch (error) {
-            alert('Erro ao atualizar valores. Tente novamente.');
+        } catch (error: any) {
+            const errorMessage = error?.message || 'Erro desconhecido ao atualizar valores.';
+            alert(`Erro ao salvar: ${errorMessage}\n\nVerifique o console (F12) para mais detalhes.`);
             console.error('Error saving rates:', error);
         } finally {
             setIsSaving(false);

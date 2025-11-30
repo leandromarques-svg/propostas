@@ -588,15 +588,9 @@ const App: React.FC = () => {
       </main>
 
       <footer className="bg-metarh-dark text-white py-12 mt-20 relative z-10 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-8 flex items-center justify-center">
           <div className="opacity-90 hover:opacity-100 transition-opacity">
             <Logo variant="white" />
-          </div>
-          <div className="text-center md:text-right">
-            <p className="text-white font-medium text-lg mb-1">Feito por e para pessoas.</p>
-            <a href="https://www.metarh.com.br" target="_blank" rel="noreferrer" className="text-metarh-medium hover:text-metarh-lime transition-colors text-sm">
-              www.metarh.com.br
-            </a>
           </div>
         </div>
       </footer>

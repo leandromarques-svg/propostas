@@ -46,43 +46,67 @@ export async function getTeamRates(): Promise<TeamRates> {
 }
 
 export async function updateTeamRate(rateType: 'senior' | 'plena' | 'junior', hourlyRate: number): Promise<boolean> {
-    // First, try to check if the record exists
-    const { data: existing } = await supabase
-        .from('team_rates')
-        .select('id')
-        .eq('rate_type', rateType)
-        .single();
-
-    let error;
-
-    if (existing) {
-        // Update existing record
-        const result = await supabase
+    try {
+        // First, check if the record exists
+        const { data: existing, error: selectError } = await supabase
             .from('team_rates')
-            .update({
-                hourly_rate: hourlyRate,
-                updated_at: new Date().toISOString()
-            })
-            .eq('rate_type', rateType);
-        error = result.error;
-    } else {
-        // Insert new record
-        const result = await supabase
-            .from('team_rates')
-            .insert({
-                rate_type: rateType,
-                hourly_rate: hourlyRate,
-                updated_at: new Date().toISOString()
-            });
-        error = result.error;
-    }
+            .select('id, rate_type, hourly_rate')
+            .eq('rate_type', rateType)
+            .maybeSingle();
 
-    if (error) {
-        console.error(`Error updating ${rateType} rate:`, error);
+        if (selectError) {
+            console.error(`Error checking existing ${rateType} rate:`, selectError);
+            throw new Error(`Erro ao verificar taxa existente: ${selectError.message}`);
+        }
+
+        let result;
+
+        if (existing) {
+            // Update existing record
+            console.log(`Updating existing ${rateType} rate from ${existing.hourly_rate} to ${hourlyRate}`);
+            result = await supabase
+                .from('team_rates')
+                .update({
+                    hourly_rate: hourlyRate,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('rate_type', rateType)
+                .select();
+        } else {
+            // Insert new record
+            console.log(`Inserting new ${rateType} rate: ${hourlyRate}`);
+            result = await supabase
+                .from('team_rates')
+                .insert({
+                    rate_type: rateType,
+                    hourly_rate: hourlyRate,
+                    updated_at: new Date().toISOString()
+                })
+                .select();
+        }
+
+        if (result.error) {
+            console.error(`Error saving ${rateType} rate:`, result.error);
+
+            // Check if it's a permission error
+            if (result.error.code === 'PGRST301' || result.error.message.includes('policy')) {
+                throw new Error(`Erro de permissão: Você precisa ser admin para alterar os valores. Verifique se seu usuário tem is_admin=true no Supabase.`);
+            }
+
+            throw new Error(`Erro ao salvar: ${result.error.message}`);
+        }
+
+        if (!result.data || result.data.length === 0) {
+            throw new Error(`Nenhum dado retornado após salvar ${rateType}`);
+        }
+
+        console.log(`Successfully saved ${rateType} rate:`, result.data[0]);
+        return true;
+
+    } catch (error: any) {
+        console.error(`Error in updateTeamRate for ${rateType}:`, error);
         throw error;
     }
-
-    return true;
 }
 
 export async function updateAllTeamRates(rates: TeamRates): Promise<boolean> {

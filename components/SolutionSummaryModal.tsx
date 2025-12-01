@@ -189,10 +189,10 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                 <span className="ml-3 text-gray-500">Carregando posts...</span>
                             </div>
                         ) : (
-                            <div className="grid md:grid-cols-3 gap-8">
+                            <div className="space-y-10">
                                 {/* Topo - Aprendizado */}
-                                <div className="flex flex-col h-full">
-                                    <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                <div className="space-y-4">
+                                    <h4 className="text-lg font-bold text-metarh-dark flex items-center gap-2 border-b border-gray-200 pb-2">
                                         <span className="w-3 h-3 rounded-full bg-blue-500"></span>
                                         Topo de Funil
                                         <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
@@ -200,7 +200,7 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                         </span>
                                     </h4>
 
-                                    <div className="space-y-4 flex-1">
+                                    <div className="flex overflow-x-auto snap-x gap-4 pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                                         {blogPosts.topo.posts.length > 0 ? (
                                             blogPosts.topo.posts.map((post) => (
                                                 <a
@@ -208,16 +208,16 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                                     href={post.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="block p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group h-full"
+                                                    className="snap-start shrink-0 w-[280px] p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group flex flex-col h-full"
                                                 >
                                                     <h5 className="font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors text-sm line-clamp-2">
                                                         <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
-                                                    <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
                                                 </a>
                                             ))
                                         ) : (
-                                            <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                            <div className="w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
                                                 <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
                                                 <p className="text-xs text-gray-300 mt-1">Topo de funil zerado</p>
                                             </div>
@@ -226,8 +226,8 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                 </div>
 
                                 {/* Meio - Descoberta */}
-                                <div className="flex flex-col h-full">
-                                    <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                <div className="space-y-4">
+                                    <h4 className="text-lg font-bold text-metarh-dark flex items-center gap-2 border-b border-gray-200 pb-2">
                                         <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
                                         Meio de Funil
                                         <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
@@ -235,7 +235,7 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                         </span>
                                     </h4>
 
-                                    <div className="space-y-4 flex-1">
+                                    <div className="flex overflow-x-auto snap-x gap-4 pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                                         {blogPosts.meio.posts.length > 0 ? (
                                             blogPosts.meio.posts.map((post) => (
                                                 <a
@@ -243,16 +243,16 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                                     href={post.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="block p-4 bg-white border border-gray-200 rounded-xl hover:border-yellow-300 hover:shadow-md transition-all group h-full"
+                                                    className="snap-start shrink-0 w-[280px] p-4 bg-white border border-gray-200 rounded-xl hover:border-yellow-300 hover:shadow-md transition-all group flex flex-col h-full"
                                                 >
                                                     <h5 className="font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors text-sm line-clamp-2">
                                                         <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
-                                                    <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
                                                 </a>
                                             ))
                                         ) : (
-                                            <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                            <div className="w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
                                                 <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
                                                 <p className="text-xs text-gray-300 mt-1">Meio de funil zerado</p>
                                             </div>
@@ -261,8 +261,8 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                 </div>
 
                                 {/* Fundo - Decisão */}
-                                <div className="flex flex-col h-full">
-                                    <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                <div className="space-y-4">
+                                    <h4 className="text-lg font-bold text-metarh-dark flex items-center gap-2 border-b border-gray-200 pb-2">
                                         <span className="w-3 h-3 rounded-full bg-green-500"></span>
                                         Fundo de Funil
                                         <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
@@ -270,7 +270,7 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                         </span>
                                     </h4>
 
-                                    <div className="space-y-4 flex-1">
+                                    <div className="flex overflow-x-auto snap-x gap-4 pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                                         {blogPosts.fundo.posts.length > 0 ? (
                                             blogPosts.fundo.posts.map((post) => (
                                                 <a
@@ -278,16 +278,16 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                                     href={post.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="block p-4 bg-white border border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all group h-full"
+                                                    className="snap-start shrink-0 w-[280px] p-4 bg-white border border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all group flex flex-col h-full"
                                                 >
                                                     <h5 className="font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors text-sm line-clamp-2">
                                                         <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
-                                                    <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
                                                 </a>
                                             ))
                                         ) : (
-                                            <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                            <div className="w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
                                                 <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
                                                 <p className="text-xs text-gray-300 mt-1">Fundo de funil zerado</p>
                                             </div>

@@ -60,9 +60,9 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
 
         console.log(`[WordPress] Filtered to ${filteredPosts.length} posts with both categories`);
 
-        // Return top 3 and total count
+        // Return all filtered posts and total count
         return {
-            posts: filteredPosts.slice(0, 3),
+            posts: filteredPosts,
             total: filteredPosts.length
         };
     } catch (error) {

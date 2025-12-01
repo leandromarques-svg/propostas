@@ -1,5 +1,11 @@
 
 
+export interface BlogContent {
+  title: string;
+  url: string;
+  funnelStage: 'topo' | 'meio' | 'fundo';
+}
+
 export interface SolutionData {
   id: string;
   code: string;
@@ -13,6 +19,7 @@ export interface SolutionData {
   laborType: string;
   sla: string;
   aboutSolution: string; // About the parent solution package
+  blogContent?: BlogContent[]; // New field for blog posts
 }
 
 export type ViewState = 'catalog' | 'proposal' | 'layout_editor' | 'calculator';

@@ -41,14 +41,14 @@ export const DetailModal: React.FC<DetailModalProps> = ({ solution, initialSelec
   // Standardized bullet component for consistency
   const StandardBullet = () => (
     <div className="mt-2 shrink-0 text-metarh-medium">
-        <Circle size={8} fill="currentColor" />
+      <Circle size={8} fill="currentColor" />
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-100/60 backdrop-blur-md animate-fade-in">
       <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl relative flex flex-col">
-        
+
         {/* Header */}
         <div className="sticky top-0 bg-metarh-dark text-white p-6 md:p-8 flex justify-between items-start z-20 shadow-lg">
           <div>
@@ -65,15 +65,15 @@ export const DetailModal: React.FC<DetailModalProps> = ({ solution, initialSelec
 
         {/* Content */}
         <div className="p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar">
-          
+
           <section>
             <h3 className="text-xl font-bold text-metarh-medium mb-3">Sobre a Solução ({solution.solutionPackage})</h3>
             <p className="text-gray-700 leading-relaxed text-lg">{solution.aboutSolution}</p>
-            
+
             <div className="mt-4 p-6 bg-gray-50 border-l-4 border-metarh-medium rounded-r-lg">
-                <h4 className="font-bold text-metarh-dark mb-2 text-lg">Descrição do Serviço</h4>
-                {/* Updated font style to match 'About Solution' */}
-                <p className="text-gray-700 leading-relaxed text-lg">{solution.description}</p>
+              <h4 className="font-bold text-metarh-dark mb-2 text-lg">Descrição do Serviço</h4>
+              {/* Updated font style to match 'About Solution' */}
+              <p className="text-gray-700 leading-relaxed text-lg">{solution.description}</p>
             </div>
           </section>
 
@@ -116,46 +116,107 @@ export const DetailModal: React.FC<DetailModalProps> = ({ solution, initialSelec
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-             {/* Tools List (Static) */}
-             <div className="border border-gray-100 p-6 rounded-xl bg-white">
-                <div className="flex items-center gap-2 mb-4 text-metarh-medium font-bold">
-                  <Wrench size={18}/> Ferramentas
-                </div>
-                <ul className="space-y-3">
-                  {solution.toolsUsed.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <StandardBullet />
-                      <span className="text-sm text-gray-600 leading-relaxed">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-             </div>
+            {/* Tools List (Static) */}
+            <div className="border border-gray-100 p-6 rounded-xl bg-white">
+              <div className="flex items-center gap-2 mb-4 text-metarh-medium font-bold">
+                <Wrench size={18} /> Ferramentas
+              </div>
+              <ul className="space-y-3">
+                {solution.toolsUsed.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <StandardBullet />
+                    <span className="text-sm text-gray-600 leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-             <div className="space-y-6">
-                <div className="p-4 rounded-xl">
-                    <div className="flex items-center gap-2 mb-2 text-metarh-dark font-bold">
-                    SLA Estimado
-                    </div>
-                    <p className="text-sm text-gray-600 font-medium">{solution.sla}</p>
+            <div className="space-y-6">
+              <div className="p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2 text-metarh-dark font-bold">
+                  SLA Estimado
                 </div>
-                <div className="p-4 rounded-xl">
-                    <div className="flex items-center gap-2 mb-2 text-metarh-dark font-bold">
-                    <Users size={18}/> Mão de Obra
-                    </div>
-                    <p className="text-sm text-gray-600 font-medium">{solution.laborType}</p>
+                <p className="text-sm text-gray-600 font-medium">{solution.sla}</p>
+              </div>
+              <div className="p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2 text-metarh-dark font-bold">
+                  <Users size={18} /> Mão de Obra
                 </div>
-             </div>
+                <p className="text-sm text-gray-600 font-medium">{solution.laborType}</p>
+              </div>
+            </div>
           </div>
+
+          {/* Blog Content Section */}
+          {solution.blogContent && solution.blogContent.length > 0 && (
+            <section className="mt-8 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-bold text-metarh-dark mb-6 flex items-center gap-2">
+                <span className="text-2xl">📚</span> Conteúdos Relacionados (Blog)
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Topo de Funil */}
+                <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
+                  <h4 className="font-bold text-blue-800 mb-3 text-sm uppercase tracking-wider">Topo de Funil (Atração)</h4>
+                  <ul className="space-y-3">
+                    {solution.blogContent.filter(b => b.funnelStage === 'topo').map((blog, idx) => (
+                      <li key={idx}>
+                        <a href={blog.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-start gap-2">
+                          <span className="mt-1">📄</span> {blog.title}
+                        </a>
+                      </li>
+                    ))}
+                    {solution.blogContent.filter(b => b.funnelStage === 'topo').length === 0 && (
+                      <li className="text-xs text-gray-400 italic">Nenhum conteúdo disponível.</li>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Meio de Funil */}
+                <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+                  <h4 className="font-bold text-purple-800 mb-3 text-sm uppercase tracking-wider">Meio de Funil (Consideração)</h4>
+                  <ul className="space-y-3">
+                    {solution.blogContent.filter(b => b.funnelStage === 'meio').map((blog, idx) => (
+                      <li key={idx}>
+                        <a href={blog.url} target="_blank" rel="noopener noreferrer" className="text-sm text-purple-600 hover:text-purple-800 hover:underline font-medium flex items-start gap-2">
+                          <span className="mt-1">💡</span> {blog.title}
+                        </a>
+                      </li>
+                    ))}
+                    {solution.blogContent.filter(b => b.funnelStage === 'meio').length === 0 && (
+                      <li className="text-xs text-gray-400 italic">Nenhum conteúdo disponível.</li>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Fundo de Funil */}
+                <div className="bg-green-50 p-5 rounded-xl border border-green-100">
+                  <h4 className="font-bold text-green-800 mb-3 text-sm uppercase tracking-wider">Fundo de Funil (Decisão)</h4>
+                  <ul className="space-y-3">
+                    {solution.blogContent.filter(b => b.funnelStage === 'fundo').map((blog, idx) => (
+                      <li key={idx}>
+                        <a href={blog.url} target="_blank" rel="noopener noreferrer" className="text-sm text-green-600 hover:text-green-800 hover:underline font-medium flex items-start gap-2">
+                          <span className="mt-1">✅</span> {blog.title}
+                        </a>
+                      </li>
+                    ))}
+                    {solution.blogContent.filter(b => b.funnelStage === 'fundo').length === 0 && (
+                      <li className="text-xs text-gray-400 italic">Nenhum conteúdo disponível.</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="p-6 border-t border-gray-100 flex justify-end gap-4 bg-white rounded-b-3xl">
-          <button 
+          <button
             onClick={onClose}
             className="px-6 py-3 rounded-full border border-gray-300 font-medium text-gray-600 hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </button>
-          <button 
+          <button
             onClick={handleSave}
             className="px-8 py-3 rounded-full bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg shadow-purple-200 transition-all transform hover:-translate-y-1 flex items-center gap-2"
           >

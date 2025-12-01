@@ -337,13 +337,15 @@ const App: React.FC = () => {
                   </div>
                 )}
 
-                <button
-                  onClick={() => setIsTeamRatesModalOpen(true)}
-                  className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium ml-2"
-                  title="Configurar Valores"
-                >
-                  <Settings size={16} />
-                </button>
+                {currentUser.isAdmin && (
+                  <button
+                    onClick={() => setIsTeamRatesModalOpen(true)}
+                    className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium ml-2"
+                    title="Configurar Valores"
+                  >
+                    <Settings size={16} />
+                  </button>
+                )}
               </div>
             </div>
 

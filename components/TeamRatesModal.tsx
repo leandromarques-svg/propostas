@@ -68,10 +68,10 @@ export const TeamRatesModal: React.FC<TeamRatesModalProps> = ({ isOpen, onClose 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-white w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar">
 
                 {/* Header */}
-                <div className="bg-metarh-dark text-white p-6 flex justify-between items-center">
+                <div className="bg-metarh-dark text-white p-6 flex justify-between items-center sticky top-0 z-10">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <Settings className="text-metarh-lime" /> Configurar Valores da Equipe
                     </h2>

@@ -37,9 +37,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     }]);
 
     const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
-    const [recruitmentCost, setRecruitmentCost] = useState<number>(0); // If selection, maybe a flat fee or %? User said "igual como fizemos na calculadora de recrutamento". For now, let's make it an input.
+    const [recruitmentCostPercent, setRecruitmentCostPercent] = useState<number>(20); // Percentage default 20%
 
-    // Benefits Selection (Global for now, or per position? Usually global or per level. Let's assume global for simplicity first, or maybe per position is better? User said "poder selecionar qual o plano". Let's do global for now to start.)
+    // Benefits Selection
     const [selectedMedicalPlan, setSelectedMedicalPlan] = useState<string>(BENEFIT_OPTIONS.medical[0].id);
     const [selectedWellhubPlan, setSelectedWellhubPlan] = useState<string>(BENEFIT_OPTIONS.wellhub[0].id);
 
@@ -47,8 +47,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const [customBenefits, setCustomBenefits] = useState<{ id: string, name: string, value: number }[]>([]);
 
     // Fees
-    const [backupFeePercent, setBackupFeePercent] = useState<number>(0.05); // Taxa de Backup default 5%?
-    const [adminFeePercent, setAdminFeePercent] = useState<number>(0.10); // Taxa Administrativa default 10%?
+    const [backupFeePercent, setBackupFeePercent] = useState<number>(0.05); // Taxa de Backup default 5%
+    const [adminFeePercent, setAdminFeePercent] = useState<number>(0.10); // Taxa Administrativa default 10%
 
     // Results State
     const [result, setResult] = useState<any>(null);
@@ -56,7 +56,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // --- CALCULATIONS ---
     useEffect(() => {
         calculateLaborPricing();
-    }, [positions, recruitmentType, recruitmentCost, selectedMedicalPlan, selectedWellhubPlan, customBenefits, backupFeePercent, adminFeePercent]);
+    }, [positions, recruitmentType, recruitmentCostPercent, selectedMedicalPlan, selectedWellhubPlan, customBenefits, backupFeePercent, adminFeePercent]);
 
     const calculateLaborPricing = () => {
         let totalBaseSalary = 0;
@@ -124,24 +124,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const adminFeeValue = adminFeeBasis * adminFeePercent;
 
         // Total Operational Cost (Custo Total)
-        // Custo total por celetista administrado (soma dos valores totais)
         const totalOperationalCost = adminFeeBasis + adminFeeValue;
 
-        // Recruitment Cost (One-time or amortized? Usually one-time. Let's keep it separate or add to first month? 
-        // User said "Custo de equipe de recrutamento... igual como fizemos na calculadora de recrutamento".
-        // For this calculator, it seems to be a monthly fee calculator ("Mão de obra"). 
-        // Usually recruitment is charged separately or amortized. Let's display it but maybe not add to the monthly recurring total unless requested.
-        // For now, let's calculate it but keep it distinct from the monthly "Gross NF".
+        // Recruitment Cost (Setup Fee)
+        // Calculated as % of Total Base Salary
+        const recruitmentFeeValue = totalBaseSalary * (recruitmentCostPercent / 100);
 
         // Taxes (Tributos)
-        // User: "ISS... PIS... COFINS... IRRF... CSLL... TOTAL - Tributos % - R$"
-        // These taxes are usually on the Gross NF (Faturamento).
-        // Gross NF = Total Operational Cost / (1 - Total Tax Rate)? Or is it added on top?
-        // User: "Subtotal NF Serviço Bruto"
-        // User: "Total Líquido a receber"
-        // Usually: Net = Gross - Taxes.
-        // If "Total Líquido a receber" is what we want to receive (the cost + profit), then Gross = Net / (1 - Taxes).
-
         const totalTaxRate =
             LABOR_TAX_RATES.iss +
             LABOR_TAX_RATES.pis +
@@ -149,7 +138,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             LABOR_TAX_RATES.irrf +
             LABOR_TAX_RATES.csll;
 
-        // If we treat "Total Operational Cost" as the Net Liquid we want:
+        // Gross NF
         const grossNF = totalOperationalCost / (1 - totalTaxRate);
         const totalTaxes = grossNF * totalTaxRate;
 
@@ -170,7 +159,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             totalOperationalCost,
             grossNF,
             totalTaxes,
-            totalTaxRate
+            totalTaxRate,
+            recruitmentFeeValue
         });
     };
 
@@ -466,15 +456,27 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
 
                                 {recruitmentType === 'selection' && (
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo do Recrutamento (Único)</label>
-                                        <input
-                                            type="number"
-                                            value={recruitmentCost}
-                                            onChange={(e) => setRecruitmentCost(Number(e.target.value))}
-                                            className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
-                                            placeholder="R$ 0,00"
-                                        />
+                                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="block text-xs font-bold text-gray-700 uppercase">Taxa de Recrutamento (%)</label>
+                                            <span className="text-xs text-gray-500">Sobre o salário base total</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="number"
+                                                value={recruitmentCostPercent}
+                                                onChange={(e) => setRecruitmentCostPercent(Number(e.target.value))}
+                                                className="w-24 p-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-400 outline-none font-bold text-center text-purple-900"
+                                                placeholder="%"
+                                            />
+                                            <span className="text-lg font-bold text-purple-900">%</span>
+                                            <div className="flex-1 text-right">
+                                                <span className="block text-xs text-gray-500">Valor Estimado (Setup)</span>
+                                                <span className="text-lg font-bold text-purple-700">
+                                                    {fmtCurrency((result?.totalBaseSalary || 0) * (recruitmentCostPercent / 100))}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -567,10 +569,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
                                     </div>
 
-                                    {recruitmentType === 'selection' && recruitmentCost > 0 && (
+                                    {recruitmentType === 'selection' && result.recruitmentFeeValue > 0 && (
                                         <div className="mt-4 p-3 bg-purple-900/50 rounded-xl border border-purple-500/30">
-                                            <p className="text-xs text-purple-200 uppercase font-bold">Custo Setup (R&S)</p>
-                                            <p className="text-xl font-bold text-white">{fmtCurrency(recruitmentCost)}</p>
+                                            <p className="text-xs text-purple-200 uppercase font-bold">Custo Setup (R&S - {recruitmentCostPercent}%)</p>
+                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.recruitmentFeeValue)}</p>
                                             <p className="text-[10px] text-purple-300">Cobrança única</p>
                                         </div>
                                     )}

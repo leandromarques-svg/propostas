@@ -704,16 +704,29 @@ export const LABOR_TAX_RATES = {
 
 export const BENEFIT_OPTIONS = {
   medical: [
-    { id: 'med-1', name: 'Plano Básico (Enfermaria)', value: 150.00 },
-    { id: 'med-2', name: 'Plano Intermediário (Apto)', value: 250.00 },
-    { id: 'med-3', name: 'Plano Executivo', value: 450.00 },
+    { id: 'med-odonto', name: 'PLANO ODONTO SULAMÉRICA + SINDICATO', value: 44.25 },
+    { id: 'med-sul-esp', name: 'SULAMÉRICA ESPECIAL', value: 1117.49 },
+    { id: 'med-sul-esp100', name: 'SULAMÉRICA ESPECIAL 100', value: 1445.99 },
+    { id: 'med-sul-exec', name: 'SULAMÉRICA EXECUTIVO', value: 3426.20 },
+    { id: 'med-sul-exato', name: 'SULAMÉRICA - EXATO', value: 980.92 },
+    { id: 'med-sul-class', name: 'SULAMÉRICA CLÁSSICO', value: 1055.95 },
+    { id: 'med-brad-enf', name: 'BRADESCO EFETIVO ENFERMARIA', value: 612.30 },
+    { id: 'med-brad-apt', name: 'BRADESCO EFETIVO APARTAMENTO', value: 690.27 },
+    { id: 'med-brad-flex', name: 'BRADESCO NACIONAL FLEX APARTAMENTO', value: 814.65 },
+    { id: 'med-brad-nac2', name: 'BRADESCO NACIONAL 2 APARTAMENTO', value: 975.28 },
     { id: 'med-none', name: 'Sem Plano', value: 0 }
   ],
   wellhub: [
-    { id: 'well-1', name: 'Starter', value: 29.90 },
-    { id: 'well-2', name: 'Basic', value: 49.90 },
-    { id: 'well-3', name: 'Gold', value: 99.90 },
-    { id: 'well-none', name: 'Sem Wellhub', value: 0 }
+    { id: 'gym-starter', name: 'GYMPASS STARTER', value: 29.90 },
+    { id: 'gym-basic', name: 'GYMPASS BASIC', value: 49.90 },
+    { id: 'gym-silver', name: 'GYMPASS SILVER', value: 119.90 },
+    { id: 'gym-silver-plus', name: 'GYMPASS SILVER+', value: 184.90 },
+    { id: 'gym-gold', name: 'GYMPASS GOLD', value: 249.90 },
+    { id: 'gym-gold-plus', name: 'GYMPASS GOLD+', value: 379.90 },
+    { id: 'gym-platinum', name: 'GYMPASS PLATINUM', value: 499.90 },
+    { id: 'gym-diamond', name: 'GYMPASS DIAMOND', value: 629.90 },
+    { id: 'gym-diamond-plus', name: 'GYMPASS DIAMOND+', value: 679.90 },
+    { id: 'gym-none', name: 'Sem Wellhub', value: 0 }
   ]
 };
 

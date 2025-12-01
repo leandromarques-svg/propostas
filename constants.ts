@@ -67,24 +67,7 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     toolsUsed: ['Sistema de Recrutamento e Seleção.', 'Linkedin Recruiter', 'PowerBi (performance e indicadores).'],
     laborType: 'Não se aplica',
     sla: 'O SLA dependerá da posição e seu nível estratégico.',
-    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental, garantindo contratações que agregam valor estratégico e resultados concretos para a empresa.',
-    blogContent: [
-      {
-        title: 'O que é Hunting e quando contratar?',
-        url: 'https://metarh.com.br/blog/o-que-e-hunting',
-        funnelStage: 'topo'
-      },
-      {
-        title: 'Diferença entre Recrutamento e Hunting',
-        url: 'https://metarh.com.br/blog/recrutamento-vs-hunting',
-        funnelStage: 'meio'
-      },
-      {
-        title: 'Como escolher uma consultoria de Hunting',
-        url: 'https://metarh.com.br/blog/escolher-consultoria-hunting',
-        funnelStage: 'fundo'
-      }
-    ]
+    aboutSolution: 'A solução de contratação de média e alta gestão é voltada para cargos estratégicos que impactam diretamente o sucesso do negócio. O processo combina hunting ativo de talentos, mapeamento de mercado, abordagem consultiva e análise comportamental, garantindo contratações que agregam valor estratégico e resultados concretos para a empresa.'
   },
   {
     id: 'business-assessment',

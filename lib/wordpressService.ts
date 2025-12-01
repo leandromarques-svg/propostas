@@ -22,30 +22,6 @@ export interface BlogPost {
     title: { rendered: string };
     link: string;
     excerpt: { rendered: string };
-// Configuration for WordPress Categories/Tags IDs
-export const WP_CONFIG = {
-    baseUrl: 'https://metarh.com.br/wp-json/wp/v2',
-    categories: {
-        'Business': 128,
-        'Pharma Recruiter': 155,
-        'Staffing': 118,
-        'Talent': 129,
-        'Tech Recruiter': 123,
-        'Trilhando +': 162,
-        'Varejo Pro': 157
-    },
-    funnelStages: {
-        'topo': 164, // Aprendizado
-        'meio': 163, // Descoberta
-        'fundo': 165 // Decisão
-    }
-};
-
-export interface BlogPost {
-    id: number;
-    title: { rendered: string };
-    link: string;
-    excerpt: { rendered: string };
     date: string;
     categories: number[];
     _embedded?: any;

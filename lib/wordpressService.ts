@@ -40,9 +40,6 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         }
 
         // Fetch posts from the Solution Category
-        // We fetch more posts (20) to increase the chance of finding intersections, 
-        // since the API does OR logic for multiple categories.
-        // Strategy: Fetch by Solution Category, then filter by Funnel Stage.
         const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=20&_embed`;
         console.log(`[WordPress] API URL: ${url}`);
 
@@ -52,15 +49,25 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
             throw new Error('Failed to fetch posts');
         }
 
-        const posts: BlogPost[] = await response.json();
+        const posts: any[] = await response.json();
         console.log(`[WordPress] Received ${posts.length} posts from category ${categoryId}`);
-        console.log(`[WordPress] First post categories:`, posts[0]?.categories);
 
-        // Client-side filtering to ensure strict AND logic
-        // We want posts that have BOTH categoryId AND stageId
-        const filteredPosts = posts.filter((post: BlogPost) => {
-            const hasStage = post.categories && post.categories.includes(stageId);
-            console.log(`[WordPress] Post "${post.title.rendered}" has stage ${stageId}?`, hasStage, 'Categories:', post.categories);
+        // Log the ENTIRE structure of the first post to see where categories are
+        if (posts.length > 0) {
+            console.log(`[WordPress] FULL POST STRUCTURE:`, posts[0]);
+        }
+
+        // Client-side filtering
+        const filteredPosts = posts.filter((post: any) => {
+            const postCategories = post.categories || [];
+
+            console.log(`[WordPress] Post "${post.title.rendered}"`);
+            console.log(`  - categories field:`, postCategories);
+            console.log(`  - Looking for stage ID ${stageId}`);
+
+            const hasStage = postCategories.includes(stageId);
+            console.log(`  - Has stage? ${hasStage}`);
+
             return hasStage;
         });
 

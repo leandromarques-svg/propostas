@@ -1,32 +1,6 @@
-import { SolutionData } from '../types';
-
-// Configuration for WordPress Categories/Tags IDs
-// TODO: User needs to provide the actual IDs from their WordPress
-export const WP_CONFIG = {
-    baseUrl: 'https://metarh.com.br/wp-json/wp/v2',
-    categories: {
-        'Business': 0, // Replace with actual ID
-        'Pharma Recruiter': 0,
-        'Staffing': 0,
-        'Talent': 0,
-        'Tech Recruiter': 0,
-        'Trilhando +': 0,
-        'Varejo Pro': 0
-    },
-    funnelStages: {
-        'topo': 0, // Aprendizado - Replace with actual ID
-        'meio': 0, // Descoberta - Replace with actual ID
-        'fundo': 0 // Decisão - Replace with actual ID
-    }
-};
-
-export interface BlogPost {
-    id: number;
-    title: { rendered: string };
-    link: string;
-    excerpt: { rendered: string };
-    date: string;
-    _embedded?: any;
+excerpt: { rendered: string };
+date: string;
+_embedded ?: any;
 }
 
 export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' | 'meio' | 'fundo'): Promise<BlogPost[]> => {

@@ -704,7 +704,6 @@ export const LABOR_TAX_RATES = {
 
 export const BENEFIT_OPTIONS = {
   medical: [
-    { id: 'med-odonto', name: 'PLANO ODONTO SULAMÉRICA + SINDICATO', value: 44.25 },
     { id: 'med-sul-esp', name: 'SULAMÉRICA ESPECIAL', value: 1117.49 },
     { id: 'med-sul-esp100', name: 'SULAMÉRICA ESPECIAL 100', value: 1445.99 },
     { id: 'med-sul-exec', name: 'SULAMÉRICA EXECUTIVO', value: 3426.20 },
@@ -714,7 +713,11 @@ export const BENEFIT_OPTIONS = {
     { id: 'med-brad-apt', name: 'BRADESCO EFETIVO APARTAMENTO', value: 690.27 },
     { id: 'med-brad-flex', name: 'BRADESCO NACIONAL FLEX APARTAMENTO', value: 814.65 },
     { id: 'med-brad-nac2', name: 'BRADESCO NACIONAL 2 APARTAMENTO', value: 975.28 },
-    { id: 'med-none', name: 'Sem Plano', value: 0 }
+    { id: 'med-none', name: 'Sem Plano Médico', value: 0 }
+  ],
+  dental: [
+    { id: 'den-sul-sind', name: 'PLANO ODONTO SULAMÉRICA + SINDICATO', value: 44.25 },
+    { id: 'den-none', name: 'Sem Plano Odontológico', value: 0 }
   ],
   wellhub: [
     { id: 'gym-starter', name: 'GYMPASS STARTER', value: 29.90 },
@@ -727,11 +730,20 @@ export const BENEFIT_OPTIONS = {
     { id: 'gym-diamond', name: 'GYMPASS DIAMOND', value: 629.90 },
     { id: 'gym-diamond-plus', name: 'GYMPASS DIAMOND+', value: 679.90 },
     { id: 'gym-none', name: 'Sem Wellhub', value: 0 }
-  ]
+  ],
+  others: {
+    transport: { name: 'Vale Transporte (Diário)', defaultValue: 17.80 },
+    meal: { name: 'Vale Refeição (Diário)', defaultValue: 23.30 },
+    food: { name: 'Vale Alimentação (Mensal)', defaultValue: 163.83 },
+    lifeInsurance: { name: 'Seguro de Vida', defaultValue: 16.01 },
+    pharmacy: { name: 'Auxílio Farmácia | Omni', defaultValue: 46.96 },
+    gpsPoint: { name: 'Controle de Ponto GPS', defaultValue: 7.63 },
+    plr: { name: 'PLR (Provisão Mensal)', defaultValue: 330.88 }
+  }
 };
 
 export const EXAM_OPTIONS = [
-  { id: 'exam-aso', name: 'Exames médicos - ASO', value: 50.00 },
-  { id: 'exam-comp', name: 'Exames médicos complementares', value: 120.00 },
-  { id: 'exam-pcmso', name: 'PCMSO', value: 35.00 }
+  { id: 'exam-aso', name: 'Exames Clínicos - ASO', value: 62.25 },
+  { id: 'exam-comp', name: 'Exames Médicos Complementares', value: 0.00 },
+  { id: 'exam-pcmso', name: 'PCMSO', value: 2.30 }
 ];

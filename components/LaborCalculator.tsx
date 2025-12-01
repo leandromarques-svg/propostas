@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
-    FileText, Loader2, Sparkles, ChevronDown, ChevronUp
+    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
@@ -41,10 +41,29 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     // Benefits Selection
     const [selectedMedicalPlan, setSelectedMedicalPlan] = useState<string>(BENEFIT_OPTIONS.medical[0].id);
+    const [selectedDentalPlan, setSelectedDentalPlan] = useState<string>(BENEFIT_OPTIONS.dental[0].id);
     const [selectedWellhubPlan, setSelectedWellhubPlan] = useState<string>(BENEFIT_OPTIONS.wellhub[0].id);
+
+    // Standard Benefits Toggle & Config
+    const [hasTransport, setHasTransport] = useState(true);
+    const [transportDays, setTransportDays] = useState(22);
+
+    const [hasMeal, setHasMeal] = useState(true);
+    const [mealDays, setMealDays] = useState(22);
+
+    const [hasFood, setHasFood] = useState(true);
+    const [hasLifeInsurance, setHasLifeInsurance] = useState(true);
+    const [hasPharmacy, setHasPharmacy] = useState(true);
+    const [hasGpsPoint, setHasGpsPoint] = useState(true);
+    const [hasPlr, setHasPlr] = useState(true);
 
     // Custom Benefits
     const [customBenefits, setCustomBenefits] = useState<{ id: string, name: string, value: number }[]>([]);
+
+    // Charges Config (Editable)
+    const [groupAPercent, setGroupAPercent] = useState<number>(Object.values(LABOR_CHARGES.groupA).reduce((a, b) => a + b, 0));
+    const [groupBPercent, setGroupBPercent] = useState<number>(Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0));
+    const [showChargesConfig, setShowChargesConfig] = useState(false);
 
     // Fees
     const [backupFeePercent, setBackupFeePercent] = useState<number>(0.05); // Taxa de Backup default 5%
@@ -56,7 +75,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // --- CALCULATIONS ---
     useEffect(() => {
         calculateLaborPricing();
-    }, [positions, recruitmentType, recruitmentCostPercent, selectedMedicalPlan, selectedWellhubPlan, customBenefits, backupFeePercent, adminFeePercent]);
+    }, [
+        positions, recruitmentType, recruitmentCostPercent,
+        selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
+        customBenefits, backupFeePercent, adminFeePercent,
+        hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
+        groupAPercent, groupBPercent
+    ]);
 
     const calculateLaborPricing = () => {
         let totalBaseSalary = 0;
@@ -89,26 +114,34 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue };
         });
 
-        // Charges (Encargos)
-        // Group A
-        const groupAPercent = Object.values(LABOR_CHARGES.groupA).reduce((a, b) => a + b, 0);
+        // Charges (Encargos) - Uses State Percentages
         const groupAValue = totalGrossSalary * groupAPercent;
-
-        // Group B
-        const groupBPercent = Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0);
         const groupBValue = totalGrossSalary * groupBPercent;
-
         const totalCharges = groupAValue + groupBValue;
 
         // Benefits
         const medicalPlan = BENEFIT_OPTIONS.medical.find(p => p.id === selectedMedicalPlan);
+        const dentalPlan = BENEFIT_OPTIONS.dental.find(p => p.id === selectedDentalPlan);
         const wellhubPlan = BENEFIT_OPTIONS.wellhub.find(p => p.id === selectedWellhubPlan);
 
         const medicalCost = (medicalPlan?.value || 0) * totalPositions;
+        const dentalCost = (dentalPlan?.value || 0) * totalPositions;
         const wellhubCost = (wellhubPlan?.value || 0) * totalPositions;
+
+        // Standard Benefits
+        const transportCost = hasTransport ? (BENEFIT_OPTIONS.others.transport.defaultValue * transportDays) * totalPositions : 0;
+        const mealCost = hasMeal ? (BENEFIT_OPTIONS.others.meal.defaultValue * mealDays) * totalPositions : 0;
+        const foodCost = hasFood ? BENEFIT_OPTIONS.others.food.defaultValue * totalPositions : 0;
+        const lifeInsuranceCost = hasLifeInsurance ? BENEFIT_OPTIONS.others.lifeInsurance.defaultValue * totalPositions : 0;
+        const pharmacyCost = hasPharmacy ? BENEFIT_OPTIONS.others.pharmacy.defaultValue * totalPositions : 0;
+        const gpsPointCost = hasGpsPoint ? BENEFIT_OPTIONS.others.gpsPoint.defaultValue * totalPositions : 0;
+        const plrCost = hasPlr ? BENEFIT_OPTIONS.others.plr.defaultValue * totalPositions : 0;
+
         const customBenefitsCost = customBenefits.reduce((sum, item) => sum + item.value, 0) * totalPositions;
 
-        const totalBenefits = medicalCost + wellhubCost + customBenefitsCost;
+        const totalBenefits = medicalCost + dentalCost + wellhubCost +
+            transportCost + mealCost + foodCost + lifeInsuranceCost +
+            pharmacyCost + gpsPointCost + plrCost + customBenefitsCost;
 
         // Exams
         const totalExams = EXAM_OPTIONS.reduce((sum, item) => sum + item.value, 0) * totalPositions;
@@ -316,11 +349,189 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
                         </div>
 
-                        {/* 2. BENEFITS & EXAMS */}
+                        {/* 2. CHARGES CONFIGURATION */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                            <button
+                                onClick={() => setShowChargesConfig(!showChargesConfig)}
+                                className="w-full flex justify-between items-center text-lg font-bold text-metarh-dark mb-2"
+                            >
+                                <span className="flex items-center gap-2"><Settings size={18} /> 2. Configuração de Encargos</span>
+                                {showChargesConfig ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </button>
+
+                            {showChargesConfig && (
+                                <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Grupo A (%)</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                value={(groupAPercent * 100).toFixed(2)}
+                                                onChange={(e) => setGroupAPercent(Number(e.target.value) / 100)}
+                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm font-bold"
+                                            />
+                                            <span className="text-gray-500 font-bold">%</span>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 mt-2">INSS, SESI/SESC, SENAI/SENAC, INCRA, SAT, Salário Educação, SEBRAE, FGTS.</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Grupo B (%)</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                value={(groupBPercent * 100).toFixed(2)}
+                                                onChange={(e) => setGroupBPercent(Number(e.target.value) / 100)}
+                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm font-bold"
+                                            />
+                                            <span className="text-gray-500 font-bold">%</span>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 mt-2">Férias, 13º Salário, Aviso Prévio, Auxílio Doença, etc.</p>
+                                    </div>
+                                </div>
+                            )}
+                            {!showChargesConfig && (
+                                <div className="text-xs text-gray-500 flex gap-4">
+                                    <span>Grupo A: <strong>{fmtPercent(groupAPercent)}</strong></span>
+                                    <span>Grupo B: <strong>{fmtPercent(groupBPercent)}</strong></span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 3. BENEFITS & EXAMS */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <Sparkles size={18} /> 2. Benefícios e Exames
+                                <Sparkles size={18} /> 3. Benefícios e Exames
                             </h2>
+
+                            {/* Standard Benefits */}
+                            <div className="mb-6">
+                                <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Benefícios Padrão</h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {/* Vale Transporte */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={hasTransport}
+                                                    onChange={(e) => setHasTransport(e.target.checked)}
+                                                    className="w-4 h-4 text-metarh-medium rounded"
+                                                />
+                                                <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.transport.name}</span>
+                                            </label>
+                                            <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.transport.defaultValue)}/dia</span>
+                                        </div>
+                                        {hasTransport && (
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-xs text-gray-500">Dias/Mês:</span>
+                                                <input
+                                                    type="number"
+                                                    value={transportDays}
+                                                    onChange={(e) => setTransportDays(Number(e.target.value))}
+                                                    className="w-16 p-1 text-sm border border-gray-300 rounded"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Vale Refeição */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={hasMeal}
+                                                    onChange={(e) => setHasMeal(e.target.checked)}
+                                                    className="w-4 h-4 text-metarh-medium rounded"
+                                                />
+                                                <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.meal.name}</span>
+                                            </label>
+                                            <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.meal.defaultValue)}/dia</span>
+                                        </div>
+                                        {hasMeal && (
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-xs text-gray-500">Dias/Mês:</span>
+                                                <input
+                                                    type="number"
+                                                    value={mealDays}
+                                                    onChange={(e) => setMealDays(Number(e.target.value))}
+                                                    className="w-16 p-1 text-sm border border-gray-300 rounded"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Vale Alimentação */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={hasFood}
+                                                onChange={(e) => setHasFood(e.target.checked)}
+                                                className="w-4 h-4 text-metarh-medium rounded"
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.food.name}</span>
+                                        </label>
+                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.food.defaultValue)}</span>
+                                    </div>
+
+                                    {/* Seguro de Vida */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={hasLifeInsurance}
+                                                onChange={(e) => setHasLifeInsurance(e.target.checked)}
+                                                className="w-4 h-4 text-metarh-medium rounded"
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.lifeInsurance.name}</span>
+                                        </label>
+                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.lifeInsurance.defaultValue)}</span>
+                                    </div>
+
+                                    {/* Auxílio Farmácia */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={hasPharmacy}
+                                                onChange={(e) => setHasPharmacy(e.target.checked)}
+                                                className="w-4 h-4 text-metarh-medium rounded"
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.pharmacy.name}</span>
+                                        </label>
+                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.pharmacy.defaultValue)}</span>
+                                    </div>
+
+                                    {/* Controle de Ponto */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={hasGpsPoint}
+                                                onChange={(e) => setHasGpsPoint(e.target.checked)}
+                                                className="w-4 h-4 text-metarh-medium rounded"
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.gpsPoint.name}</span>
+                                        </label>
+                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.gpsPoint.defaultValue)}</span>
+                                    </div>
+
+                                    {/* PLR */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={hasPlr}
+                                                onChange={(e) => setHasPlr(e.target.checked)}
+                                                className="w-4 h-4 text-metarh-medium rounded"
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.plr.name}</span>
+                                        </label>
+                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.plr.defaultValue)}</span>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
@@ -331,6 +542,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
                                     >
                                         {BENEFIT_OPTIONS.medical.map(opt => (
+                                            <option key={opt.id} value={opt.id}>{opt.name} - {fmtCurrency(opt.value)}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Plano Odontológico</label>
+                                    <select
+                                        value={selectedDentalPlan}
+                                        onChange={(e) => setSelectedDentalPlan(e.target.value)}
+                                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
+                                    >
+                                        {BENEFIT_OPTIONS.dental.map(opt => (
                                             <option key={opt.id} value={opt.id}>{opt.name} - {fmtCurrency(opt.value)}</option>
                                         ))}
                                     </select>
@@ -350,7 +573,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
 
                             <div className="mt-6">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Outros Benefícios</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Outros Benefícios (Personalizado)</label>
                                 {customBenefits.map((item, idx) => (
                                     <div key={item.id} className="flex gap-2 mb-2">
                                         <input
@@ -401,10 +624,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
                         </div>
 
-                        {/* 3. FEES & RECRUITMENT */}
+                        {/* 4. FEES & RECRUITMENT */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <DollarSign size={18} /> 3. Taxas e Recrutamento
+                                <DollarSign size={18} /> 4. Taxas e Recrutamento
                             </h2>
 
                             <div className="grid md:grid-cols-2 gap-6 mb-6">

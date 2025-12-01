@@ -12,6 +12,7 @@ import { SolutionSummaryModal } from './components/SolutionSummaryModal';
 import { ChatBot } from './components/ChatBot';
 import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayoutEditor';
 import { PricingCalculator } from './components/PricingCalculator';
+import { LaborCalculator } from './components/LaborCalculator';
 import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
 import { TeamRatesModal } from './components/TeamRatesModal';
@@ -355,7 +356,16 @@ const App: React.FC = () => {
               title="Calculadora de Preço"
             >
               <Calculator size={18} />
-              <span className="hidden sm:inline text-sm font-bold">Calculadora</span>
+              <span className="hidden sm:inline text-sm font-bold">Calculadora R&S</span>
+            </button>
+
+            <button
+              onClick={() => setView('labor_calculator')}
+              className="relative group flex items-center gap-2 px-4 py-2.5 bg-white text-gray-600 border border-gray-200 rounded-full transition-all hover:border-metarh-medium hover:text-metarh-medium shadow-sm"
+              title="Calculadora CLT / Mão de Obra"
+            >
+              <Users size={18} />
+              <span className="hidden sm:inline text-sm font-bold">Calculadora CLT</span>
             </button>
 
             <button
@@ -391,6 +401,8 @@ const App: React.FC = () => {
           />
         ) : view === 'calculator' ? (
           <PricingCalculator onCancel={() => setView('catalog')} />
+        ) : view === 'labor_calculator' ? (
+          <LaborCalculator onCancel={() => setView('catalog')} />
         ) : view === 'catalog' ? (
           <div className="p-4 md:p-8 space-y-8 animate-fade-in pb-32">
 

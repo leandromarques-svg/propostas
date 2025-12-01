@@ -665,3 +665,60 @@ export const TAX_RATES = {
   ],
   retentionIR: 0.015 // 1.5% Retention on Gross
 };
+
+// --- LABOR / CLT CALCULATOR CONSTANTS ---
+
+export const MINIMUM_WAGE = 1804.00;
+
+export const LABOR_CHARGES = {
+  groupA: {
+    inss: 0.20,
+    sesi_sesc: 0.015,
+    senai_senac: 0.01,
+    incra: 0.002,
+    sat: 0.036, // Atualizável
+    salario_educacao: 0.025,
+    sebrae: 0.006,
+    fgts: 0.08,
+  },
+  groupB: {
+    ferias_abono: 0.1111,
+    inss_ferias: 0.0327,
+    fgts_ferias: 0.0133,
+    decimo_terceiro: 0.0833,
+    inss_decimo_terceiro: 0.0245,
+    fgts_decimo_terceiro: 0.01,
+    aviso_previo: 0.1178,
+    deposito_rescisao: 0.032,
+    auxilio_doenca: 0.035,
+  }
+};
+
+export const LABOR_TAX_RATES = {
+  iss: 0.02,
+  pis: 0.0165,
+  cofins: 0.076,
+  irrf: 0.01,
+  csll: 0.01
+};
+
+export const BENEFIT_OPTIONS = {
+  medical: [
+    { id: 'med-1', name: 'Plano Básico (Enfermaria)', value: 150.00 },
+    { id: 'med-2', name: 'Plano Intermediário (Apto)', value: 250.00 },
+    { id: 'med-3', name: 'Plano Executivo', value: 450.00 },
+    { id: 'med-none', name: 'Sem Plano', value: 0 }
+  ],
+  wellhub: [
+    { id: 'well-1', name: 'Starter', value: 29.90 },
+    { id: 'well-2', name: 'Basic', value: 49.90 },
+    { id: 'well-3', name: 'Gold', value: 99.90 },
+    { id: 'well-none', name: 'Sem Wellhub', value: 0 }
+  ]
+};
+
+export const EXAM_OPTIONS = [
+  { id: 'exam-aso', name: 'Exames médicos - ASO', value: 50.00 },
+  { id: 'exam-comp', name: 'Exames médicos complementares', value: 120.00 },
+  { id: 'exam-pcmso', name: 'PCMSO', value: 35.00 }
+];

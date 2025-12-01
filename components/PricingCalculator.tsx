@@ -162,8 +162,8 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const netLiquid = grossNF - retentionIR;
 
     // 6. Lucro L. Operacional Calculation
-    // Lucro L. Operacional = Total Líquido Recebido - Custo Operacional
-    const realProfit = netLiquid - totalOperationalCost;
+    // Lucro L. Operacional = Total Líquido Recebido - Custo Operacional - Total Tributos
+    const realProfit = netLiquid - totalOperationalCost - totalTaxes;
 
     // Profit Margin %: percentage of net liquid received
     const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
@@ -705,7 +705,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                         <p className="text-[10px] text-gray-400 text-center mt-1">do valor recebido</p>
                       </div>
                       <div className="mt-2 text-[10px] text-gray-400">
-                        Líquido Recebido - Custo Operacional
+                        Líquido Recebido - Custo Operacional - Tributos
                       </div>
                     </div>
 
@@ -714,12 +714,12 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                       ? 'bg-red-500/10 border-red-400'
                       : result.profitMarginPercentage < 10
                         ? 'bg-orange-500/10 border-orange-400'
-                        : result.profitMarginPercentage < 20
+                        : result.profitMarginPercentage <= 35
                           ? 'bg-yellow-500/10 border-yellow-400'
                           : 'bg-green-500/10 border-green-400'
                       }`}>
                       <p className="text-xs font-bold mb-2 flex items-center gap-1">
-                        {result.realProfit < 0 ? '🚨' : result.profitMarginPercentage < 10 ? '😅' : result.profitMarginPercentage < 20 ? '😉' : '🚀'}
+                        {result.realProfit < 0 ? '🚨' : result.profitMarginPercentage < 10 ? '😅' : result.profitMarginPercentage <= 35 ? '😉' : '🚀'}
                         <span className="text-white">Dica do Especialista</span>
                       </p>
                       <p className="text-xs text-gray-300 leading-relaxed">
@@ -727,9 +727,9 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                           ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
                           : result.profitMarginPercentage < 10
                             ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
-                            : result.profitMarginPercentage < 20
+                            : result.profitMarginPercentage <= 35
                               ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
-                              : 'Aí sim! Margem top. O comercial tá voando! Pode fechar sem medo. 🚀'
+                              : 'Aí sim! Margem top (acima de 35%). O comercial tá voando! Pode fechar sem medo. 🚀'
                         }
                       </p>
                     </div>

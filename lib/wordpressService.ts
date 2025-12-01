@@ -27,7 +27,7 @@ export interface BlogPost {
     _embedded?: any;
 }
 
-export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' | 'meio' | 'fundo'): Promise<BlogPost[]> => {
+export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' | 'meio' | 'fundo'): Promise<{ posts: BlogPost[], total: number }> => {
     try {
         const categoryId = WP_CONFIG.categories[solutionPackage as keyof typeof WP_CONFIG.categories];
         const stageId = WP_CONFIG.funnelStages[funnelStage];
@@ -36,7 +36,7 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
 
         if (!categoryId || !stageId) {
             console.warn(`[WordPress] Missing WordPress ID configuration for ${solutionPackage} or ${funnelStage}`);
-            return [];
+            return { posts: [], total: 0 };
         }
 
         // Fetch posts from the Solution Category
@@ -52,31 +52,21 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         const posts: any[] = await response.json();
         console.log(`[WordPress] Received ${posts.length} posts from category ${categoryId}`);
 
-        // Log the ENTIRE structure of the first post to see where categories are
-        if (posts.length > 0) {
-            console.log(`[WordPress] FULL POST STRUCTURE:`, posts[0]);
-        }
-
         // Client-side filtering
         const filteredPosts = posts.filter((post: any) => {
             const postCategories = post.categories || [];
-
-            console.log(`[WordPress] Post "${post.title.rendered}"`);
-            console.log(`  - categories field:`, postCategories);
-            console.log(`  - Looking for stage ID ${stageId}`);
-
-            const hasStage = postCategories.includes(stageId);
-            console.log(`  - Has stage? ${hasStage}`);
-
-            return hasStage;
+            return postCategories.includes(stageId);
         });
 
         console.log(`[WordPress] Filtered to ${filteredPosts.length} posts with both categories`);
 
-        // Return top 3
-        return filteredPosts.slice(0, 3);
+        // Return top 3 and total count
+        return {
+            posts: filteredPosts.slice(0, 3),
+            total: filteredPosts.length
+        };
     } catch (error) {
         console.error('[WordPress] Error fetching blog posts:', error);
-        return [];
+        return { posts: [], total: 0 };
     }
 };

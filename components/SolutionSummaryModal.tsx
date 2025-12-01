@@ -32,10 +32,14 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
 }) => {
     // Blog Posts State
     const [blogPosts, setBlogPosts] = useState<{
-        topo: BlogPost[],
-        meio: BlogPost[],
-        fundo: BlogPost[]
-    }>({ topo: [], meio: [], fundo: [] });
+        topo: { posts: BlogPost[], total: number },
+        meio: { posts: BlogPost[], total: number },
+        fundo: { posts: BlogPost[], total: number }
+    }>({
+        topo: { posts: [], total: 0 },
+        meio: { posts: [], total: 0 },
+        fundo: { posts: [], total: 0 }
+    });
     const [isLoadingBlog, setIsLoadingBlog] = useState(false);
 
     // Fetch blog posts when modal opens
@@ -164,9 +168,19 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
 
                     {/* Blog Content Section */}
                     <div className="p-8 bg-gradient-to-br from-gray-50 to-white border-t-2 border-gray-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <BookOpen className="text-metarh-medium" size={24} />
-                            <h3 className="text-2xl font-bold text-metarh-dark">Conteúdos do Blog</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <BookOpen className="text-metarh-medium" size={24} />
+                                <h3 className="text-2xl font-bold text-metarh-dark">Conteúdos do Blog</h3>
+                            </div>
+                            <a
+                                href="https://metarh.com.br/metarhnews/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-bold text-metarh-medium hover:underline flex items-center gap-1"
+                            >
+                                Ver todos os conteúdos <ExternalLink size={14} />
+                            </a>
                         </div>
 
                         {isLoadingBlog ? (
@@ -175,93 +189,111 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                 <span className="ml-3 text-gray-500">Carregando posts...</span>
                             </div>
                         ) : (
-                            <div className="space-y-8">
+                            <div className="grid md:grid-cols-3 gap-8">
                                 {/* Topo - Aprendizado */}
-                                {blogPosts.topo.length > 0 && (
-                                    <div>
-                                        <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                            Topo de Funil (Aprendizado)
-                                        </h4>
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            {blogPosts.topo.map((post) => (
+                                <div className="flex flex-col h-full">
+                                    <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                        <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                                        Topo de Funil
+                                        <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                                            {blogPosts.topo.total} conteúdos
+                                        </span>
+                                    </h4>
+
+                                    <div className="space-y-4 flex-1">
+                                        {blogPosts.topo.posts.length > 0 ? (
+                                            blogPosts.topo.posts.map((post) => (
                                                 <a
                                                     key={post.id}
                                                     href={post.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="p-4 bg-white border border-gray-200 rounded-xl hover:border-metarh-medium hover:shadow-md transition-all group"
+                                                    className="block p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group h-full"
                                                 >
-                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-metarh-medium transition-colors flex items-start gap-2">
-                                                        <span className="flex-1" dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                                        <ExternalLink size={14} className="text-gray-400 group-hover:text-metarh-medium shrink-0 mt-1" />
+                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors text-sm line-clamp-2">
+                                                        <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
-                                                    <p className="text-sm text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
                                                 </a>
-                                            ))}
-                                        </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                                <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
+                                                <p className="text-xs text-gray-300 mt-1">Topo de funil zerado</p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Meio - Descoberta */}
-                                {blogPosts.meio.length > 0 && (
-                                    <div>
-                                        <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                                            Meio de Funil (Descoberta)
-                                        </h4>
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            {blogPosts.meio.map((post) => (
+                                <div className="flex flex-col h-full">
+                                    <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                        <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                        Meio de Funil
+                                        <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                                            {blogPosts.meio.total} conteúdos
+                                        </span>
+                                    </h4>
+
+                                    <div className="space-y-4 flex-1">
+                                        {blogPosts.meio.posts.length > 0 ? (
+                                            blogPosts.meio.posts.map((post) => (
                                                 <a
                                                     key={post.id}
                                                     href={post.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="p-4 bg-white border border-gray-200 rounded-xl hover:border-metarh-medium hover:shadow-md transition-all group"
+                                                    className="block p-4 bg-white border border-gray-200 rounded-xl hover:border-yellow-300 hover:shadow-md transition-all group h-full"
                                                 >
-                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-metarh-medium transition-colors flex items-start gap-2">
-                                                        <span className="flex-1" dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                                        <ExternalLink size={14} className="text-gray-400 group-hover:text-metarh-medium shrink-0 mt-1" />
+                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors text-sm line-clamp-2">
+                                                        <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
-                                                    <p className="text-sm text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
                                                 </a>
-                                            ))}
-                                        </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                                <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
+                                                <p className="text-xs text-gray-300 mt-1">Meio de funil zerado</p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Fundo - Decisão */}
-                                {blogPosts.fundo.length > 0 && (
-                                    <div>
-                                        <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                            Fundo de Funil (Decisão)
-                                        </h4>
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            {blogPosts.fundo.map((post) => (
+                                <div className="flex flex-col h-full">
+                                    <h4 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                        <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                                        Fundo de Funil
+                                        <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                                            {blogPosts.fundo.total} conteúdos
+                                        </span>
+                                    </h4>
+
+                                    <div className="space-y-4 flex-1">
+                                        {blogPosts.fundo.posts.length > 0 ? (
+                                            blogPosts.fundo.posts.map((post) => (
                                                 <a
                                                     key={post.id}
                                                     href={post.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="p-4 bg-white border border-gray-200 rounded-xl hover:border-metarh-medium hover:shadow-md transition-all group"
+                                                    className="block p-4 bg-white border border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all group h-full"
                                                 >
-                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-metarh-medium transition-colors flex items-start gap-2">
-                                                        <span className="flex-1" dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                                        <ExternalLink size={14} className="text-gray-400 group-hover:text-metarh-medium shrink-0 mt-1" />
+                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors text-sm line-clamp-2">
+                                                        <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
-                                                    <p className="text-sm text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
                                                 </a>
-                                            ))}
-                                        </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                                <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
+                                                <p className="text-xs text-gray-300 mt-1">Fundo de funil zerado</p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-
-                                {blogPosts.topo.length === 0 && blogPosts.meio.length === 0 && blogPosts.fundo.length === 0 && !isLoadingBlog && (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <p>Nenhum conteúdo disponível para esta solução no momento.</p>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         )}
                     </div>

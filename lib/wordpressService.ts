@@ -1,6 +1,30 @@
-excerpt: { rendered: string };
-date: string;
-_embedded ?: any;
+// Configuration for WordPress Categories/Tags IDs
+export const WP_CONFIG = {
+    baseUrl: 'https://metarh.com.br/wp-json/wp/v2',
+    categories: {
+        'Business': 128,
+        'Pharma Recruiter': 155,
+        'Staffing': 118,
+        'Talent': 129,
+        'Tech Recruiter': 123,
+        'Trilhando +': 162,
+        'Varejo Pro': 157
+    },
+    funnelStages: {
+        'topo': 164, // Aprendizado
+        'meio': 163, // Descoberta
+        'fundo': 165 // Decisão
+    }
+};
+
+export interface BlogPost {
+    id: number;
+    title: { rendered: string };
+    link: string;
+    excerpt: { rendered: string };
+    date: string;
+    categories: number[];
+    _embedded?: any;
 }
 
 export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' | 'meio' | 'fundo'): Promise<BlogPost[]> => {
@@ -13,26 +37,25 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
             return [];
         }
 
-        // Fetch posts that have BOTH the solution category AND the funnel stage tag/category
-        // Note: 'categories' parameter in WP API takes a comma-separated list of IDs.
-        // If we want AND logic (posts with BOTH categories), it's trickier in standard API.
-        // Standard 'categories=A,B' usually means OR.
-        // To do AND, we might need to filter client-side or use 'categories' + 'tags' if they are different taxonomies.
-        // Assuming both are Categories for now.
-
-        const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId},${stageId}&per_page=3&_embed`;
+        // Fetch posts from the Solution Category
+        // We fetch more posts (20) to increase the chance of finding intersections, 
+        // since the API does OR logic for multiple categories.
+        // Strategy: Fetch by Solution Category, then filter by Funnel Stage.
+        const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=20&_embed`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch posts');
 
-        const posts = await response.json();
+        const posts: BlogPost[] = await response.json();
 
-        // Client-side filtering to ensure strict AND logic if the API returns OR
-        // This depends on how WP is configured, but usually ?categories=1,2 is OR.
-        // A better way is ?categories=1&tags=2 if they are different types.
-        // For now, let's return what we get, assuming the user will organize content well.
+        // Client-side filtering to ensure strict AND logic
+        // We want posts that have BOTH categoryId AND stageId
+        const filteredPosts = posts.filter((post: BlogPost) => {
+            return post.categories && post.categories.includes(stageId);
+        });
 
-        return posts;
+        // Return top 3
+        return filteredPosts.slice(0, 3);
     } catch (error) {
         console.error('Error fetching blog posts:', error);
         return [];

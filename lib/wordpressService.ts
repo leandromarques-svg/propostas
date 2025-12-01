@@ -1,6 +1,6 @@
-// Configuration for WordPress Categories/Tags IDs
-export const WP_CONFIG = {
-    baseUrl: 'https://metarh.com.br/wp-json/wp/v2',
+// WordPress API Configuration
+const WP_CONFIG = {
+    baseUrl: 'https://metarh.com.br/metarhnews/wp-json/wp/v2',
     categories: {
         'Business': 128,
         'Pharma Recruiter': 155,

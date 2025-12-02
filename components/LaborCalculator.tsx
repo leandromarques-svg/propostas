@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
-    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase
+    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
@@ -18,11 +18,15 @@ interface LaborPosition {
     unhealthinessLevel: 'none' | 'min' | 'med' | 'max'; // Insalubridade
     nightShift: boolean;
     nightShiftPercent: number; // Default 0.20
+    isHourly: boolean; // Horista
+    hoursPerMonth: number; // Carga Horária Mensal
 }
 
 interface LaborCalculatorProps {
     onCancel: () => void;
 }
+
+type ProvisioningMode = 'full' | 'semi' | 'none';
 
 export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) => {
     // --- STATE ---
@@ -34,11 +38,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         hazardPay: 0,
         unhealthinessLevel: 'none',
         nightShift: false,
-        nightShiftPercent: 0.20
+        nightShiftPercent: 0.20,
+        isHourly: false,
+        hoursPerMonth: 220
     }]);
 
+    const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
+
     const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
-    const [recruitmentCostPercent, setRecruitmentCostPercent] = useState<number>(20); // Percentage default 20%
+    // Removed recruitmentCostPercent
 
     // Recruitment Team State
     const [qtySenior, setQtySenior] = useState(0);
@@ -70,7 +78,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     // Charges Config (Detailed)
     const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
-    const [showChargesConfig, setShowChargesConfig] = useState(false);
+    // Removed showChargesConfig (Always visible)
 
     // Fees
     const [backupFeePercent, setBackupFeePercent] = useState<number>(0.05); // Taxa de Backup default 5%
@@ -92,7 +100,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     useEffect(() => {
         calculateLaborPricing();
     }, [
-        positions, recruitmentType, recruitmentCostPercent,
+        positions, recruitmentType, provisioningMode,
         selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
         customBenefits, backupFeePercent, adminFeePercent,
         hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
@@ -107,6 +115,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const positionsCalculated = positions.map(pos => {
             // 1. Base Salary
             const base = pos.baseSalary;
+
+            // Hourly Rate Calculation (Display only, doesn't change monthly calculation logic unless specified otherwise)
+            // User said: "trazer para o cálculo de salário bruto o salário dele por hora"
+            // We'll calculate it for display.
+            const hourlyRate = pos.isHourly && pos.hoursPerMonth > 0 ? base / pos.hoursPerMonth : 0;
 
             // 2. Hazard Pay (Periculosidade) - % on Base Salary
             const hazardValue = base * pos.hazardPay;
@@ -127,7 +140,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             totalGrossSalary += gross * pos.vacancies;
             totalPositions += pos.vacancies;
 
-            return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue };
+            return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue, hourlyRate };
         });
 
         // Charges (Encargos) - Detailed Calculation
@@ -142,8 +155,28 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             LABOR_CHARGES.groupA.sebrae +
             LABOR_CHARGES.groupA.fgts;
 
-        // Group B
-        const groupBPercent = Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0);
+        // Group B Logic based on Provisioning Mode
+        let groupBPercent = 0;
+        let groupBItems = { ...LABOR_CHARGES.groupB }; // Copy to modify if needed
+
+        if (provisioningMode === 'none') {
+            groupBPercent = 0;
+            // Zero out items for display
+            Object.keys(groupBItems).forEach(k => groupBItems[k as keyof typeof groupBItems] = 0);
+        } else if (provisioningMode === 'semi') {
+            // Remove: Aviso Prévio, Depósito Rescisão, Auxílio Doença
+            // Note: User said "Aviso Prévio Indenizado + FGTS + INSS".
+            // Usually 'aviso_previo' covers the cost.
+            // We will zero out specific keys.
+            groupBItems.aviso_previo = 0;
+            groupBItems.deposito_rescisao = 0;
+            groupBItems.auxilio_doenca = 0;
+            // Recalculate sum
+            groupBPercent = Object.values(groupBItems).reduce((a, b) => a + b, 0);
+        } else {
+            // Full
+            groupBPercent = Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0);
+        }
 
         const groupAValue = totalGrossSalary * groupAPercent;
         const groupBValue = totalGrossSalary * groupBPercent;
@@ -185,13 +218,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Admin Fee Basis: Cost Basis + Backup Fee
         const adminFeeBasis = costBasis + backupFeeValue;
         const adminFeeValue = adminFeeBasis * adminFeePercent;
+        const totalFees = backupFeeValue + adminFeeValue;
 
         // Total Operational Cost (Custo Total)
         const totalOperationalCost = adminFeeBasis + adminFeeValue;
-
-        // Recruitment Cost (Setup Fee)
-        // Calculated as % of Total Base Salary
-        const recruitmentFeeValue = totalBaseSalary * (recruitmentCostPercent / 100);
 
         // Recruitment Team Cost (Internal Cost)
         const hoursPerDay = 9;
@@ -223,17 +253,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             groupAPercent,
             groupBValue,
             groupBPercent,
+            groupBItems, // Pass modified items for display
             totalCharges,
             totalBenefits,
             totalExams,
             costBasis,
             backupFeeValue,
             adminFeeValue,
+            totalFees,
             totalOperationalCost,
             grossNF,
             totalTaxes,
             totalTaxRate,
-            recruitmentFeeValue,
             teamCost
         });
     };
@@ -248,7 +279,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Calculadora CLT / Mão de Obra</h1>
+                        <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Calculadora de Gestão de Mão de Obra</h1>
                         <p className="text-gray-500 mt-1">Precificação de mão de obra administrada e temporária</p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -260,6 +291,43 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             <Trash2 size={20} />
                         </button>
                     </div>
+                </div>
+
+                {/* Provisioning Mode Selection */}
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-wrap gap-4 justify-center">
+                    <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border transition-all ${provisioningMode === 'full' ? 'bg-metarh-medium text-white border-metarh-medium' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                        <input
+                            type="radio"
+                            name="provisioningMode"
+                            value="full"
+                            checked={provisioningMode === 'full'}
+                            onChange={() => setProvisioningMode('full')}
+                            className="hidden"
+                        />
+                        <span className="font-bold text-sm">Contrato Provisionado</span>
+                    </label>
+                    <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border transition-all ${provisioningMode === 'semi' ? 'bg-metarh-medium text-white border-metarh-medium' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                        <input
+                            type="radio"
+                            name="provisioningMode"
+                            value="semi"
+                            checked={provisioningMode === 'semi'}
+                            onChange={() => setProvisioningMode('semi')}
+                            className="hidden"
+                        />
+                        <span className="font-bold text-sm">Contrato Semi Provisionado</span>
+                    </label>
+                    <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border transition-all ${provisioningMode === 'none' ? 'bg-metarh-medium text-white border-metarh-medium' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                        <input
+                            type="radio"
+                            name="provisioningMode"
+                            value="none"
+                            checked={provisioningMode === 'none'}
+                            onChange={() => setProvisioningMode('none')}
+                            className="hidden"
+                        />
+                        <span className="font-bold text-sm">Não Provisionado</span>
+                    </label>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-8">
@@ -321,13 +389,43 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         </div>
 
+                                        {/* Hourly Mode Toggle */}
+                                        <div className="mt-4 flex items-center gap-4 bg-white p-2 rounded-lg border border-gray-200">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={pos.isHourly}
+                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isHourly: e.target.checked } : p))}
+                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
+                                                />
+                                                <span className="text-sm font-bold text-gray-700">Horista</span>
+                                            </label>
+                                            {pos.isHourly && (
+                                                <>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Carga Horária:</span>
+                                                        <input
+                                                            type="number"
+                                                            value={pos.hoursPerMonth}
+                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hoursPerMonth: Number(e.target.value) } : p))}
+                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 ml-auto">
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Salário Hora:</span>
+                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.isHourly && pos.hoursPerMonth > 0 ? pos.baseSalary / pos.hoursPerMonth : 0)}</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+
                                         <div className="grid md:grid-cols-3 gap-4 mt-4">
                                             <div>
                                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Periculosidade</label>
                                                 <select
                                                     value={pos.hazardPay}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hazardPay: Number(e.target.value) as any } : p))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
                                                 >
                                                     <option value={0}>Não se aplica</option>
                                                     <option value={0.30}>30%</option>
@@ -339,7 +437,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <select
                                                     value={pos.unhealthinessLevel}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, unhealthinessLevel: e.target.value as any } : p))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
                                                 >
                                                     <option value="none">Não se aplica</option>
                                                     <option value="min">Mínimo (10%)</option>
@@ -354,7 +452,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         type="checkbox"
                                                         checked={pos.nightShift}
                                                         onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, nightShift: e.target.checked } : p))}
-                                                        className="w-4 h-4 text-metarh-medium rounded"
+                                                        className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                                     />
                                                     <span className="text-sm text-gray-600">Sim</span>
                                                     {pos.nightShift && (
@@ -384,7 +482,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         hazardPay: 0,
                                         unhealthinessLevel: 'none',
                                         nightShift: false,
-                                        nightShiftPercent: 0.20
+                                        nightShiftPercent: 0.20,
+                                        isHourly: false,
+                                        hoursPerMonth: 220
                                     }])}
                                     className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                 >
@@ -403,69 +503,112 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
                         </div>
 
-                        {/* 2. CHARGES CONFIGURATION */}
+                        {/* 2. CHARGES (ENCARGOS) */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                            <button
-                                onClick={() => setShowChargesConfig(!showChargesConfig)}
-                                className="w-full flex justify-between items-center text-lg font-bold text-metarh-dark mb-2"
-                            >
-                                <span className="flex items-center gap-2"><Settings size={18} /> 2. Configuração de Encargos</span>
-                                {showChargesConfig ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                            </button>
+                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <Settings size={18} /> 2. Encargos
+                            </h2>
 
-                            {showChargesConfig && (
-                                <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
-                                    {/* Group A */}
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Grupo A</h3>
-                                        <div className="space-y-2 text-xs text-gray-600">
-                                            <div className="flex justify-between"><span>INSS</span><span>{fmtPercent(LABOR_CHARGES.groupA.inss)}</span></div>
-                                            <div className="flex justify-between"><span>SESI/SESC</span><span>{fmtPercent(LABOR_CHARGES.groupA.sesi_sesc)}</span></div>
-                                            <div className="flex justify-between"><span>SENAI/SENAC</span><span>{fmtPercent(LABOR_CHARGES.groupA.senai_senac)}</span></div>
-                                            <div className="flex justify-between"><span>INCRA</span><span>{fmtPercent(LABOR_CHARGES.groupA.incra)}</span></div>
-                                            <div className="flex justify-between items-center bg-white p-1 rounded border border-gray-200">
-                                                <span className="font-bold text-metarh-medium">SAT (Ajustável)</span>
-                                                <div className="flex items-center gap-1">
-                                                    <input
-                                                        type="number"
-                                                        value={(satRate * 100).toFixed(2)}
-                                                        onChange={(e) => setSatRate(Number(e.target.value) / 100)}
-                                                        className="w-16 p-1 text-right border-none bg-transparent outline-none font-bold"
-                                                    />
-                                                    <span>%</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between"><span>Salário Educação</span><span>{fmtPercent(LABOR_CHARGES.groupA.salario_educacao)}</span></div>
-                                            <div className="flex justify-between"><span>SEBRAE</span><span>{fmtPercent(LABOR_CHARGES.groupA.sebrae)}</span></div>
-                                            <div className="flex justify-between"><span>FGTS</span><span>{fmtPercent(LABOR_CHARGES.groupA.fgts)}</span></div>
-                                            <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
-                                                <span>Total Grupo A</span>
-                                                <span>{fmtPercent(result?.groupAPercent || 0)}</span>
+                            <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
+                                {/* Group A */}
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Encargos Sociais Obrigatórios - Grupo A</h3>
+                                    <div className="space-y-2 text-xs text-gray-600">
+                                        <div className="flex justify-between">
+                                            <span>INSS</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.inss)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.inss || 0)}</span>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Group B */}
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Grupo B</h3>
-                                        <div className="space-y-2 text-xs text-gray-600">
-                                            <div className="flex justify-between"><span>Férias + 1/3</span><span>{fmtPercent(LABOR_CHARGES.groupB.ferias_abono)}</span></div>
-                                            <div className="flex justify-between"><span>INSS s/ Férias</span><span>{fmtPercent(LABOR_CHARGES.groupB.inss_ferias)}</span></div>
-                                            <div className="flex justify-between"><span>FGTS s/ Férias</span><span>{fmtPercent(LABOR_CHARGES.groupB.fgts_ferias)}</span></div>
-                                            <div className="flex justify-between"><span>13º Salário</span><span>{fmtPercent(LABOR_CHARGES.groupB.decimo_terceiro)}</span></div>
-                                            <div className="flex justify-between"><span>INSS s/ 13º</span><span>{fmtPercent(LABOR_CHARGES.groupB.inss_decimo_terceiro)}</span></div>
-                                            <div className="flex justify-between"><span>FGTS s/ 13º</span><span>{fmtPercent(LABOR_CHARGES.groupB.fgts_decimo_terceiro)}</span></div>
-                                            <div className="flex justify-between"><span>Aviso Prévio</span><span>{fmtPercent(LABOR_CHARGES.groupB.aviso_previo)}</span></div>
-                                            <div className="flex justify-between"><span>Depósito Rescisão</span><span>{fmtPercent(LABOR_CHARGES.groupB.deposito_rescisao)}</span></div>
-                                            <div className="flex justify-between"><span>Auxílio Doença</span><span>{fmtPercent(LABOR_CHARGES.groupB.auxilio_doenca)}</span></div>
-                                            <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
-                                                <span>Total Grupo B</span>
-                                                <span>{fmtPercent(result?.groupBPercent || 0)}</span>
+                                        <div className="flex justify-between">
+                                            <span>SESI/SESC</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.sesi_sesc)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.sesi_sesc || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>SENAI/SENAC</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.senai_senac)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.senai_senac || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>INCRA</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.incra)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.incra || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center bg-white p-1 rounded border border-gray-200">
+                                            <span className="font-bold text-metarh-medium">Seguro Acidente Trabalho - SAT</span>
+                                            <div className="flex items-center gap-1">
+                                                <input
+                                                    type="number"
+                                                    value={(satRate * 100).toFixed(2)}
+                                                    onChange={(e) => setSatRate(Number(e.target.value) / 100)}
+                                                    className="w-12 p-1 text-right border-none bg-transparent outline-none font-bold"
+                                                />
+                                                <span>%</span>
+                                                <span className="font-bold text-gray-800 ml-1">{fmtCurrency(result?.totalGrossSalary * satRate || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Salário Educação</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.salario_educacao)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.salario_educacao || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>SEBRAE</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.sebrae)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.sebrae || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>FGTS</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(LABOR_CHARGES.groupA.fgts)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.fgts || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
+                                            <span>Total Grupo A</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(result?.groupAPercent || 0)}</span>
+                                                <span>{fmtCurrency(result?.groupAValue || 0)}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            )}
+
+                                {/* Group B */}
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Encargos Trabalhistas | Provisões - Grupo B</h3>
+                                    <div className="space-y-2 text-xs text-gray-600">
+                                        {result?.groupBItems && Object.entries(result.groupBItems).map(([key, val]) => (
+                                            <div key={key} className={`flex justify-between ${val === 0 ? 'opacity-50' : ''}`}>
+                                                <span className="capitalize">{key.replace(/_/g, ' ')}</span>
+                                                <div className="flex gap-2">
+                                                    <span>{fmtPercent(val as number)}</span>
+                                                    <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * (val as number) || 0)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
+                                            <span>Total Grupo B</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(result?.groupBPercent || 0)}</span>
+                                                <span>{fmtCurrency(result?.groupBValue || 0)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Highlighted Total Charges */}
                             <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-xl p-4 flex justify-between items-center">
@@ -627,7 +770,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <select
                                             value={selectedMedicalPlan}
                                             onChange={(e) => setSelectedMedicalPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm"
+                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
                                         >
                                             {BENEFIT_OPTIONS.medical.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.name}</option>
@@ -646,7 +789,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <select
                                             value={selectedDentalPlan}
                                             onChange={(e) => setSelectedDentalPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm"
+                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
                                         >
                                             {BENEFIT_OPTIONS.dental.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.name}</option>
@@ -665,7 +808,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <select
                                             value={selectedWellhubPlan}
                                             onChange={(e) => setSelectedWellhubPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm"
+                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
                                         >
                                             {BENEFIT_OPTIONS.wellhub.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.name}</option>
@@ -716,6 +859,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <Plus size={14} /> Adicionar Benefício
                                 </button>
                             </div>
+
+                            {/* Total Benefits Display */}
+                            {result && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Benefícios:</span>
+                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits)}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 4. EXAMS (Separate Box) */}
@@ -733,6 +886,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Total Exams Display */}
+                            {result && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Exames:</span>
+                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalExams)}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 5. FEES (Separate Box) */}
@@ -773,6 +936,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Total Fees Display */}
+                            {result && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Taxas:</span>
+                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalFees)}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 6. RECRUITMENT (Separate Box) */}
@@ -857,36 +1030,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 />
                                             </div>
                                         </div>
-
-                                        {/* Team Cost Display */}
-                                        <div className="mt-4 bg-white/50 border border-purple-100 rounded-lg p-3 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-purple-900 uppercase">Custo da Equipe</span>
-                                            <span className="text-lg font-bold text-purple-700">{fmtCurrency(result?.teamCost || 0)}</span>
-                                        </div>
                                     </div>
+                                </div>
+                            )}
 
-                                    {/* Recruitment Fee Percentage */}
-                                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="block text-xs font-bold text-gray-700 uppercase">Taxa de Recrutamento (%)</label>
-                                            <span className="text-xs text-gray-500">Sobre o salário base total</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="number"
-                                                value={recruitmentCostPercent}
-                                                onChange={(e) => setRecruitmentCostPercent(Number(e.target.value))}
-                                                className="w-24 p-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-400 outline-none font-bold text-center text-purple-900"
-                                                placeholder="%"
-                                            />
-                                            <span className="text-lg font-bold text-purple-900">%</span>
-                                            <div className="flex-1 text-right">
-                                                <span className="block text-xs text-gray-500">Valor Estimado (Setup)</span>
-                                                <span className="text-lg font-bold text-purple-700">
-                                                    {fmtCurrency(result?.recruitmentFeeValue || 0)}
-                                                </span>
-                                            </div>
-                                        </div>
+                            {/* Total Recruitment Display */}
+                            {result && recruitmentType === 'selection' && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                    <div className="bg-purple-50 px-4 py-2 rounded-lg border border-purple-100">
+                                        <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Recrutamento:</span>
+                                        <span className="text-lg font-bold text-purple-700">{fmtCurrency(result.teamCost)}</span>
                                     </div>
                                 </div>
                             )}
@@ -979,22 +1132,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
                                     </div>
 
-                                    {recruitmentType === 'selection' && (
+                                    {recruitmentType === 'selection' && result.teamCost > 0 && (
                                         <div className="mt-4 space-y-2">
-                                            {result.recruitmentFeeValue > 0 && (
-                                                <div className="p-3 bg-purple-900/50 rounded-xl border border-purple-500/30">
-                                                    <p className="text-xs text-purple-200 uppercase font-bold">Custo Setup (R&S - {recruitmentCostPercent}%)</p>
-                                                    <p className="text-xl font-bold text-white">{fmtCurrency(result.recruitmentFeeValue)}</p>
-                                                    <p className="text-[10px] text-purple-300">Cobrança única</p>
-                                                </div>
-                                            )}
-                                            {result.teamCost > 0 && (
-                                                <div className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20">
-                                                    <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
-                                                    <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
-                                                    <p className="text-[10px] text-purple-300">Custo interno estimado</p>
-                                                </div>
-                                            )}
+                                            <div className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20">
+                                                <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
+                                                <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
+                                                <p className="text-[10px] text-purple-300">Custo interno estimado</p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

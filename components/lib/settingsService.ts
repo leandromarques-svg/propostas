@@ -8,6 +8,15 @@ export interface AppSettings {
         medical: { id: string; name: string; value: number }[];
         dental: { id: string; name: string; value: number }[];
         wellhub: { id: string; name: string; value: number }[];
+        others?: {
+            transport?: number;
+            meal?: number;
+            food?: number;
+            lifeInsurance?: number;
+            pharmacy?: number;
+            gpsPoint?: number;
+            plr?: number;
+        };
     };
 }
 
@@ -17,7 +26,16 @@ const DEFAULT_SETTINGS: AppSettings = {
     benefit_options: {
         medical: BENEFIT_OPTIONS.medical,
         dental: BENEFIT_OPTIONS.dental,
-        wellhub: BENEFIT_OPTIONS.wellhub
+        wellhub: BENEFIT_OPTIONS.wellhub,
+        others: {
+            transport: BENEFIT_OPTIONS.others.transport.defaultValue,
+            meal: BENEFIT_OPTIONS.others.meal.defaultValue,
+            food: BENEFIT_OPTIONS.others.food.defaultValue,
+            lifeInsurance: BENEFIT_OPTIONS.others.lifeInsurance.defaultValue,
+            pharmacy: BENEFIT_OPTIONS.others.pharmacy.defaultValue,
+            gpsPoint: BENEFIT_OPTIONS.others.gpsPoint.defaultValue,
+            plr: BENEFIT_OPTIONS.others.plr.defaultValue
+        }
     }
 };
 

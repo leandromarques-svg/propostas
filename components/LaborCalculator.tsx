@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
-    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock
+    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock, Info
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
@@ -328,6 +328,85 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         />
                         <span className="font-bold text-sm">Não Provisionado</span>
                     </label>
+                </div>
+
+                {/* Contract Types Explanation */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl shadow-sm border border-blue-100 mb-8">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <Info size={20} className="text-blue-600" />
+                        Entenda os Tipos de Contratos
+                    </h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                        {/* Provisionado */}
+                        <div className={`bg-white p-4 rounded-xl border-2 transition-all ${provisioningMode === 'full' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                            <h4 className="font-bold text-gray-800 mb-2">Provisionado</h4>
+                            <p className="text-xs text-gray-600 mb-3">Inclui todas as provisões trabalhistas (Grupo A + Grupo B completo)</p>
+                            <div className="space-y-2">
+                                <div>
+                                    <p className="text-xs font-bold text-green-700 mb-1">✓ Pontos Positivos:</p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Maior segurança jurídica</li>
+                                        <li>• Cobertura total de encargos</li>
+                                        <li>• Previsibilidade de custos</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-red-700 mb-1">✗ Pontos Negativos:</p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Custo mais elevado</li>
+                                        <li>• Menor flexibilidade</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Semi Provisionado */}
+                        <div className={`bg-white p-4 rounded-xl border-2 transition-all ${provisioningMode === 'semi' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                            <h4 className="font-bold text-gray-800 mb-2">Semi Provisionado</h4>
+                            <p className="text-xs text-gray-600 mb-3">Exclui Aviso Prévio, Depósito Rescisão e Auxílio Doença</p>
+                            <div className="space-y-2">
+                                <div>
+                                    <p className="text-xs font-bold text-green-700 mb-1">✓ Pontos Positivos:</p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Custo intermediário</li>
+                                        <li>• Equilíbrio risco/custo</li>
+                                        <li>• Boa previsibilidade</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-red-700 mb-1">✗ Pontos Negativos:</p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Risco parcial de rescisão</li>
+                                        <li>• Requer gestão ativa</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Não Provisionado */}
+                        <div className={`bg-white p-4 rounded-xl border-2 transition-all ${provisioningMode === 'none' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                            <h4 className="font-bold text-gray-800 mb-2">Não Provisionado</h4>
+                            <p className="text-xs text-gray-600 mb-3">Apenas Grupo A (encargos sociais obrigatórios)</p>
+                            <div className="space-y-2">
+                                <div>
+                                    <p className="text-xs font-bold text-green-700 mb-1">✓ Pontos Positivos:</p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Menor custo mensal</li>
+                                        <li>• Maior flexibilidade</li>
+                                        <li>• Fluxo de caixa otimizado</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-red-700 mb-1">✗ Pontos Negativos:</p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Alto risco trabalhista</li>
+                                        <li>• Custos imprevistos</li>
+                                        <li>• Requer reserva financeira</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-8">

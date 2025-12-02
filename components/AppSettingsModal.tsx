@@ -292,6 +292,152 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                             ))}
                                         </div>
                                     </div>
+
+                                    {/* Other Benefits */}
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Outros Benefícios</h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            {/* Vale Transporte */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Vale Transporte (Diário)</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.transport || 17.80}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, transport: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Vale Refeição */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Vale Refeição (Diário)</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.meal || 23.30}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, meal: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Vale Alimentação */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Vale Alimentação (Mensal)</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.food || 163.83}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, food: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Seguro de Vida */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Seguro de Vida</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.lifeInsurance || 16.01}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, lifeInsurance: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Auxílio Farmácia */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Auxílio Farmácia | Omni</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.pharmacy || 46.96}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, pharmacy: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Controle de Ponto */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Controle de Ponto GPS</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.gpsPoint || 7.63}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, gpsPoint: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* PLR */}
+                                            <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">PLR (Provisão Mensal)</label>
+                                                <div className="relative max-w-sm">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={generalSettings.benefit_options.others?.plr || 330.88}
+                                                        onChange={(e) => setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                others: { ...generalSettings.benefit_options.others, plr: Number(e.target.value) }
+                                                            }
+                                                        })}
+                                                        className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 

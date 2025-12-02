@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
-    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings
+    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
     LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE
 } from '../constants';
+import { getTeamRates, TeamRates } from './lib/teamRatesService';
 
 interface LaborPosition {
     id: string;
@@ -39,6 +40,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
     const [recruitmentCostPercent, setRecruitmentCostPercent] = useState<number>(20); // Percentage default 20%
 
+    // Recruitment Team State
+    const [qtySenior, setQtySenior] = useState(0);
+    const [qtyPlena, setQtyPlena] = useState(0);
+    const [qtyJunior, setQtyJunior] = useState(0);
+    const [demandedDays, setDemandedDays] = useState(0);
+    const [teamRates, setTeamRates] = useState<TeamRates>({ senior: 150, plena: 100, junior: 60 });
+
     // Benefits Selection
     const [selectedMedicalPlan, setSelectedMedicalPlan] = useState<string>(BENEFIT_OPTIONS.medical[0].id);
     const [selectedDentalPlan, setSelectedDentalPlan] = useState<string>(BENEFIT_OPTIONS.dental[0].id);
@@ -60,9 +68,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // Custom Benefits
     const [customBenefits, setCustomBenefits] = useState<{ id: string, name: string, value: number }[]>([]);
 
-    // Charges Config (Editable)
-    const [groupAPercent, setGroupAPercent] = useState<number>(Object.values(LABOR_CHARGES.groupA).reduce((a, b) => a + b, 0));
-    const [groupBPercent, setGroupBPercent] = useState<number>(Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0));
+    // Charges Config (Detailed)
+    const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
     const [showChargesConfig, setShowChargesConfig] = useState(false);
 
     // Fees
@@ -72,6 +79,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // Results State
     const [result, setResult] = useState<any>(null);
 
+    // Load team rates
+    useEffect(() => {
+        const loadRates = async () => {
+            const rates = await getTeamRates();
+            setTeamRates(rates);
+        };
+        loadRates();
+    }, []);
+
     // --- CALCULATIONS ---
     useEffect(() => {
         calculateLaborPricing();
@@ -80,7 +96,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
         customBenefits, backupFeePercent, adminFeePercent,
         hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
-        groupAPercent, groupBPercent
+        satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates
     ]);
 
     const calculateLaborPricing = () => {
@@ -114,7 +130,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue };
         });
 
-        // Charges (Encargos) - Uses State Percentages
+        // Charges (Encargos) - Detailed Calculation
+        // Group A
+        const groupAPercent =
+            LABOR_CHARGES.groupA.inss +
+            LABOR_CHARGES.groupA.sesi_sesc +
+            LABOR_CHARGES.groupA.senai_senac +
+            LABOR_CHARGES.groupA.incra +
+            satRate + // Dynamic SAT
+            LABOR_CHARGES.groupA.salario_educacao +
+            LABOR_CHARGES.groupA.sebrae +
+            LABOR_CHARGES.groupA.fgts;
+
+        // Group B
+        const groupBPercent = Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0);
+
         const groupAValue = totalGrossSalary * groupAPercent;
         const groupBValue = totalGrossSalary * groupBPercent;
         const totalCharges = groupAValue + groupBValue;
@@ -163,6 +193,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Calculated as % of Total Base Salary
         const recruitmentFeeValue = totalBaseSalary * (recruitmentCostPercent / 100);
 
+        // Recruitment Team Cost (Internal Cost)
+        const hoursPerDay = 9;
+        const projectHours = demandedDays * hoursPerDay;
+        const teamCost = (
+            (qtySenior * teamRates.senior) +
+            (qtyPlena * teamRates.plena) +
+            (qtyJunior * teamRates.junior)
+        ) * projectHours;
+
+
         // Taxes (Tributos)
         const totalTaxRate =
             LABOR_TAX_RATES.iss +
@@ -193,7 +233,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             grossNF,
             totalTaxes,
             totalTaxRate,
-            recruitmentFeeValue
+            recruitmentFeeValue,
+            teamCost
         });
     };
 
@@ -317,13 +358,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     />
                                                     <span className="text-sm text-gray-600">Sim</span>
                                                     {pos.nightShift && (
-                                                        <input
-                                                            type="number"
-                                                            value={pos.nightShiftPercent * 100}
-                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, nightShiftPercent: Number(e.target.value) / 100 } : p))}
-                                                            className="w-16 p-1 text-sm border border-gray-300 rounded"
-                                                            placeholder="%"
-                                                        />
+                                                        <div className="flex items-center gap-1">
+                                                            <input
+                                                                type="number"
+                                                                value={pos.nightShiftPercent * 100}
+                                                                onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, nightShiftPercent: Number(e.target.value) / 100 } : p))}
+                                                                className="w-16 p-1 text-sm border border-gray-300 rounded text-right"
+                                                                placeholder="%"
+                                                            />
+                                                            <span className="text-gray-500 font-bold">%</span>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -346,6 +390,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 >
                                     <Plus size={16} /> Adicionar Cargo
                                 </button>
+
+                                {/* Total Gross Salary Display */}
+                                {result && (
+                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Salário Bruto:</span>
+                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalGrossSalary)}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -361,46 +415,78 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                             {showChargesConfig && (
                                 <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
+                                    {/* Group A */}
                                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Grupo A (%)</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={(groupAPercent * 100).toFixed(2)}
-                                                onChange={(e) => setGroupAPercent(Number(e.target.value) / 100)}
-                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm font-bold"
-                                            />
-                                            <span className="text-gray-500 font-bold">%</span>
+                                        <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Grupo A</h3>
+                                        <div className="space-y-2 text-xs text-gray-600">
+                                            <div className="flex justify-between"><span>INSS</span><span>{fmtPercent(LABOR_CHARGES.groupA.inss)}</span></div>
+                                            <div className="flex justify-between"><span>SESI/SESC</span><span>{fmtPercent(LABOR_CHARGES.groupA.sesi_sesc)}</span></div>
+                                            <div className="flex justify-between"><span>SENAI/SENAC</span><span>{fmtPercent(LABOR_CHARGES.groupA.senai_senac)}</span></div>
+                                            <div className="flex justify-between"><span>INCRA</span><span>{fmtPercent(LABOR_CHARGES.groupA.incra)}</span></div>
+                                            <div className="flex justify-between items-center bg-white p-1 rounded border border-gray-200">
+                                                <span className="font-bold text-metarh-medium">SAT (Ajustável)</span>
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        type="number"
+                                                        value={(satRate * 100).toFixed(2)}
+                                                        onChange={(e) => setSatRate(Number(e.target.value) / 100)}
+                                                        className="w-16 p-1 text-right border-none bg-transparent outline-none font-bold"
+                                                    />
+                                                    <span>%</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between"><span>Salário Educação</span><span>{fmtPercent(LABOR_CHARGES.groupA.salario_educacao)}</span></div>
+                                            <div className="flex justify-between"><span>SEBRAE</span><span>{fmtPercent(LABOR_CHARGES.groupA.sebrae)}</span></div>
+                                            <div className="flex justify-between"><span>FGTS</span><span>{fmtPercent(LABOR_CHARGES.groupA.fgts)}</span></div>
+                                            <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
+                                                <span>Total Grupo A</span>
+                                                <span>{fmtPercent(result?.groupAPercent || 0)}</span>
+                                            </div>
                                         </div>
-                                        <p className="text-[10px] text-gray-400 mt-2">INSS, SESI/SESC, SENAI/SENAC, INCRA, SAT, Salário Educação, SEBRAE, FGTS.</p>
                                     </div>
+
+                                    {/* Group B */}
                                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Grupo B (%)</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={(groupBPercent * 100).toFixed(2)}
-                                                onChange={(e) => setGroupBPercent(Number(e.target.value) / 100)}
-                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm font-bold"
-                                            />
-                                            <span className="text-gray-500 font-bold">%</span>
+                                        <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Grupo B</h3>
+                                        <div className="space-y-2 text-xs text-gray-600">
+                                            <div className="flex justify-between"><span>Férias + 1/3</span><span>{fmtPercent(LABOR_CHARGES.groupB.ferias_abono)}</span></div>
+                                            <div className="flex justify-between"><span>INSS s/ Férias</span><span>{fmtPercent(LABOR_CHARGES.groupB.inss_ferias)}</span></div>
+                                            <div className="flex justify-between"><span>FGTS s/ Férias</span><span>{fmtPercent(LABOR_CHARGES.groupB.fgts_ferias)}</span></div>
+                                            <div className="flex justify-between"><span>13º Salário</span><span>{fmtPercent(LABOR_CHARGES.groupB.decimo_terceiro)}</span></div>
+                                            <div className="flex justify-between"><span>INSS s/ 13º</span><span>{fmtPercent(LABOR_CHARGES.groupB.inss_decimo_terceiro)}</span></div>
+                                            <div className="flex justify-between"><span>FGTS s/ 13º</span><span>{fmtPercent(LABOR_CHARGES.groupB.fgts_decimo_terceiro)}</span></div>
+                                            <div className="flex justify-between"><span>Aviso Prévio</span><span>{fmtPercent(LABOR_CHARGES.groupB.aviso_previo)}</span></div>
+                                            <div className="flex justify-between"><span>Depósito Rescisão</span><span>{fmtPercent(LABOR_CHARGES.groupB.deposito_rescisao)}</span></div>
+                                            <div className="flex justify-between"><span>Auxílio Doença</span><span>{fmtPercent(LABOR_CHARGES.groupB.auxilio_doenca)}</span></div>
+                                            <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
+                                                <span>Total Grupo B</span>
+                                                <span>{fmtPercent(result?.groupBPercent || 0)}</span>
+                                            </div>
                                         </div>
-                                        <p className="text-[10px] text-gray-400 mt-2">Férias, 13º Salário, Aviso Prévio, Auxílio Doença, etc.</p>
                                     </div>
                                 </div>
                             )}
-                            {!showChargesConfig && (
-                                <div className="text-xs text-gray-500 flex gap-4">
-                                    <span>Grupo A: <strong>{fmtPercent(groupAPercent)}</strong></span>
-                                    <span>Grupo B: <strong>{fmtPercent(groupBPercent)}</strong></span>
+
+                            {/* Highlighted Total Charges */}
+                            <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-xl p-4 flex justify-between items-center">
+                                <span className="text-sm font-bold text-metarh-dark uppercase">Total de Encargos (A + B)</span>
+                                <div className="text-right">
+                                    <span className="text-2xl font-bold text-metarh-medium">
+                                        {fmtPercent((result?.groupAPercent || 0) + (result?.groupBPercent || 0))}
+                                    </span>
+                                    {result && (
+                                        <div className="text-xs text-gray-500 font-bold">
+                                            {fmtCurrency(result.totalCharges)}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
 
-                        {/* 3. BENEFITS & EXAMS */}
+                        {/* 3. BENEFITS */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <Sparkles size={18} /> 3. Benefícios e Exames
+                                <Sparkles size={18} /> 3. Benefícios
                             </h2>
 
                             {/* Standard Benefits */}
@@ -415,7 +501,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     type="checkbox"
                                                     checked={hasTransport}
                                                     onChange={(e) => setHasTransport(e.target.checked)}
-                                                    className="w-4 h-4 text-metarh-medium rounded"
+                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                                 />
                                                 <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.transport.name}</span>
                                             </label>
@@ -442,7 +528,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     type="checkbox"
                                                     checked={hasMeal}
                                                     onChange={(e) => setHasMeal(e.target.checked)}
-                                                    className="w-4 h-4 text-metarh-medium rounded"
+                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                                 />
                                                 <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.meal.name}</span>
                                             </label>
@@ -468,7 +554,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 type="checkbox"
                                                 checked={hasFood}
                                                 onChange={(e) => setHasFood(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded"
+                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                             />
                                             <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.food.name}</span>
                                         </label>
@@ -482,7 +568,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 type="checkbox"
                                                 checked={hasLifeInsurance}
                                                 onChange={(e) => setHasLifeInsurance(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded"
+                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                             />
                                             <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.lifeInsurance.name}</span>
                                         </label>
@@ -496,7 +582,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 type="checkbox"
                                                 checked={hasPharmacy}
                                                 onChange={(e) => setHasPharmacy(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded"
+                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                             />
                                             <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.pharmacy.name}</span>
                                         </label>
@@ -510,7 +596,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 type="checkbox"
                                                 checked={hasGpsPoint}
                                                 onChange={(e) => setHasGpsPoint(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded"
+                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                             />
                                             <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.gpsPoint.name}</span>
                                         </label>
@@ -524,7 +610,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 type="checkbox"
                                                 checked={hasPlr}
                                                 onChange={(e) => setHasPlr(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded"
+                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                             />
                                             <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.plr.name}</span>
                                         </label>
@@ -533,42 +619,62 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Plano Médico</label>
-                                    <select
-                                        value={selectedMedicalPlan}
-                                        onChange={(e) => setSelectedMedicalPlan(e.target.value)}
-                                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
-                                    >
-                                        {BENEFIT_OPTIONS.medical.map(opt => (
-                                            <option key={opt.id} value={opt.id}>{opt.name} - {fmtCurrency(opt.value)}</option>
-                                        ))}
-                                    </select>
+                            <div className="space-y-4">
+                                {/* Medical Plan */}
+                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Plano Médico</label>
+                                    <div className="md:col-span-2 flex gap-4">
+                                        <select
+                                            value={selectedMedicalPlan}
+                                            onChange={(e) => setSelectedMedicalPlan(e.target.value)}
+                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm"
+                                        >
+                                            {BENEFIT_OPTIONS.medical.map(opt => (
+                                                <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                            ))}
+                                        </select>
+                                        <div className="w-32 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
+                                            {fmtCurrency(BENEFIT_OPTIONS.medical.find(p => p.id === selectedMedicalPlan)?.value || 0)}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Plano Odontológico</label>
-                                    <select
-                                        value={selectedDentalPlan}
-                                        onChange={(e) => setSelectedDentalPlan(e.target.value)}
-                                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
-                                    >
-                                        {BENEFIT_OPTIONS.dental.map(opt => (
-                                            <option key={opt.id} value={opt.id}>{opt.name} - {fmtCurrency(opt.value)}</option>
-                                        ))}
-                                    </select>
+
+                                {/* Dental Plan */}
+                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Plano Odontológico</label>
+                                    <div className="md:col-span-2 flex gap-4">
+                                        <select
+                                            value={selectedDentalPlan}
+                                            onChange={(e) => setSelectedDentalPlan(e.target.value)}
+                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm"
+                                        >
+                                            {BENEFIT_OPTIONS.dental.map(opt => (
+                                                <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                            ))}
+                                        </select>
+                                        <div className="w-32 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
+                                            {fmtCurrency(BENEFIT_OPTIONS.dental.find(p => p.id === selectedDentalPlan)?.value || 0)}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Wellhub (Gympass)</label>
-                                    <select
-                                        value={selectedWellhubPlan}
-                                        onChange={(e) => setSelectedWellhubPlan(e.target.value)}
-                                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
-                                    >
-                                        {BENEFIT_OPTIONS.wellhub.map(opt => (
-                                            <option key={opt.id} value={opt.id}>{opt.name} - {fmtCurrency(opt.value)}</option>
-                                        ))}
-                                    </select>
+
+                                {/* Wellhub */}
+                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Wellhub (Gympass)</label>
+                                    <div className="md:col-span-2 flex gap-4">
+                                        <select
+                                            value={selectedWellhubPlan}
+                                            onChange={(e) => setSelectedWellhubPlan(e.target.value)}
+                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm"
+                                        >
+                                            {BENEFIT_OPTIONS.wellhub.map(opt => (
+                                                <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                            ))}
+                                        </select>
+                                        <div className="w-32 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
+                                            {fmtCurrency(BENEFIT_OPTIONS.wellhub.find(p => p.id === selectedWellhubPlan)?.value || 0)}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -610,75 +716,156 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <Plus size={14} /> Adicionar Benefício
                                 </button>
                             </div>
+                        </div>
 
-                            <div className="mt-6 bg-gray-50 p-4 rounded-xl">
-                                <h3 className="text-xs font-bold text-gray-700 uppercase mb-3">Exames Clínicos (Padrão)</h3>
+                        {/* 4. EXAMS (Separate Box) */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <FileText size={18} /> 4. Exames Clínicos
+                            </h2>
+                            <div className="bg-gray-50 p-4 rounded-xl">
                                 <div className="space-y-2">
                                     {EXAM_OPTIONS.map(exam => (
-                                        <div key={exam.id} className="flex justify-between text-sm text-gray-600">
+                                        <div key={exam.id} className="flex justify-between text-sm text-gray-600 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
                                             <span>{exam.name}</span>
-                                            <span className="font-mono">{fmtCurrency(exam.value)}</span>
+                                            <span className="font-mono font-bold">{fmtCurrency(exam.value)}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         </div>
 
-                        {/* 4. FEES & RECRUITMENT */}
+                        {/* 5. FEES (Separate Box) */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <DollarSign size={18} /> 4. Taxas e Recrutamento
+                                <DollarSign size={18} /> 5. Taxas
                             </h2>
 
-                            <div className="grid md:grid-cols-2 gap-6 mb-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa de Backup (%)</label>
-                                    <input
-                                        type="number"
-                                        value={backupFeePercent * 100}
-                                        onChange={(e) => setBackupFeePercent(Number(e.target.value) / 100)}
-                                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
-                                    />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa de Backup (%)</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={backupFeePercent * 100}
+                                            onChange={(e) => setBackupFeePercent(Number(e.target.value) / 100)}
+                                            className="w-20 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-center"
+                                        />
+                                        <span className="text-gray-500 font-bold">%</span>
+                                        <div className="flex-1 text-right">
+                                            <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.backupFeeValue || 0)}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
-                                    <input
-                                        type="number"
-                                        value={adminFeePercent * 100}
-                                        onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
-                                    />
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={adminFeePercent * 100}
+                                            onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
+                                            className="w-20 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-center"
+                                        />
+                                        <span className="text-gray-500 font-bold">%</span>
+                                        <div className="flex-1 text-right">
+                                            <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.adminFeeValue || 0)}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="border-t border-gray-100 pt-4">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Recrutamento e Seleção</label>
-                                <div className="flex gap-4 mb-3">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="recruitmentType"
-                                            value="indication"
-                                            checked={recruitmentType === 'indication'}
-                                            onChange={() => setRecruitmentType('indication')}
-                                            className="text-metarh-medium"
-                                        />
-                                        <span className="text-sm text-gray-700">Indicação do Cliente (Sem custo)</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="recruitmentType"
-                                            value="selection"
-                                            checked={recruitmentType === 'selection'}
-                                            onChange={() => setRecruitmentType('selection')}
-                                            className="text-metarh-medium"
-                                        />
-                                        <span className="text-sm text-gray-700">Recrutamento METARH</span>
-                                    </label>
-                                </div>
+                        {/* 6. RECRUITMENT (Separate Box) */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <Briefcase size={18} /> 6. Recrutamento e Seleção
+                            </h2>
 
-                                {recruitmentType === 'selection' && (
+                            <div className="flex gap-4 mb-6">
+                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                                    <input
+                                        type="radio"
+                                        name="recruitmentType"
+                                        value="indication"
+                                        checked={recruitmentType === 'indication'}
+                                        onChange={() => setRecruitmentType('indication')}
+                                        className="text-metarh-medium accent-metarh-medium"
+                                    />
+                                    <span className="text-sm font-bold text-gray-700">Indicação do Cliente (Sem custo)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                                    <input
+                                        type="radio"
+                                        name="recruitmentType"
+                                        value="selection"
+                                        checked={recruitmentType === 'selection'}
+                                        onChange={() => setRecruitmentType('selection')}
+                                        className="text-metarh-medium accent-metarh-medium"
+                                    />
+                                    <span className="text-sm font-bold text-gray-700">Recrutamento METARH</span>
+                                </label>
+                            </div>
+
+                            {recruitmentType === 'selection' && (
+                                <div className="space-y-6 animate-fade-in">
+                                    {/* Team Inputs (from Pricing Calculator) */}
+                                    <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <label className="block text-xs font-bold text-gray-700 uppercase">Equipe de Recrutamento</label>
+                                            <div className="w-40">
+                                                <label className="block text-[10px] font-bold text-metarh-medium uppercase mb-1">Dias Demandados</label>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        value={demandedDays || ''}
+                                                        onChange={(e) => setDemandedDays(Number(e.target.value))}
+                                                        className="w-full px-3 py-2 rounded-lg border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
+                                                        placeholder="0"
+                                                    />
+                                                    <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                                        = {demandedDays * 9}h úteis
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Senior</label>
+                                                <input
+                                                    type="number"
+                                                    value={qtySenior}
+                                                    onChange={(e) => setQtySenior(Number(e.target.value))}
+                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Plena</label>
+                                                <input
+                                                    type="number"
+                                                    value={qtyPlena}
+                                                    onChange={(e) => setQtyPlena(Number(e.target.value))}
+                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Junior</label>
+                                                <input
+                                                    type="number"
+                                                    value={qtyJunior}
+                                                    onChange={(e) => setQtyJunior(Number(e.target.value))}
+                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Team Cost Display */}
+                                        <div className="mt-4 bg-white/50 border border-purple-100 rounded-lg p-3 flex justify-between items-center">
+                                            <span className="text-xs font-bold text-purple-900 uppercase">Custo da Equipe</span>
+                                            <span className="text-lg font-bold text-purple-700">{fmtCurrency(result?.teamCost || 0)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Recruitment Fee Percentage */}
                                     <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
                                         <div className="flex items-center justify-between mb-2">
                                             <label className="block text-xs font-bold text-gray-700 uppercase">Taxa de Recrutamento (%)</label>
@@ -696,13 +883,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             <div className="flex-1 text-right">
                                                 <span className="block text-xs text-gray-500">Valor Estimado (Setup)</span>
                                                 <span className="text-lg font-bold text-purple-700">
-                                                    {fmtCurrency((result?.totalBaseSalary || 0) * (recruitmentCostPercent / 100))}
+                                                    {fmtCurrency(result?.recruitmentFeeValue || 0)}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </div>
 
                     </div>
@@ -792,14 +979,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
                                     </div>
 
-                                    {recruitmentType === 'selection' && result.recruitmentFeeValue > 0 && (
-                                        <div className="mt-4 p-3 bg-purple-900/50 rounded-xl border border-purple-500/30">
-                                            <p className="text-xs text-purple-200 uppercase font-bold">Custo Setup (R&S - {recruitmentCostPercent}%)</p>
-                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.recruitmentFeeValue)}</p>
-                                            <p className="text-[10px] text-purple-300">Cobrança única</p>
+                                    {recruitmentType === 'selection' && (
+                                        <div className="mt-4 space-y-2">
+                                            {result.recruitmentFeeValue > 0 && (
+                                                <div className="p-3 bg-purple-900/50 rounded-xl border border-purple-500/30">
+                                                    <p className="text-xs text-purple-200 uppercase font-bold">Custo Setup (R&S - {recruitmentCostPercent}%)</p>
+                                                    <p className="text-xl font-bold text-white">{fmtCurrency(result.recruitmentFeeValue)}</p>
+                                                    <p className="text-[10px] text-purple-300">Cobrança única</p>
+                                                </div>
+                                            )}
+                                            {result.teamCost > 0 && (
+                                                <div className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20">
+                                                    <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
+                                                    <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
+                                                    <p className="text-[10px] text-purple-300">Custo interno estimado</p>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-
                                 </div>
                             )}
                         </div>

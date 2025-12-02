@@ -19,7 +19,9 @@ interface LaborPosition {
     nightShift: boolean;
     nightShiftPercent: number; // Default 0.20
     isHourly: boolean; // Horista
+    isDailyWorker: boolean; // Diarista
     hoursPerMonth: number; // Carga Horária Mensal
+    daysPerMonth: number; // Dias trabalhados por mês
 }
 
 interface LaborCalculatorProps {
@@ -40,7 +42,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         nightShift: false,
         nightShiftPercent: 0.20,
         isHourly: false,
-        hoursPerMonth: 220
+        isDailyWorker: false,
+        hoursPerMonth: 220,
+        daysPerMonth: 22
     }]);
 
     const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
@@ -116,10 +120,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             // 1. Base Salary
             const base = pos.baseSalary;
 
-            // Hourly Rate Calculation (Display only, doesn't change monthly calculation logic unless specified otherwise)
-            // User said: "trazer para o cálculo de salário bruto o salário dele por hora"
-            // We'll calculate it for display.
+            // Hourly and Daily Rate Calculations
             const hourlyRate = pos.isHourly && pos.hoursPerMonth > 0 ? base / pos.hoursPerMonth : 0;
+            const dailyRate = pos.isDailyWorker && pos.daysPerMonth > 0 ? base / pos.daysPerMonth : 0;
 
             // 2. Hazard Pay (Periculosidade) - % on Base Salary
             const hazardValue = base * pos.hazardPay;
@@ -133,14 +136,27 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             // 4. Night Shift (Adicional Noturno) - % on Base Salary (usually)
             const nightShiftValue = pos.nightShift ? (base * pos.nightShiftPercent) : 0;
 
-            // Gross Salary
-            const gross = base + hazardValue + unhealthinessValue + nightShiftValue;
+            // 5. Hourly/Daily Worker Additional Value
+            // When hourly or daily worker is enabled, add their calculated value to gross
+            let hourlyWorkerValue = 0;
+            let dailyWorkerValue = 0;
+
+            if (pos.isHourly && hourlyRate > 0) {
+                hourlyWorkerValue = hourlyRate * pos.hoursPerMonth;
+            }
+
+            if (pos.isDailyWorker && dailyRate > 0) {
+                dailyWorkerValue = dailyRate * pos.daysPerMonth;
+            }
+
+            // Gross Salary - includes base + all additionals + hourly/daily values
+            const gross = base + hazardValue + unhealthinessValue + nightShiftValue + hourlyWorkerValue + dailyWorkerValue;
 
             totalBaseSalary += base * pos.vacancies;
             totalGrossSalary += gross * pos.vacancies;
             totalPositions += pos.vacancies;
 
-            return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue, hourlyRate };
+            return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue, hourlyRate, dailyRate, hourlyWorkerValue, dailyWorkerValue };
         });
 
         // Charges (Encargos) - Detailed Calculation
@@ -245,6 +261,25 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const grossNF = totalOperationalCost / (1 - totalTaxRate);
         const totalTaxes = grossNF * totalTaxRate;
 
+        // Individual Taxes
+        const issValue = grossNF * LABOR_TAX_RATES.iss;
+        const pisValue = grossNF * LABOR_TAX_RATES.pis;
+        const cofinsValue = grossNF * LABOR_TAX_RATES.cofins;
+        const irrfValue = grossNF * LABOR_TAX_RATES.irrf;
+        const csllValue = grossNF * LABOR_TAX_RATES.csll;
+
+        // NEW TOTALS as requested
+        // Total Bruto (NF) = Total Salário Bruto + Total Encargos + Total Benefícios + Total Exames + Total Taxas + Total Recrutamento + Total Tributos
+        const totalBrutoNF = totalGrossSalary + totalCharges + totalBenefits + totalExams + totalFees + teamCost + totalTaxes;
+
+        // Total Líquido = Total Salário Bruto - retenção IR (15,5%)
+        const retentionIR = 0.155;
+        const totalLiquido = totalGrossSalary - (totalGrossSalary * retentionIR);
+
+        // Lucro L. Operacional = Líquido Recebido - Total Recrutamento - Tributos
+        const liquidoRecebido = grossNF - totalTaxes; // Net amount received after taxes
+        const lucroOperacional = liquidoRecebido - teamCost - totalTaxes;
+
         setResult({
             positionsCalculated,
             totalBaseSalary,
@@ -265,7 +300,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             grossNF,
             totalTaxes,
             totalTaxRate,
-            teamCost
+            teamCost,
+            // Individual taxes
+            issValue,
+            pisValue,
+            cofinsValue,
+            irrfValue,
+            csllValue,
+            // New totals
+            totalBrutoNF,
+            totalLiquido,
+            lucroOperacional,
+            liquidoRecebido
         });
     };
 
@@ -498,6 +544,36 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             )}
                                         </div>
 
+                                        {/* Daily Worker Mode Toggle */}
+                                        <div className="mt-2 flex items-center gap-4 bg-white p-2 rounded-lg border border-gray-200">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={pos.isDailyWorker}
+                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isDailyWorker: e.target.checked } : p))}
+                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
+                                                />
+                                                <span className="text-sm font-bold text-gray-700">Diarista</span>
+                                            </label>
+                                            {pos.isDailyWorker && (
+                                                <>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Dias/Mês:</span>
+                                                        <input
+                                                            type="number"
+                                                            value={pos.daysPerMonth}
+                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysPerMonth: Number(e.target.value) } : p))}
+                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 ml-auto">
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Salário Dia:</span>
+                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.isDailyWorker && pos.daysPerMonth > 0 ? pos.baseSalary / pos.daysPerMonth : 0)}</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+
                                         <div className="grid md:grid-cols-3 gap-4 mt-4">
                                             <div>
                                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Periculosidade</label>
@@ -563,7 +639,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         nightShift: false,
                                         nightShiftPercent: 0.20,
                                         isHourly: false,
-                                        hoursPerMonth: 220
+                                        isDailyWorker: false,
+                                        hoursPerMonth: 220,
+                                        daysPerMonth: 22
                                     }])}
                                     className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                 >
@@ -1124,6 +1202,48 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             )}
                         </div>
 
+                        {/* 7. TRIBUTOS (Separate Box) */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <DollarSign size={18} /> 7. Tributos
+                            </h2>
+
+                            {result && (
+                                <div className="space-y-3">
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>ISS ({fmtPercent(LABOR_TAX_RATES.iss)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.issValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>PIS ({fmtPercent(LABOR_TAX_RATES.pis)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.pisValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>COFINS ({fmtPercent(LABOR_TAX_RATES.cofins)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.cofinsValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>IRRF ({fmtPercent(LABOR_TAX_RATES.irrf)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.irrfValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>CSLL ({fmtPercent(LABOR_TAX_RATES.csll)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.csllValue || 0)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Total Tributos */}
+                                    <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex justify-between items-center">
+                                        <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
+                                        <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                     </div>
 
                     {/* RIGHT COLUMN - RESULTS */}
@@ -1211,6 +1331,30 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
                                     </div>
 
+                                    {/* NEW TOTALS - As requested */}
+                                    <div className="mt-4 space-y-3">
+                                        {/* Total Bruto (NF) */}
+                                        <div className="bg-blue-900/30 p-4 rounded-xl border border-blue-500/20">
+                                            <p className="text-xs text-blue-200 uppercase font-bold mb-1">Total Bruto (NF)</p>
+                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.totalBrutoNF || 0)}</p>
+                                            <p className="text-[10px] text-blue-300 mt-1">Salário Bruto + Encargos + Benefícios + Exames + Taxas + Recrutamento + Tributos</p>
+                                        </div>
+
+                                        {/* Total Líquido */}
+                                        <div className="bg-green-900/30 p-4 rounded-xl border border-green-500/20">
+                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido</p>
+                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
+                                            <p className="text-[10px] text-green-300 mt-1">Salário Bruto - Retenção IR (15,5%)</p>
+                                        </div>
+
+                                        {/* Lucro L. Operacional */}
+                                        <div className="bg-yellow-900/30 p-4 rounded-xl border border-yellow-500/20">
+                                            <p className="text-xs text-yellow-200 uppercase font-bold mb-1">Lucro L. Operacional</p>
+                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
+                                            <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
+                                        </div>
+                                    </div>
+
                                     {recruitmentType === 'selection' && result.teamCost > 0 && (
                                         <div className="mt-4 space-y-2">
                                             <div className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20">
@@ -1220,6 +1364,48 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Dica do Especialista */}
+                                    <div className="mt-6 bg-gradient-to-br from-orange-900/40 to-yellow-900/40 p-5 rounded-2xl border border-orange-500/30">
+                                        <div className="flex items-start gap-3">
+                                            <Sparkles size={24} className="text-yellow-300 flex-shrink-0 mt-1" />
+                                            <div>
+                                                <h3 className="text-sm font-bold text-yellow-200 uppercase mb-2">💡 Dica do Especialista</h3>
+                                                <div className="text-xs text-gray-200 space-y-2">
+                                                    {result.lucroOperacional && result.lucroOperacional < 0 && (
+                                                        <p className="bg-red-900/30 p-2 rounded border border-red-500/30">
+                                                            ⚠️ <strong>Atenção:</strong> O lucro operacional está negativo. Considere revisar os custos ou aumentar a margem administrativa.
+                                                        </p>
+                                                    )}
+                                                    {provisioningMode === 'none' && (
+                                                        <p className="bg-yellow-900/30 p-2 rounded border border-yellow-500/30">
+                                                            ⚡ <strong>Contrato Não Provisionado:</strong> Lembre-se de manter uma reserva financeira para cobrir encargos rescisórios.
+                                                        </p>
+                                                    )}
+                                                    {provisioningMode === 'full' && (
+                                                        <p className="bg-green-900/30 p-2 rounded border border-green-500/30">
+                                                            ✅ <strong>Contrato Provisionado:</strong> Você está com máxima segurança jurídica e previsibilidade de custos.
+                                                        </p>
+                                                    )}
+                                                    <p className="bg-blue-900/30 p-2 rounded border border-blue-500/30">
+                                                        📊 <strong>Análise Geral:</strong> Revise sempre os benefícios oferecidos para manter a competitividade no mercado e a satisfação dos colaboradores.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Botão Gerar PDF */}
+                                    <button
+                                        onClick={() => {
+                                            alert('Funcionalidade de Gerar PDF será implementada em breve!');
+                                            // TODO: Integrar com pdfGenerator.ts
+                                        }}
+                                        className="mt-6 w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 group"
+                                    >
+                                        <FileText size={24} className="group-hover:scale-110 transition-transform" />
+                                        <span className="text-lg">Gerar PDF da Proposta</span>
+                                    </button>
                                 </div>
                             )}
                         </div>

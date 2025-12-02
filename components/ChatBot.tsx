@@ -14,7 +14,7 @@ interface Message {
     isError?: boolean;
 }
 
-export const ChatBot: React.FC<ChatBotProps> = ({ solutions, userName }) => {
+export const ChatBot: React.FC<ChatBotProps> = ({ solutions = [], userName }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [inputText, setInputText] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);

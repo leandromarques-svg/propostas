@@ -624,7 +624,7 @@ const App: React.FC = () => {
         onClose={() => setIsAppSettingsModalOpen(false)}
       />
 
-      <ChatBot />
+      <ChatBot solutions={SOLUTIONS_DATA} userName={currentUser.name} />
     </div>
   );
 };

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo';
 import { User } from '../types';
-import { User } from '../types';
+
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { getUsers } from './lib/userService';
 
@@ -18,6 +18,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginUser, setLoginUser] = useState<User | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +41,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
       );
 
       if (foundUser) {
+        setLoginUser(foundUser);
         // Simulate loading delay for better UX before switching screens
         setTimeout(() => {
           onLoginSuccess(foundUser);
@@ -78,7 +80,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
           </div>
 
           <div className="flex flex-col items-center gap-2">
-            <h3 className="text-2xl font-bold text-metarh-dark tracking-tight animate-fade-in-down">Bem vindo, {users.find(u => u.username === username || u.email === username)?.name.split(' ')[0]}</h3>
+            <h3 className="text-2xl font-bold text-metarh-dark tracking-tight animate-fade-in-down">Bem vindo, {loginUser?.name.split(' ')[0]}</h3>
             <p className="text-metarh-medium/80 font-medium text-sm animate-pulse tracking-widest uppercase">Preparando ambiente...</p>
           </div>
         </div>

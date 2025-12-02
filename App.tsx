@@ -189,7 +189,7 @@ const App: React.FC = () => {
   };
 
   if (!currentUser) {
-    return <LoginScreen onLogin={handleLogin} isExiting={isLoginExiting} />;
+    return <LoginScreen onLoginSuccess={handleLogin} users={allUsers} isExiting={isLoginExiting} />;
   }
 
   // --- RENDER CALCULATORS ---

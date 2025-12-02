@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { BENEFIT_OPTIONS, MINIMUM_WAGE, LABOR_CHARGES } from '../../constants';
 
 export interface AppSettings {

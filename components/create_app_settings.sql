@@ -52,12 +52,12 @@ ON app_settings FOR SELECT
 TO authenticated
 USING (true);
 
-CREATE POLICY "Allow update access to admins only"
+CREATE POLICY "Allow update access to authenticated users"
 ON app_settings FOR UPDATE
 TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM users
-    WHERE users.id = auth.uid() AND users.is_admin = true
-  )
-);
+USING (true);
+
+CREATE POLICY "Allow insert access to authenticated users"
+ON app_settings FOR INSERT
+TO authenticated
+WITH CHECK (true);

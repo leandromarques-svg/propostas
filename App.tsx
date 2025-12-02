@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Logo } from './components/Logo';
 import { SOLUTIONS_DATA, USERS } from './constants';
@@ -15,8 +14,8 @@ import { PricingCalculator } from './components/PricingCalculator';
 import { LaborCalculator } from './components/LaborCalculator';
 import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
-import { TeamRatesModal } from './components/TeamRatesModal';
-import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings } from 'lucide-react';
+import { AppSettingsModal } from './components/AppSettingsModal';
+import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight } from 'lucide-react';
 
 // Package Themes Helper
 const getPackageTheme = (packageKey: string) => {
@@ -69,8 +68,11 @@ const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-  const [isTeamRatesModalOpen, setIsTeamRatesModalOpen] = useState(false);
+  const [isAppSettingsModalOpen, setIsAppSettingsModalOpen] = useState(false);
   const [selectedSummaryPackage, setSelectedSummaryPackage] = useState<string | null>(null);
+
+  // Calculator Dashboard State
+  const [activeCalculator, setActiveCalculator] = useState<'pricing' | 'labor' | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
@@ -100,568 +102,529 @@ const App: React.FC = () => {
   const greeting = getGreeting();
 
   useEffect(() => {
-    if (searchTerm) {
-      const allOpen = groupKeys.reduce((acc, key) => ({ ...acc, [key]: true }), {});
-      setExpandedGroups(allOpen);
-    }
-  }, [searchTerm, groupKeys]);
-
-  // Load users from Supabase
-  useEffect(() => {
     const loadUsers = async () => {
       setIsLoadingUsers(true);
-      try {
-        const users = await getUsers();
-        if (users.length > 0) {
-          setAllUsers(users);
-        } else {
-          // Fallback to local users if DB is empty (first run)
-          setAllUsers(USERS);
-        }
-      } catch (error) {
-        console.error("Failed to load users", error);
-        setAllUsers(USERS); // Fallback on error
-      } finally {
-        setIsLoadingUsers(false);
-      }
+      const users = await getUsers();
+      setAllUsers(users);
+      setIsLoadingUsers(false);
     };
     loadUsers();
   }, []);
 
-  const handleLoginSuccess = (user: User) => {
-    // Trigger exit animation
-    setIsLoginExiting(true);
-
-    // Wait for animation to complete before switching views
-    setTimeout(() => {
-      setCurrentUser(user);
-      setIsLoginExiting(false);
-    }, 1000);
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
   };
 
   const handleLogout = () => {
-    setCurrentUser(null);
+    setIsLoginExiting(true);
+    setTimeout(() => {
+      setCurrentUser(null);
+      setIsLoginExiting(false);
+      setView('catalog');
+      setCart([]);
+    }, 500);
+  };
+
+  const addToCart = (solution: SolutionData) => {
+    if (!cart.find(item => item.solution.id === solution.id)) {
+      setCart([...cart, { solution, quantity: 1, selections: {} }]);
+    }
+  };
+
+  const removeFromCart = (solutionId: string) => {
+    setCart(cart.filter(item => item.solution.id !== solutionId));
+  };
+
+  const updateQuantity = (solutionId: string, delta: number) => {
+    setCart(cart.map(item => {
+      if (item.solution.id === solutionId) {
+        const newQuantity = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    }));
+  };
+
+  const updateSelections = (solutionId: string, selections: CartSelections) => {
+    setCart(cart.map(item => {
+      if (item.solution.id === solutionId) {
+        return { ...item, selections };
+      }
+      return item;
+    }));
+  };
+
+  const toggleGroup = (group: string) => {
+    setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }));
+  };
+
+  const handleSaveProposal = (proposal: SavedProposal) => {
+    setProposalHistory([proposal, ...proposalHistory]);
     setCart([]);
     setView('catalog');
   };
 
-  const handleUpdateProfile = async (updatedUser: User) => {
-    try {
-      await saveUser(updatedUser);
-
-      // Update local state
-      setCurrentUser(updatedUser);
-      setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-
-      alert("Perfil atualizado com sucesso!");
-    } catch (error) {
-      alert("Erro ao atualizar perfil. Tente novamente.");
-    }
-  };
-
-  // Admin Actions
-  const handleCreateUser = async (newUser: User) => {
-    try {
-      await saveUser(newUser);
-      setAllUsers(prev => [...prev, newUser]);
-      alert("Usuário criado com sucesso!");
-    } catch (error) {
-      alert("Erro ao criar usuário.");
+  const handleCreateUser = async (newUser: Omit<User, 'id'>) => {
+    const createdUser = await saveUser(newUser);
+    if (createdUser) {
+      setAllUsers([...allUsers, createdUser]);
     }
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
-    try {
-      await saveUser(updatedUser);
-      setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-      if (currentUser?.id === updatedUser.id) {
-        setCurrentUser(updatedUser);
+    const savedUser = await saveUser(updatedUser);
+    if (savedUser) {
+      setAllUsers(allUsers.map(u => u.id === savedUser.id ? savedUser : u));
+      if (currentUser?.id === savedUser.id) {
+        setCurrentUser(savedUser);
       }
-      alert("Usuário atualizado com sucesso!");
-    } catch (error) {
-      alert("Erro ao atualizar usuário.");
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
-
-    try {
-      await deleteUser(userId);
-      setAllUsers(prev => prev.filter(u => u.id !== userId));
-      alert("Usuário excluído com sucesso!");
-    } catch (error) {
-      alert("Erro ao excluir usuário.");
+    const success = await deleteUser(userId);
+    if (success) {
+      setAllUsers(allUsers.filter(u => u.id !== userId));
     }
   };
 
-  const handleSaveLayout = (newLayout: ProposalSection[]) => {
-    setProposalLayout(newLayout);
-    setView('catalog');
-    alert('Layout da proposta salvo com sucesso!');
-  };
-
-  const handleOpenDetail = (solution: SolutionData) => {
-    setSelectedSolution(solution);
-    setIsModalOpen(true);
-  };
-
-  const handleQuickAdd = (solution: SolutionData) => {
-    const defaultSelections: CartSelections = {
-      benefits: [...solution.benefits],
-      publicNeeds: [...solution.publicNeeds],
-      toolsUsed: [...solution.toolsUsed],
-      notes: ''
-    };
-    addToCart(solution, defaultSelections);
-  };
-
-  const addToCart = (solution: SolutionData, selections: CartSelections) => {
-    setCart(prev => {
-      const existing = prev.findIndex(item => item.solution.id === solution.id);
-      if (existing >= 0) {
-        const newCart = [...prev];
-        newCart[existing] = { solution, selections };
-        return newCart;
-      }
-      return [...prev, { solution, selections }];
-    });
-  };
-
-  const removeFromCart = (id: string) => {
-    setCart(cart.filter(c => c.solution.id !== id));
-  };
-
-  const handleSaveToHistory = (proposal: SavedProposal) => {
-    setProposalHistory(prev => [proposal, ...prev]);
-  };
-
-  const getExistingSelections = (solutionId: string): CartSelections | undefined => {
-    return cart.find(c => c.solution.id === solutionId)?.selections;
-  };
-
-  const toggleGroup = (groupKey: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupKey]: !prev[groupKey]
-    }));
-  };
-
-  const handleScrollToSection = (packageKey: string) => {
-    setExpandedGroups(prev => ({ ...prev, [packageKey]: true }));
-    setTimeout(() => {
-      const element = document.getElementById(`section-${packageKey}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
-  };
-
-  const handleDownloadPresentation = (packageKey: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    alert("Não existe um arquivo para download, por favor, solicite essa apresentação ao time de Marketing");
-  };
-
-  const handleOpenSummary = (packageKey: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedSummaryPackage(packageKey);
-    setIsSummaryModalOpen(true);
-  };
-
   if (!currentUser) {
+    return <LoginScreen onLogin={handleLogin} isExiting={isLoginExiting} />;
+  }
+
+  // --- RENDER CALCULATORS ---
+  if (view === 'calculator') {
+    if (activeCalculator === 'pricing') {
+      return <PricingCalculator onCancel={() => setActiveCalculator(null)} />;
+    }
+    if (activeCalculator === 'labor') {
+      return <LaborCalculator onCancel={() => setActiveCalculator(null)} />;
+    }
+
+    // Calculator Dashboard
     return (
-      <LoginScreen
-        onLoginSuccess={handleLoginSuccess}
-        users={allUsers}
-        isExiting={isLoginExiting}
+      <div className="min-h-screen bg-gray-50 flex flex-col animate-fade-in">
+        <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setView('catalog')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <ArrowRight className="rotate-180 text-gray-500" />
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <Calculator className="text-metarh-medium" /> Calculadoras
+            </h1>
+          </div>
+        </div>
+
+        <div className="flex-1 p-8 max-w-5xl mx-auto w-full flex items-center justify-center">
+          <div className="grid md:grid-cols-2 gap-8 w-full">
+            {/* Pricing Calculator Card */}
+            <button
+              onClick={() => setActiveCalculator('pricing')}
+              className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Calculator size={120} className="text-metarh-medium" />
+              </div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Calculator size={32} className="text-metarh-medium" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Calculadora de Projetos</h2>
+                <p className="text-gray-500 mb-6">
+                  Precificação de projetos de consultoria, R&S e serviços pontuais.
+                </p>
+                <div className="flex items-center gap-2 text-metarh-medium font-bold group-hover:translate-x-2 transition-transform">
+                  Acessar Calculadora <ArrowRight size={18} />
+                </div>
+              </div>
+            </button>
+
+            {/* Labor Calculator Card */}
+            <button
+              onClick={() => setActiveCalculator('labor')}
+              className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Users size={120} className="text-metarh-medium" />
+              </div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Users size={32} className="text-metarh-medium" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestão de Mão de Obra</h2>
+                <p className="text-gray-500 mb-6">
+                  Cálculo de custos para mão de obra administrada, temporários e terceiros (CLT).
+                </p>
+                <div className="flex items-center gap-2 text-metarh-medium font-bold group-hover:translate-x-2 transition-transform">
+                  Acessar Calculadora <ArrowRight size={18} />
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'proposal') {
+    return (
+      <ProposalView
+        cart={cart}
+        onBack={() => setView('catalog')}
+        onSave={handleSaveProposal}
+        currentUser={currentUser}
+        layout={proposalLayout}
+      />
+    );
+  }
+
+  if (view === 'layout-editor') {
+    return (
+      <ProposalLayoutEditor
+        currentLayout={proposalLayout}
+        onSave={(newLayout) => {
+          setProposalLayout(newLayout);
+          setView('catalog');
+        }}
+        onCancel={() => setView('catalog')}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden animate-fade-in">
+    <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900 animate-fade-in">
+      {/* Sidebar */}
+      <aside className="w-20 lg:w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 transition-all duration-300 shadow-sm">
+        <div className="p-4 lg:p-6 flex justify-center lg:justify-start border-b border-gray-100">
+          <Logo className="w-10 h-10 lg:w-8 lg:h-8 text-metarh-medium" />
+          <span className="hidden lg:block ml-3 font-bold text-xl tracking-tight text-metarh-dark">METARH</span>
+        </div>
 
-      {/* Abstract Background Shapes */}
-      <div className="blob-shape bg-metarh-medium w-96 h-96 rounded-full top-[-100px] left-[-100px] mix-blend-multiply filter blur-3xl opacity-20"></div>
-      <div className="blob-shape bg-metarh-pink w-96 h-96 rounded-full bottom-[-100px] right-[-100px] mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <nav className="flex-1 py-6 px-3 space-y-2">
+          <button
+            onClick={() => setView('catalog')}
+            className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group ${view === 'catalog' ? 'bg-metarh-medium text-white shadow-md shadow-metarh-medium/20' : 'text-gray-500 hover:bg-gray-50 hover:text-metarh-medium'}`}
+          >
+            <Layers size={22} className={`transition-transform group-hover:scale-110 ${view === 'catalog' ? '' : 'text-gray-400 group-hover:text-metarh-medium'}`} />
+            <span className="hidden lg:block ml-3 font-medium">Catálogo</span>
+          </button>
 
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 animate-fade-in-down">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
-          <div className="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-4" onClick={() => setView('catalog')}>
-            <Logo />
-            <div className="hidden lg:block">
-              <SupabaseStatus />
+          <button
+            onClick={() => {
+              setView('calculator');
+              setActiveCalculator(null); // Reset to dashboard
+            }}
+            className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group ${view === 'calculator' ? 'bg-metarh-medium text-white shadow-md shadow-metarh-medium/20' : 'text-gray-500 hover:bg-gray-50 hover:text-metarh-medium'}`}
+          >
+            <Calculator size={22} className={`transition-transform group-hover:scale-110 ${view === 'calculator' ? '' : 'text-gray-400 group-hover:text-metarh-medium'}`} />
+            <span className="hidden lg:block ml-3 font-medium">Calculadoras</span>
+          </button>
+
+          {currentUser.isAdmin && (
+            <button
+              onClick={() => setView('layout-editor')}
+              className="w-full flex items-center p-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-metarh-medium transition-all duration-200 group"
+            >
+              <Layout size={22} className="text-gray-400 group-hover:text-metarh-medium transition-transform group-hover:scale-110" />
+              <span className="hidden lg:block ml-3 font-medium">Layout Proposta</span>
+            </button>
+          )}
+
+          <div className="pt-4 mt-4 border-t border-gray-100">
+            <p className="hidden lg:block px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Histórico</p>
+            {proposalHistory.length === 0 ? (
+              <div className="hidden lg:block px-3 py-4 text-sm text-gray-400 italic text-center bg-gray-50 rounded-lg mx-2 border border-dashed border-gray-200">
+                Nenhuma proposta recente
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {proposalHistory.slice(0, 3).map((prop) => (
+                  <button
+                    key={prop.id}
+                    className="w-full flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-metarh-medium transition-colors text-left group"
+                  >
+                    <FileDown size={18} className="text-gray-400 group-hover:text-metarh-medium min-w-[18px]" />
+                    <div className="hidden lg:block ml-3 overflow-hidden">
+                      <p className="text-sm font-medium truncate">{prop.clientName}</p>
+                      <p className="text-xs text-gray-400">{new Date(prop.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </nav>
+
+        <div className="p-4 border-t border-gray-200 bg-gray-50/50">
+          <div className="flex items-center p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all cursor-pointer group" onClick={() => setIsProfileModalOpen(true)}>
+            <div className="relative">
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.name}
+                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-metarh-medium transition-colors"
+              />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            <div className="hidden lg:block ml-3 overflow-hidden">
+              <p className="text-sm font-bold text-gray-800 truncate">{currentUser.name}</p>
+              <p className="text-xs text-gray-500 truncate">{currentUser.role}</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-3 mr-2 relative">
-              <div
-                className="flex items-baseline gap-1 text-sm cursor-pointer group"
-                onClick={() => setIsProfileModalOpen(true)}
-                title="Editar Perfil"
-              >
-                <span className="text-gray-500 font-medium">{greeting},</span>
-                <span className="text-metarh-dark font-bold text-base group-hover:text-metarh-medium transition-colors">{currentUser.name}</span>
-              </div>
-
-              <div className="relative group-avatar flex gap-2 items-center">
-                <div
-                  className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-all"
-                  onClick={() => setIsProfileModalOpen(true)}
+          <div className="mt-2 flex gap-1">
+            {currentUser.isAdmin && (
+              <>
+                <button
+                  onClick={() => setIsUserManagementOpen(true)}
+                  className="flex-1 p-2 text-gray-400 hover:text-metarh-medium hover:bg-white rounded-lg transition-all"
+                  title="Gerenciar Usuários"
                 >
-                  {currentUser.avatarUrl ? (
-                    <img src={currentUser.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-metarh-medium flex items-center justify-center text-white font-bold">
-                      {currentUser.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-
-                {currentUser.isAdmin && (
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => setView('layout_editor')}
-                      className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium"
-                      title="Editor de Layout (Admin)"
-                    >
-                      <Layout size={16} />
-                    </button>
-                    <button
-                      onClick={() => setIsUserManagementOpen(true)}
-                      className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center"
-                      title="Gerenciar Equipe (Admin)"
-                    >
-                      <Crown className="w-4 h-4 text-yellow-500 fill-yellow-400" />
-                    </button>
-                  </div>
-                )}
-
-                {currentUser.isAdmin && (
-                  <button
-                    onClick={() => setIsTeamRatesModalOpen(true)}
-                    className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer drop-shadow-sm z-10 bg-white border border-gray-100 rounded-full p-1.5 flex items-center justify-center text-metarh-medium ml-2"
-                    title="Configurar Valores"
-                  >
-                    <Settings size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setView('calculator')}
-              className="relative group flex items-center gap-2 px-4 py-2.5 bg-white text-gray-600 border border-gray-200 rounded-full transition-all hover:border-metarh-medium hover:text-metarh-medium shadow-sm"
-              title="Calculadora de Preço"
-            >
-              <Calculator size={18} />
-              <span className="hidden sm:inline text-sm font-bold">Calculadora R&S</span>
-            </button>
-
-            <button
-              onClick={() => setView('labor_calculator')}
-              className="relative group flex items-center gap-2 px-4 py-2.5 bg-white text-gray-600 border border-gray-200 rounded-full transition-all hover:border-metarh-medium hover:text-metarh-medium shadow-sm"
-              title="Calculadora CLT / Mão de Obra"
-            >
-              <Users size={18} />
-              <span className="hidden sm:inline text-sm font-bold">Calculadora CLT</span>
-            </button>
-
-            <button
-              onClick={() => setView('proposal')}
-              className="relative group flex items-center gap-3 px-5 py-2.5 bg-metarh-dark text-white rounded-full transition-all hover:bg-metarh-medium shadow-md"
-            >
-              <ShoppingBag size={18} />
-              <span className="font-medium hidden sm:inline">Minhas Propostas</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-metarh-lime text-metarh-dark w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full shadow-sm animate-bounce">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-
+                  <Shield size={18} className="mx-auto" />
+                </button>
+                <button
+                  onClick={() => setIsAppSettingsModalOpen(true)}
+                  className="flex-1 p-2 text-gray-400 hover:text-metarh-medium hover:bg-white rounded-lg transition-all"
+                  title="Configurar Valores"
+                >
+                  <Settings size={18} className="mx-auto" />
+                </button>
+              </>
+            )}
             <button
               onClick={handleLogout}
-              className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+              className="flex-1 p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-all"
               title="Sair"
             >
-              <LogOut size={18} />
+              <LogOut size={18} className="mx-auto" />
             </button>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="flex-grow w-full max-w-7xl mx-auto z-10 relative">
-        {view === 'layout_editor' && currentUser.isAdmin ? (
-          <ProposalLayoutEditor
-            initialLayout={proposalLayout}
-            onSave={handleSaveLayout}
-            onCancel={() => setView('catalog')}
-          />
-        ) : view === 'calculator' ? (
-          <PricingCalculator onCancel={() => setView('catalog')} />
-        ) : view === 'labor_calculator' ? (
-          <LaborCalculator onCancel={() => setView('catalog')} />
-        ) : view === 'catalog' ? (
-          <div className="p-4 md:p-8 space-y-8 animate-fade-in pb-32">
+      {/* Main Content */}
+      <main className={`flex-1 ml-20 lg:ml-64 transition-all duration-300 flex flex-col h-screen overflow-hidden`}>
+        {/* Header */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
+          <div className="flex items-center gap-4 flex-1 max-w-2xl">
+            <div className="relative w-full group">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-metarh-medium transition-colors" size={20} />
+              <input
+                type="text"
+                placeholder="Buscar soluções, serviços ou pacotes..."
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-transparent focus:bg-white focus:border-metarh-medium focus:ring-4 focus:ring-metarh-medium/10 rounded-xl transition-all outline-none text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
 
-            <div className="relative mb-12">
-              <div className="bg-metarh-dark rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl min-h-[400px] flex flex-col justify-center z-20">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-metarh-medium rounded-full mix-blend-screen opacity-30 blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+          <div className="flex items-center gap-4 ml-4">
+            <SupabaseStatus />
+            <div className="h-8 w-px bg-gray-200"></div>
+            <div className="flex items-center gap-2 bg-metarh-medium/10 px-4 py-2 rounded-full border border-metarh-medium/20">
+              <ShoppingBag size={20} className="text-metarh-medium" />
+              <span className="font-bold text-metarh-dark">{cartCount}</span>
+              <span className="text-sm text-gray-600 hidden sm:inline">itens selecionados</span>
+            </div>
+          </div>
+        </header>
 
-                <div className="absolute top-8 right-8 bottom-8 w-[50%] pointer-events-none hidden md:block opacity-90">
-                  <img
-                    src="https://metarh.com.br/wp-content/uploads/2025/11/Executivos-grafismo.png"
-                    alt="Executivos METARH"
-                    className="w-full h-full object-contain object-right"
-                  />
-                </div>
-
-                <div className="relative z-10 max-w-2xl">
-                  <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-                    <span className="text-metarh-lime text-2xl md:text-4xl block mt-2">
-                      Vamos construir uma proposta incrível hoje, <span className="text-white font-extrabold">{currentUser.name.split(' ')[0]}</span>?
-                    </span>
-                  </h1>
-                  <p className="text-2xl text-gray-200 mb-8 font-light leading-relaxed">
-                    Explore nossa <strong className="font-bold text-white">árvore de soluções</strong> e personalize cada item para criar propostas exclusivas para nossos clientes.
-                  </p>
-
-                  <div className="relative rounded-full shadow-lg max-w-xl">
-                    <input
-                      type="text"
-                      placeholder="Busque por serviços ou soluções (ex: Hunting, R&S, Tech)..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-12 pr-6 py-4 rounded-full text-gray-800 focus:ring-2 focus:ring-metarh-pink outline-none placeholder-gray-400 transition-all shadow-sm"
-                    />
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  </div>
-                </div>
-              </div>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          <div className="max-w-7xl mx-auto pb-24">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-800 tracking-tight">{greeting}, {currentUser.name.split(' ')[0]}!</h1>
+              <p className="text-gray-500 mt-1">Explore nosso catálogo de soluções e crie propostas incríveis.</p>
             </div>
 
-            <div className="flex flex-col gap-6 pt-6">
+            {/* Catalog Grid */}
+            <div className="space-y-12">
               {groupKeys.length === 0 ? (
-                <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
-                  <p className="text-gray-500 text-lg">Nenhuma solução encontrada para "{searchTerm}".</p>
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="mt-4 text-metarh-medium hover:underline font-medium"
-                  >
-                    Limpar busca
-                  </button>
+                <div className="text-center py-20">
+                  <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search size={32} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-700">Nenhum resultado encontrado</h3>
+                  <p className="text-gray-500 mt-2">Tente buscar por outros termos ou navegue pelas categorias.</p>
                 </div>
               ) : (
-                groupKeys.map(packageKey => {
-                  const solutions = groupedSolutions[packageKey];
-                  const packageDescription = solutions[0]?.aboutSolution;
-                  const isExpanded = expandedGroups[packageKey] || false;
-                  const itemsInCartCount = solutions.filter(s => cart.some(c => c.solution.id === s.id)).length;
-                  const theme = getPackageTheme(packageKey);
+                groupKeys.map(group => {
+                  const theme = getPackageTheme(group);
+                  const isExpanded = expandedGroups[group] ?? true; // Default expanded
 
                   return (
-                    <section id={`section-${packageKey}`} key={packageKey} className="animate-slide-up group w-full scroll-mt-28">
+                    <div key={group} className="animate-slide-up">
                       <div
-                        className={`bg-white rounded-[2.5rem] shadow-sm border transition-all duration-300 overflow-hidden w-full flex flex-col
-                                ${isExpanded ? `border-metarh-medium shadow-md ring-1 ring-metarh-medium/20` : 'border-gray-100 hover:border-gray-300'}
-                              `}
+                        className="flex items-center gap-3 mb-6 cursor-pointer group select-none"
+                        onClick={() => toggleGroup(group)}
                       >
-                        <div
-                          onClick={() => toggleGroup(packageKey)}
-                          className="w-full text-left p-6 md:px-8 cursor-pointer bg-white relative hover:bg-gray-50/50 transition-colors"
-                        >
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
+                        <div className={`p-2 rounded-lg ${theme.color} shadow-lg shadow-metarh-medium/20 transition-transform group-hover:scale-110`}>
+                          <PackageIcon name={group} className="text-white" size={20} />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-800 group-hover:text-metarh-medium transition-colors">{group}</h2>
+                        <div className="flex-1 h-px bg-gray-200 group-hover:bg-metarh-medium/30 transition-colors"></div>
+                        <ChevronDown
+                          size={20}
+                          className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                        />
+                      </div>
 
-                            <div className="flex items-center gap-6 flex-1 pr-16 md:pr-0">
-                              <div className={`p-3 md:p-4 rounded-3xl shrink-0 transition-colors duration-300 ${theme.color} w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-lg shadow-purple-100`}>
-                                <PackageIcon name={packageKey} className="text-white" size={32} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3">
-                                  <h2 className="text-2xl font-bold text-metarh-dark">
-                                    {packageKey}
-                                  </h2>
-                                  {itemsInCartCount > 0 && (
-                                    <span className="text-[10px] font-bold px-2 py-0.5 bg-metarh-lime text-metarh-dark rounded-full">
-                                      {itemsInCartCount} selecionado(s)
-                                    </span>
+                      {isExpanded && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          {groupedSolutions[group].map(solution => {
+                            const inCart = cart.find(item => item.solution.id === solution.id);
+                            return (
+                              <div
+                                key={solution.id}
+                                className={`bg-white rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl group relative overflow-hidden flex flex-col ${inCart ? 'border-metarh-medium ring-1 ring-metarh-medium' : 'border-gray-100 hover:border-metarh-medium/30'}`}
+                              >
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gray-50 to-transparent rounded-bl-full -mr-8 -mt-8 transition-colors group-hover:from-metarh-medium/5"></div>
+
+                                <div className="mb-4 relative">
+                                  <div className="flex justify-between items-start">
+                                    <div className={`inline-flex px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 mb-3 group-hover:bg-metarh-medium/10 group-hover:text-metarh-dark transition-colors`}>
+                                      {solution.code}
+                                    </div>
+                                    {inCart && (
+                                      <span className="bg-metarh-medium text-white text-xs font-bold px-2 py-1 rounded-full animate-fade-in shadow-sm">
+                                        Selecionado
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-metarh-medium transition-colors">{solution.name}</h3>
+                                  <p className="text-sm text-gray-500 line-clamp-3 mb-4 h-[60px]">{solution.description}</p>
+                                </div>
+
+                                <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between gap-3 relative z-10">
+                                  <button
+                                    onClick={() => setSelectedSolution(solution)}
+                                    className="p-2 text-gray-400 hover:text-metarh-medium hover:bg-metarh-medium/5 rounded-lg transition-colors"
+                                    title="Ver detalhes"
+                                  >
+                                    <Info size={20} />
+                                  </button>
+
+                                  {inCart ? (
+                                    <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
+                                      <button
+                                        onClick={() => updateQuantity(solution.id, -1)}
+                                        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors font-bold"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-8 text-center text-sm font-bold text-gray-800">{inCart.quantity}</span>
+                                      <button
+                                        onClick={() => updateQuantity(solution.id, 1)}
+                                        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-metarh-medium transition-colors font-bold"
+                                      >
+                                        +
+                                      </button>
+                                      <button
+                                        onClick={() => removeFromCart(solution.id)}
+                                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 border-l border-gray-200 transition-colors"
+                                        title="Remover"
+                                      >
+                                        <LogOut size={14} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => addToCart(solution)}
+                                      className="flex-1 bg-gray-900 hover:bg-metarh-medium text-white py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-gray-200 hover:shadow-metarh-medium/30 flex items-center justify-center gap-2"
+                                    >
+                                      <Plus size={16} /> Adicionar
+                                    </button>
                                   )}
                                 </div>
-                                <p className="text-black font-medium text-sm mt-1 leading-relaxed max-w-3xl">
-                                  {packageDescription}
-                                </p>
                               </div>
-                            </div>
-
-                            <div className="flex items-center gap-4 self-end md:self-auto">
-                              <div className="flex items-center bg-gray-50 rounded-full p-1 border border-gray-100 shadow-sm" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  onClick={(e) => handleOpenSummary(packageKey, e)}
-                                  className="w-10 h-10 flex items-center justify-center rounded-full text-purple-50 hover:bg-gray-200 hover:text-metarh-dark transition-all"
-                                  title="Resumo Prático Comercial"
-                                >
-                                  <Info size={18} className="text-purple-500 hover:text-metarh-dark" />
-                                </button>
-                                <div className="w-px h-6 bg-gray-200 mx-1"></div>
-                                <button
-                                  onClick={(e) => handleDownloadPresentation(packageKey, e)}
-                                  className="w-10 h-10 flex items-center justify-center rounded-full text-purple-50 hover:bg-purple-100 hover:text-metarh-medium transition-all"
-                                  title="Baixar apresentação"
-                                >
-                                  <FileDown size={18} className="text-purple-500 hover:text-metarh-medium" />
-                                </button>
-                              </div>
-
-                              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm border
-                                                ${isExpanded ? 'bg-metarh-medium text-white border-metarh-medium rotate-180' : 'bg-white text-gray-400 border-gray-200 hover:border-metarh-medium hover:text-metarh-medium'}
-                                             `}>
-                                <ChevronDown size={20} />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="md:hidden mt-2 text-xs text-gray-400 pl-[4.5rem]">
-                            {solutions.length} serviços disponíveis
-                          </div>
+                            );
+                          })}
                         </div>
-
-                        {isExpanded && (
-                          <div className="border-t border-gray-100 bg-gray-50/50 flex-1">
-                            {/* Added overflow-x-hidden to prevent unwanted horizontal scroll in service grid container */}
-                            <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in overflow-x-hidden">
-                              {solutions.map((solution) => {
-                                const isInCart = cart.some(c => c.solution.id === solution.id);
-                                return (
-                                  <div
-                                    key={solution.id}
-                                    className={`bg-white rounded-[2rem] p-6 shadow-sm border transition-all relative overflow-hidden group-service flex flex-col
-                                                          ${isInCart ? 'border-metarh-lime ring-1 ring-metarh-lime shadow-md' : 'border-gray-100 hover:shadow-lg hover:border-metarh-medium/30 hover:-translate-y-1'}
-                                                      `}
-                                  >
-                                    <div className="flex justify-between items-start mb-3 mt-1">
-                                      <h3 className="font-bold text-gray-800 text-lg leading-tight group-service-hover:text-metarh-dark">
-                                        {solution.name}
-                                      </h3>
-                                      {isInCart && <div className="text-metarh-lime bg-metarh-dark rounded-full p-1.5 shrink-0"><Edit3 size={12} /></div>}
-                                    </div>
-
-                                    <p className="text-black text-sm mb-6 flex-grow leading-relaxed">
-                                      {solution.description}
-                                    </p>
-
-                                    <div className="flex gap-3 mt-auto">
-                                      <button
-                                        onClick={() => handleOpenDetail(solution)}
-                                        className="flex-1 py-2.5 px-3 border border-gray-200 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-                                      >
-                                        Detalhes
-                                      </button>
-
-                                      {isInCart ? (
-                                        <button
-                                          onClick={() => handleOpenDetail(solution)}
-                                          className="px-4 py-2.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-sm font-bold hover:bg-green-100 transition-colors"
-                                        >
-                                          Atualizar
-                                        </button>
-                                      ) : (
-                                        <button
-                                          onClick={() => handleQuickAdd(solution)}
-                                          className={`px-4 py-2.5 ${theme.color} text-white rounded-full hover:opacity-90 transition-colors shadow-sm flex items-center justify-center`}
-                                          title="Adicionar à proposta"
-                                        >
-                                          <Plus size={20} />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </section>
+                      )}
+                    </div>
                   );
                 })
               )}
             </div>
-
           </div>
-        ) : (
-          <ProposalView
-            cart={cart}
-            user={currentUser}
-            history={proposalHistory}
-            onRemove={removeFromCart}
-            onBack={() => setView('catalog')}
-            onSaveToHistory={handleSaveToHistory}
-          />
+        </div>
+
+        {/* Footer Actions */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-0 left-0 lg:left-64 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 animate-slide-up">
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="bg-metarh-medium/10 p-3 rounded-xl">
+                  <ShoppingBag size={24} className="text-metarh-medium" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Resumo do Pedido</p>
+                  <p className="text-xl font-bold text-gray-800">{cartCount} {cartCount === 1 ? 'solução selecionada' : 'soluções selecionadas'}</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsSummaryModalOpen(true)}
+                  className="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:border-metarh-medium hover:text-metarh-medium transition-all"
+                >
+                  Ver Resumo
+                </button>
+                <button
+                  onClick={() => setView('proposal')}
+                  className="px-8 py-3 bg-metarh-medium text-white rounded-xl font-bold shadow-lg shadow-metarh-medium/30 hover:bg-metarh-dark hover:scale-105 transition-all flex items-center gap-2"
+                >
+                  Gerar Proposta <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
 
-      <footer className="bg-metarh-dark text-white py-12 mt-20 relative z-10 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-8 flex items-center justify-center">
-          <div className="opacity-90 hover:opacity-100 transition-opacity">
-            <Logo variant="white" />
-          </div>
-        </div>
-      </footer>
-
-      {currentUser && (
-        <ChatBot solutions={SOLUTIONS_DATA} userName={currentUser.name.split(' ')[0]} />
+      {/* Modals */}
+      {selectedSolution && (
+        <DetailModal
+          solution={selectedSolution}
+          isOpen={!!selectedSolution}
+          onClose={() => setSelectedSolution(null)}
+          onAddToCart={() => {
+            addToCart(selectedSolution);
+            setSelectedSolution(null);
+          }}
+        />
       )}
 
-      <DetailModal
-        solution={selectedSolution}
-        initialSelections={selectedSolution ? getExistingSelections(selectedSolution.id) : undefined}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAddToProposal={(s, selections) => {
-          addToCart(s, selections);
-        }}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={currentUser}
+        onUpdateUser={handleUpdateUser}
       />
 
-      {currentUser && (
-        <ProfileModal
-          user={currentUser}
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
-          onSave={handleUpdateProfile}
-        />
-      )}
+      <UserManagementModal
+        isOpen={isUserManagementOpen}
+        onClose={() => setIsUserManagementOpen(false)}
+        users={allUsers}
+        onUpdateUser={handleUpdateUser}
+        onDeleteUser={handleDeleteUser}
+        onCreateUser={handleCreateUser}
+        currentUser={currentUser}
+      />
 
-      {currentUser && currentUser.isAdmin && (
-        <UserManagementModal
-          currentUser={currentUser}
-          users={allUsers}
-          isOpen={isUserManagementOpen}
-          onClose={() => setIsUserManagementOpen(false)}
-          onCreateUser={handleCreateUser}
-          onUpdateUser={handleUpdateUser}
-          onDeleteUser={handleDeleteUser}
-        />
-      )}
+      <SolutionSummaryModal
+        isOpen={isSummaryModalOpen}
+        onClose={() => setIsSummaryModalOpen(false)}
+        cart={cart}
+        onUpdateQuantity={updateQuantity}
+        onRemove={removeFromCart}
+        onUpdateSelections={updateSelections}
+      />
 
-      {selectedSummaryPackage && (
-        <SolutionSummaryModal
-          packageKey={selectedSummaryPackage}
-          solutions={groupedSolutions[selectedSummaryPackage]}
-          isOpen={isSummaryModalOpen}
-          onClose={() => setIsSummaryModalOpen(false)}
-          theme={getPackageTheme(selectedSummaryPackage)}
-        />
-      )}
+      <AppSettingsModal
+        isOpen={isAppSettingsModalOpen}
+        onClose={() => setIsAppSettingsModalOpen(false)}
+      />
 
-      {currentUser && (
-        <TeamRatesModal
-          isOpen={isTeamRatesModalOpen}
-          onClose={() => setIsTeamRatesModalOpen(false)}
-        />
-      )}
-
+      <ChatBot />
     </div>
   );
 };

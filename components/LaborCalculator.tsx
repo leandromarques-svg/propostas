@@ -20,8 +20,10 @@ interface LaborPosition {
     nightShiftPercent: number; // Default 0.20
     isHourly: boolean; // Horista
     isDailyWorker: boolean; // Diarista
-    hoursPerMonth: number; // Carga Horária Mensal
-    daysPerMonth: number; // Dias trabalhados por mês
+    hoursPerMonth: number; // Divisor de horas (Referência)
+    daysPerMonth: number; // Divisor de dias (Referência)
+    hoursQuantity: number; // Quantidade de horas a pagar
+    daysQuantity: number; // Quantidade de dias a pagar
 }
 
 interface LaborCalculatorProps {
@@ -44,7 +46,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         isHourly: false,
         isDailyWorker: false,
         hoursPerMonth: 220,
-        daysPerMonth: 22
+        daysPerMonth: 22,
+        hoursQuantity: 0,
+        daysQuantity: 0
     }]);
 
     const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
@@ -120,12 +124,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             // 1. Base Salary
             const base = pos.baseSalary;
 
-            // Hourly and Daily Rate Calculations
-            const hourlyRate = pos.isHourly && pos.hoursPerMonth > 0 ? base / pos.hoursPerMonth : 0;
-            const dailyRate = pos.isDailyWorker && pos.daysPerMonth > 0 ? base / pos.daysPerMonth : 0;
+            // Hourly and Daily Rate Calculations (Reference)
+            // If hoursPerMonth is 0, avoid division by zero
+            const hourlyRate = pos.hoursPerMonth > 0 ? base / pos.hoursPerMonth : 0;
+            const dailyRate = pos.daysPerMonth > 0 ? base / pos.daysPerMonth : 0;
 
-            // 2. Hazard Pay (Periculosidade) - % on Base Salary
-            const hazardValue = base * pos.hazardPay;
+            // 2. Hazard Pay (Periculosidade) - % on Base Salary (or calculated base?)
+            // Usually Hazard Pay is on the base salary. If hourly, it should be on the hourly earnings?
+            // Let's assume it applies to the "Effective Base" (earnings).
 
             // 3. Unhealthiness (Insalubridade) - % on Minimum Wage
             let unhealthinessValue = 0;
@@ -134,29 +140,28 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             if (pos.unhealthinessLevel === 'max') unhealthinessValue = MINIMUM_WAGE * 0.40;
 
             // 4. Night Shift (Adicional Noturno) - % on Base Salary (usually)
-            const nightShiftValue = pos.nightShift ? (base * pos.nightShiftPercent) : 0;
+            // If hourly, on hourly earnings.
 
             // 5. Hourly/Daily Worker Additional Value
-            // When hourly or daily worker is enabled, add their calculated value to gross
-            let hourlyWorkerValue = 0;
-            let dailyWorkerValue = 0;
+            let effectiveBase = base; // Default to monthly base
 
-            if (pos.isHourly && hourlyRate > 0) {
-                hourlyWorkerValue = hourlyRate * pos.hoursPerMonth;
+            if (pos.isHourly) {
+                effectiveBase = hourlyRate * pos.hoursQuantity;
+            } else if (pos.isDailyWorker) {
+                effectiveBase = dailyRate * pos.daysQuantity;
             }
 
-            if (pos.isDailyWorker && dailyRate > 0) {
-                dailyWorkerValue = dailyRate * pos.daysPerMonth;
-            }
+            const hazardValue = effectiveBase * pos.hazardPay;
+            const nightShiftValue = pos.nightShift ? (effectiveBase * pos.nightShiftPercent) : 0;
 
-            // Gross Salary - includes base + all additionals + hourly/daily values
-            const gross = base + hazardValue + unhealthinessValue + nightShiftValue + hourlyWorkerValue + dailyWorkerValue;
+            // Gross Salary
+            const gross = effectiveBase + hazardValue + unhealthinessValue + nightShiftValue;
 
-            totalBaseSalary += base * pos.vacancies;
+            totalBaseSalary += effectiveBase * pos.vacancies;
             totalGrossSalary += gross * pos.vacancies;
             totalPositions += pos.vacancies;
 
-            return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue, hourlyRate, dailyRate, hourlyWorkerValue, dailyWorkerValue };
+            return { ...pos, gross, hazardValue, unhealthinessValue, nightShiftValue, hourlyRate, dailyRate, effectiveBase };
         });
 
         // Charges (Encargos) - Detailed Calculation
@@ -503,12 +508,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Salário Base</label>
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Salário Base (Mensal)</label>
                                                     <input
                                                         type="number"
                                                         value={pos.baseSalary}
                                                         onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, baseSalary: Number(e.target.value) } : p))}
                                                         className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                        placeholder="Referência"
                                                     />
                                                 </div>
                                             </div>
@@ -528,17 +534,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             {pos.isHourly && (
                                                 <>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Carga Horária:</span>
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Horas:</span>
                                                         <input
                                                             type="number"
-                                                            value={pos.hoursPerMonth}
-                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hoursPerMonth: Number(e.target.value) } : p))}
+                                                            value={pos.hoursQuantity}
+                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hoursQuantity: Number(e.target.value) } : p))}
                                                             className="w-20 p-1 text-sm border border-gray-300 rounded"
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2 ml-auto">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Salário Hora:</span>
-                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.isHourly && pos.hoursPerMonth > 0 ? pos.baseSalary / pos.hoursPerMonth : 0)}</span>
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Valor Hora:</span>
+                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.hoursPerMonth > 0 ? pos.baseSalary / pos.hoursPerMonth : 0)}</span>
                                                     </div>
                                                 </>
                                             )}
@@ -558,17 +564,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             {pos.isDailyWorker && (
                                                 <>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Dias/Mês:</span>
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Dias:</span>
                                                         <input
                                                             type="number"
-                                                            value={pos.daysPerMonth}
-                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysPerMonth: Number(e.target.value) } : p))}
+                                                            value={pos.daysQuantity}
+                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysQuantity: Number(e.target.value) } : p))}
                                                             className="w-20 p-1 text-sm border border-gray-300 rounded"
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2 ml-auto">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Salário Dia:</span>
-                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.isDailyWorker && pos.daysPerMonth > 0 ? pos.baseSalary / pos.daysPerMonth : 0)}</span>
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Valor Dia:</span>
+                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.daysPerMonth > 0 ? pos.baseSalary / pos.daysPerMonth : 0)}</span>
                                                     </div>
                                                 </>
                                             )}
@@ -641,7 +647,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         isHourly: false,
                                         isDailyWorker: false,
                                         hoursPerMonth: 220,
-                                        daysPerMonth: 22
+                                        daysPerMonth: 22,
+                                        hoursQuantity: 0,
+                                        daysQuantity: 0
                                     }])}
                                     className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                 >

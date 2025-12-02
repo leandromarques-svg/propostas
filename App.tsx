@@ -298,7 +298,7 @@ const App: React.FC = () => {
       <aside className="w-20 lg:w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 transition-all duration-300 shadow-sm">
         <div className="p-4 lg:p-6 flex justify-center lg:justify-start border-b border-gray-100">
           <Logo className="w-10 h-10 lg:w-8 lg:h-8 text-metarh-medium" />
-          <span className="hidden lg:block ml-3 font-bold text-xl tracking-tight text-metarh-dark">METARH</span>
+
         </div>
 
         <nav className="flex-1 py-6 px-3 space-y-2">

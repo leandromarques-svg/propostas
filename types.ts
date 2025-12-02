@@ -27,6 +27,7 @@ export interface CartSelections {
 export interface CartItem {
   solution: SolutionData;
   selections: CartSelections;
+  quantity: number;
 }
 
 export interface SavedProposal {

@@ -70,6 +70,7 @@ const App: React.FC = () => {
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [isAppSettingsModalOpen, setIsAppSettingsModalOpen] = useState(false);
   const [selectedSummaryPackage, setSelectedSummaryPackage] = useState<string | null>(null);
+  const [viewPackageSummary, setViewPackageSummary] = useState<string | null>(null);
 
   // Calculator Dashboard State
   const [activeCalculator, setActiveCalculator] = useState<'pricing' | 'labor' | null>(null);
@@ -128,7 +129,7 @@ const App: React.FC = () => {
 
   const addToCart = (solution: SolutionData) => {
     if (!cart.find(item => item.solution.id === solution.id)) {
-      setCart([...cart, { solution, quantity: 1, selections: {} }]);
+      setCart([...cart, { solution, quantity: 1, selections: { benefits: [], publicNeeds: [], toolsUsed: [] } }]);
     }
   };
 
@@ -525,7 +526,14 @@ const App: React.FC = () => {
                         {/* Actions */}
                         <div className="flex items-center gap-3 ml-auto mt-4 md:mt-0 shrink-0">
                           <div className="bg-gray-50 rounded-full px-4 py-2 flex items-center gap-4 border border-gray-100">
-                            <button className="text-metarh-medium hover:text-metarh-dark transition-colors" title="Mais Informações">
+                            <button
+                              className="text-metarh-medium hover:text-metarh-dark transition-colors"
+                              title="Mais Informações"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewPackageSummary(group);
+                              }}
+                            >
                               <Info size={20} />
                             </button>
                             <div className="w-px h-4 bg-gray-300"></div>
@@ -667,14 +675,15 @@ const App: React.FC = () => {
         currentUser={currentUser}
       />
 
-      <SolutionSummaryModal
-        isOpen={isSummaryModalOpen}
-        onClose={() => setIsSummaryModalOpen(false)}
-        cart={cart}
-        onUpdateQuantity={updateQuantity}
-        onRemove={removeFromCart}
-        onUpdateSelections={updateSelections}
-      />
+      {viewPackageSummary && (
+        <SolutionSummaryModal
+          packageKey={viewPackageSummary}
+          solutions={groupedSolutions[viewPackageSummary]}
+          isOpen={!!viewPackageSummary}
+          onClose={() => setViewPackageSummary(null)}
+          theme={getPackageTheme(viewPackageSummary)}
+        />
+      )}
 
       <AppSettingsModal
         isOpen={isAppSettingsModalOpen}

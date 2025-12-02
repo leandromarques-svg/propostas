@@ -26,10 +26,10 @@ export async function getUsers(): Promise<User[]> {
     }));
 }
 
-export async function saveUser(user: User): Promise<boolean> {
+export async function saveUser(user: User | Omit<User, 'id'>): Promise<User | null> {
     const profile = {
-        id: user.id,
-        username: user.username || (user.email ? user.email.split('@')[0] : 'user'), // Fallback for username
+        id: (user as User).id, // Undefined for new users
+        username: user.username || (user.email ? user.email.split('@')[0] : 'user'),
         password: user.password,
         name: user.name,
         role: user.role,
@@ -43,16 +43,32 @@ export async function saveUser(user: User): Promise<boolean> {
 
     console.log('Saving user profile:', profile);
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('profiles')
-        .upsert(profile);
+        .upsert(profile)
+        .select()
+        .single();
 
     if (error) {
         console.error('Error saving user:', error);
-        console.error('Profile data:', profile);
-        throw error;
+        return null;
     }
-    return true;
+
+    if (!data) return null;
+
+    return {
+        id: data.id,
+        username: data.username,
+        password: data.password,
+        name: data.name,
+        role: data.role,
+        email: data.email,
+        phone: data.phone,
+        linkedin: data.linkedin,
+        bio: data.bio,
+        avatarUrl: data.avatar_url,
+        isAdmin: data.is_admin
+    };
 }
 
 export async function deleteUser(id: string): Promise<boolean> {

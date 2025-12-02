@@ -502,18 +502,41 @@ const App: React.FC = () => {
                   return (
                     <div key={group} className="animate-slide-up">
                       <div
-                        className="flex items-center gap-3 mb-6 cursor-pointer group select-none"
+                        className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-start md:items-center gap-6 mb-8 relative overflow-hidden transition-all hover:shadow-md cursor-pointer group"
                         onClick={() => toggleGroup(group)}
                       >
-                        <div className={`p-2 rounded-lg ${theme.color} shadow-lg shadow-metarh-medium/20 transition-transform group-hover:scale-110`}>
-                          <PackageIcon name={group} className="text-white" size={20} />
+                        {/* Icon Box */}
+                        <div className={`w-16 h-16 ${theme.color} rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105`}>
+                          <PackageIcon name={group} className="text-white" size={32} />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-800 group-hover:text-metarh-medium transition-colors">{group}</h2>
-                        <div className="flex-1 h-px bg-gray-200 group-hover:bg-metarh-medium/30 transition-colors"></div>
-                        <ChevronDown
-                          size={20}
-                          className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-                        />
+
+                        {/* Content */}
+                        <div className="flex-1">
+                          <h2 className="text-2xl font-bold text-metarh-dark mb-2 group-hover:text-metarh-medium transition-colors">{group}</h2>
+                          <p className="text-gray-600 text-sm leading-relaxed max-w-4xl">
+                            {groupedSolutions[group][0]?.aboutSolution || "Solução especializada METARH."}
+                          </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-3 ml-auto mt-4 md:mt-0 shrink-0">
+                          <div className="bg-gray-50 rounded-full px-4 py-2 flex items-center gap-4 border border-gray-100">
+                            <button className="text-metarh-medium hover:text-metarh-dark transition-colors" title="Mais Informações">
+                              <Info size={20} />
+                            </button>
+                            <div className="w-px h-4 bg-gray-300"></div>
+                            <button className="text-metarh-medium hover:text-metarh-dark transition-colors" title="Baixar PDF">
+                              <FileDown size={20} />
+                            </button>
+                          </div>
+
+                          <div className={`w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-all ${isExpanded ? 'bg-gray-50 border-metarh-medium/30' : ''}`}>
+                            <ChevronDown
+                              size={24}
+                              className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-metarh-medium' : ''}`}
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       {isExpanded && (

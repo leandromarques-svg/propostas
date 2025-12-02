@@ -500,9 +500,13 @@ const App: React.FC = () => {
                   const isExpanded = expandedGroups[group] ?? true; // Default expanded
 
                   return (
-                    <div key={group} className="animate-slide-up">
+                    <div
+                      key={group}
+                      className={`animate-slide-up bg-white rounded-[2.5rem] p-8 shadow-sm border transition-all duration-300 mb-8 ${isExpanded ? 'border-metarh-medium ring-1 ring-metarh-medium/50' : 'border-gray-100 hover:shadow-md'}`}
+                    >
+                      {/* Header Section */}
                       <div
-                        className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-start md:items-center gap-6 mb-8 relative overflow-hidden transition-all hover:shadow-md cursor-pointer group"
+                        className="flex flex-col md:flex-row items-start md:items-center gap-6 cursor-pointer group/header select-none"
                         onClick={() => toggleGroup(group)}
                       >
                         {/* Icon Box */}
@@ -539,70 +543,52 @@ const App: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Expanded Content */}
                       {isExpanded && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div className="mt-8 pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in">
                           {groupedSolutions[group].map(solution => {
                             const inCart = cart.find(item => item.solution.id === solution.id);
                             return (
                               <div
                                 key={solution.id}
-                                className={`bg-white rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl group relative overflow-hidden flex flex-col ${inCart ? 'border-metarh-medium ring-1 ring-metarh-medium' : 'border-gray-100 hover:border-metarh-medium/30'}`}
+                                className={`bg-white rounded-3xl p-6 border transition-all duration-300 flex flex-col hover:shadow-lg ${inCart ? 'border-metarh-medium ring-1 ring-metarh-medium' : 'border-gray-100 hover:border-gray-200'}`}
                               >
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gray-50 to-transparent rounded-bl-full -mr-8 -mt-8 transition-colors group-hover:from-metarh-medium/5"></div>
+                                <h3 className="text-lg font-bold text-gray-800 mb-3 line-clamp-1">{solution.name}</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-1 line-clamp-4">
+                                  {solution.description}
+                                </p>
 
-                                <div className="mb-4 relative">
-                                  <div className="flex justify-between items-start">
-                                    <div className={`inline-flex px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 mb-3 group-hover:bg-metarh-medium/10 group-hover:text-metarh-dark transition-colors`}>
-                                      {solution.code}
-                                    </div>
-                                    {inCart && (
-                                      <span className="bg-metarh-medium text-white text-xs font-bold px-2 py-1 rounded-full animate-fade-in shadow-sm">
-                                        Selecionado
-                                      </span>
-                                    )}
-                                  </div>
-                                  <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-metarh-medium transition-colors">{solution.name}</h3>
-                                  <p className="text-sm text-gray-500 line-clamp-3 mb-4 h-[60px]">{solution.description}</p>
-                                </div>
-
-                                <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between gap-3 relative z-10">
+                                <div className="mt-auto flex items-center justify-between gap-4">
                                   <button
                                     onClick={() => setSelectedSolution(solution)}
-                                    className="p-2 text-gray-400 hover:text-metarh-medium hover:bg-metarh-medium/5 rounded-lg transition-colors"
-                                    title="Ver detalhes"
+                                    className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all"
                                   >
-                                    <Info size={20} />
+                                    Detalhes
                                   </button>
 
                                   {inCart ? (
-                                    <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
+                                    <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 h-10 px-1">
                                       <button
                                         onClick={() => updateQuantity(solution.id, -1)}
-                                        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors font-bold"
+                                        className="w-8 h-full flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors font-bold"
                                       >
                                         -
                                       </button>
-                                      <span className="w-8 text-center text-sm font-bold text-gray-800">{inCart.quantity}</span>
+                                      <span className="w-6 text-center text-sm font-bold text-gray-800">{inCart.quantity}</span>
                                       <button
                                         onClick={() => updateQuantity(solution.id, 1)}
-                                        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-metarh-medium transition-colors font-bold"
+                                        className="w-8 h-full flex items-center justify-center text-gray-500 hover:text-metarh-medium transition-colors font-bold"
                                       >
                                         +
-                                      </button>
-                                      <button
-                                        onClick={() => removeFromCart(solution.id)}
-                                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 border-l border-gray-200 transition-colors"
-                                        title="Remover"
-                                      >
-                                        <LogOut size={14} />
                                       </button>
                                     </div>
                                   ) : (
                                     <button
                                       onClick={() => addToCart(solution)}
-                                      className="flex-1 bg-gray-900 hover:bg-metarh-medium text-white py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-gray-200 hover:shadow-metarh-medium/30 flex items-center justify-center gap-2"
+                                      className="w-10 h-10 rounded-full bg-metarh-medium text-white flex items-center justify-center hover:bg-metarh-dark transition-all shadow-lg shadow-purple-200 hover:shadow-purple-300 hover:scale-105"
+                                      title="Adicionar à proposta"
                                     >
-                                      <Plus size={16} /> Adicionar
+                                      <Plus size={20} />
                                     </button>
                                   )}
                                 </div>

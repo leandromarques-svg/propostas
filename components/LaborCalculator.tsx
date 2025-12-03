@@ -28,6 +28,18 @@ interface LaborPosition {
     daysQuantity: number; // Quantidade de dias a pagar
 }
 
+export interface BenefitItem {
+    id: string;
+    name: string;
+    type: 'daily' | 'monthly' | 'plan_selection' | 'custom';
+    quantity: number;
+    unitValue: number;
+    days?: number;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    selectedPlanId?: string;
+}
+
 interface LaborCalculatorProps {
     onCancel: () => void;
 }
@@ -66,29 +78,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const [teamRates, setTeamRates] = useState<TeamRates>({ senior: 150, plena: 100, junior: 60 });
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
 
-    // Benefits Selection
-    const [selectedMedicalPlan, setSelectedMedicalPlan] = useState<string>(BENEFIT_OPTIONS.medical[0].id);
-    const [selectedDentalPlan, setSelectedDentalPlan] = useState<string>(BENEFIT_OPTIONS.dental[0].id);
-    const [selectedWellhubPlan, setSelectedWellhubPlan] = useState<string>(BENEFIT_OPTIONS.wellhub[0].id);
 
-    // Standard Benefits Toggle & Config
-    const [hasTransport, setHasTransport] = useState(true);
-    const [transportDays, setTransportDays] = useState(22);
 
-    const [hasMeal, setHasMeal] = useState(true);
-    const [mealDays, setMealDays] = useState(22);
-
-    const [hasFood, setHasFood] = useState(true);
-    const [hasLifeInsurance, setHasLifeInsurance] = useState(true);
-    const [hasPharmacy, setHasPharmacy] = useState(true);
-    const [hasGpsPoint, setHasGpsPoint] = useState(true);
-    const [hasPlr, setHasPlr] = useState(true);
-
-    // Custom Benefits
-    const [customBenefits, setCustomBenefits] = useState<{ id: string, name: string, value: number }[]>([]);
-
-    // Custom Exams State
-    const [customExams, setCustomExams] = useState<{ id: string, name: string, value: number }[]>([]);
+    // New Benefits Structure (Unified)
+    const [benefitsList, setBenefitsList] = useState<BenefitItem[]>([
+        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 }, // 5% na imagem
+        { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 }, // 5% na imagem
+        { id: 'exam-aso', name: 'Exames Clínicos - ASO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-aso')?.value || 0, discountType: 'percentage', discountValue: 0.05 },
+        { id: 'exam-comp', name: 'Exames Médicos Complementares', type: 'monthly', quantity: 0, unitValue: 0, discountType: 'percentage', discountValue: 0.05 },
+        { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'percentage', discountValue: 0.01 },
+        { id: 'medical', name: 'Plano Médico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'percentage', discountValue: 0.02, selectedPlanId: BENEFIT_OPTIONS.medical[2].id }, // Default Sulamerica Executivo
+        { id: 'dental', name: 'Plano Odontológico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.dental[0].id },
+        { id: 'pharmacy', name: 'Auxílio Farmácia | Omni', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.pharmacy.defaultValue, discountType: 'fixed', discountValue: 0 },
+        { id: 'wellhub', name: 'Wellhub (Gympass)', type: 'plan_selection', quantity: 0, unitValue: 0, discountType: 'percentage', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.wellhub[0].id },
+        { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01 },
+        { id: 'lifeInsurance', name: 'Seguro de Vida', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.lifeInsurance.defaultValue, discountType: 'fixed', discountValue: 0 },
+        { id: 'gpsPoint', name: 'Controle de Ponto GPS', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.gpsPoint.defaultValue, discountType: 'fixed', discountValue: 0 },
+        { id: 'plr', name: 'PLR', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.plr.defaultValue, discountType: 'fixed', discountValue: 0 },
+    ]);
 
     // Charges Config (Detailed)
     const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
@@ -123,9 +130,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                 // Update benefit defaults if not already set (optional, but good for initial load)
                 // For now, we just ensure the options are available for selection
-                if (settings.benefit_options.medical.length > 0) setSelectedMedicalPlan(settings.benefit_options.medical[0].id);
-                if (settings.benefit_options.dental.length > 0) setSelectedDentalPlan(settings.benefit_options.dental[0].id);
-                if (settings.benefit_options.wellhub.length > 0) setSelectedWellhubPlan(settings.benefit_options.wellhub[0].id);
+
             }
         };
         loadData();
@@ -136,12 +141,37 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         calculateLaborPricing();
     }, [
         positions, recruitmentType, provisioningMode,
-        selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
-        customBenefits, customExams, adminFeePercent,
-        hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
+        benefitsList, // Updated dependency
+        adminFeePercent,
         satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates, appSettings,
         operationalAdminDays, extraCosts, selectedCity,
     ]);
+
+    const calculateBenefitRow = (item: BenefitItem) => {
+        let unitValue = item.unitValue;
+
+        // Se for plano selecionável, pega o valor do plano selecionado
+        if (item.type === 'plan_selection' && item.selectedPlanId) {
+            if (item.id === 'medical') unitValue = BENEFIT_OPTIONS.medical.find(p => p.id === item.selectedPlanId)?.value || 0;
+            if (item.id === 'dental') unitValue = BENEFIT_OPTIONS.dental.find(p => p.id === item.selectedPlanId)?.value || 0;
+            if (item.id === 'wellhub') unitValue = BENEFIT_OPTIONS.wellhub.find(p => p.id === item.selectedPlanId)?.value || 0;
+        }
+
+        const providedValue = item.type === 'daily'
+            ? (item.quantity * unitValue * (item.days || 0))
+            : (item.quantity * unitValue);
+
+        let collabDiscount = 0;
+        if (item.discountType === 'percentage') {
+            collabDiscount = providedValue * item.discountValue;
+        } else {
+            collabDiscount = item.discountValue;
+        }
+
+        const clientCost = providedValue - collabDiscount;
+
+        return { unitValue, providedValue, collabDiscount, clientCost };
+    };
 
     const calculateLaborPricing = () => {
         let totalBaseSalary = 0;
@@ -234,39 +264,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const groupBValue = totalGrossSalary * groupBPercent;
         const totalCharges = groupAValue + groupBValue;
 
-        // Benefits - Use dynamic values from appSettings
-        const medicalOptions = appSettings?.benefit_options.medical || BENEFIT_OPTIONS.medical;
-        const dentalOptions = appSettings?.benefit_options.dental || BENEFIT_OPTIONS.dental;
-        const wellhubOptions = appSettings?.benefit_options.wellhub || BENEFIT_OPTIONS.wellhub;
-        const othersOptions = appSettings?.benefit_options.others || {};
+        // Benefits - New Logic
+        let totalBenefits = 0;
+        let totalExams = 0;
 
-        const medicalPlan = medicalOptions.find(p => p.id === selectedMedicalPlan);
-        const dentalPlan = dentalOptions.find(p => p.id === selectedDentalPlan);
-        const wellhubPlan = wellhubOptions.find(p => p.id === selectedWellhubPlan);
+        benefitsList.forEach(item => {
+            const { clientCost } = calculateBenefitRow(item);
 
-        const medicalCost = (medicalPlan?.value || 0) * totalPositions;
-        const dentalCost = (dentalPlan?.value || 0) * totalPositions;
-        const wellhubCost = (wellhubPlan?.value || 0) * totalPositions;
+            // Check if it's an exam
+            if (item.id.startsWith('exam-')) {
+                totalExams += clientCost * totalPositions;
+            } else {
+                totalBenefits += clientCost * totalPositions;
+            }
+        });
 
-        // Standard Benefits - Use dynamic values
-        const transportCost = hasTransport ? ((othersOptions.transport || BENEFIT_OPTIONS.others.transport.defaultValue) * transportDays) * totalPositions : 0;
-        const mealCost = hasMeal ? ((othersOptions.meal || BENEFIT_OPTIONS.others.meal.defaultValue) * mealDays) * totalPositions : 0;
-        const foodCost = hasFood ? (othersOptions.food || BENEFIT_OPTIONS.others.food.defaultValue) * totalPositions : 0;
-        const lifeInsuranceCost = hasLifeInsurance ? (othersOptions.lifeInsurance || BENEFIT_OPTIONS.others.lifeInsurance.defaultValue) * totalPositions : 0;
-        const pharmacyCost = hasPharmacy ? (othersOptions.pharmacy || BENEFIT_OPTIONS.others.pharmacy.defaultValue) * totalPositions : 0;
-        const gpsPointCost = hasGpsPoint ? (othersOptions.gpsPoint || BENEFIT_OPTIONS.others.gpsPoint.defaultValue) * totalPositions : 0;
-        const plrCost = hasPlr ? (othersOptions.plr || BENEFIT_OPTIONS.others.plr.defaultValue) * totalPositions : 0;
 
-        const customBenefitsCost = customBenefits.reduce((sum, item) => sum + item.value, 0) * totalPositions;
 
-        const totalBenefits = medicalCost + dentalCost + wellhubCost +
-            transportCost + mealCost + foodCost + lifeInsuranceCost +
-            pharmacyCost + gpsPointCost + plrCost + customBenefitsCost;
 
-        // Exams - Include custom exams
-        const baseExamsCost = EXAM_OPTIONS.reduce((sum, item) => sum + item.value, 0) * totalPositions;
-        const customExamsCost = customExams.reduce((sum, item) => sum + item.value, 0) * totalPositions;
-        const totalExams = baseExamsCost + customExamsCost;
 
         // Subtotal for Fees (Salaries + Charges + Benefits + Exams)
         const costBasis = totalGrossSalary + totalCharges + totalBenefits + totalExams;
@@ -375,6 +390,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     const fmtCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
     const fmtPercent = (val: number) => `${(val * 100).toFixed(2)}%`;
+
+    const updateBenefit = (id: string, field: keyof BenefitItem, value: any) => {
+        setBenefitsList(prev => prev.map(item => {
+            if (item.id === id) {
+                return { ...item, [field]: value };
+            }
+            return item;
+        }));
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
@@ -868,334 +892,162 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
                         </div>
 
-                        {/* 3. BENEFITS */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        {/* 3. BENEFITS (Unified Table) */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <Sparkles size={18} /> 3. Benefícios
                             </h2>
 
-                            {/* Standard Benefits */}
-                            <div className="mb-6">
-                                <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Benefícios Padrão</h3>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    {/* Vale Transporte */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={hasTransport}
-                                                    onChange={(e) => setHasTransport(e.target.checked)}
-                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                                />
-                                                <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.transport.name}</span>
-                                            </label>
-                                            <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.transport.defaultValue)}/dia</span>
-                                        </div>
-                                        {hasTransport && (
-                                            <div className="space-y-2 mt-2">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-gray-500">Dias:</span>
-                                                    <input
-                                                        type="number"
-                                                        value={transportDays}
-                                                        onChange={(e) => setTransportDays(Number(e.target.value))}
-                                                        className="w-16 p-1 text-sm border border-gray-300 rounded"
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
-                                                    <span className="text-xs text-gray-600 font-bold">Total:</span>
-                                                    <span className="text-sm font-bold text-metarh-medium">
-                                                        {fmtCurrency(BENEFIT_OPTIONS.others.transport.defaultValue * transportDays)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Vale Refeição */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={hasMeal}
-                                                    onChange={(e) => setHasMeal(e.target.checked)}
-                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                                />
-                                                <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.meal.name}</span>
-                                            </label>
-                                            <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.meal.defaultValue)}/dia</span>
-                                        </div>
-                                        {hasMeal && (
-                                            <div className="space-y-2 mt-2">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-gray-500">Dias:</span>
-                                                    <input
-                                                        type="number"
-                                                        value={mealDays}
-                                                        onChange={(e) => setMealDays(Number(e.target.value))}
-                                                        className="w-16 p-1 text-sm border border-gray-300 rounded"
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
-                                                    <span className="text-xs text-gray-600 font-bold">Total:</span>
-                                                    <span className="text-sm font-bold text-metarh-medium">
-                                                        {fmtCurrency(BENEFIT_OPTIONS.others.meal.defaultValue * mealDays)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Vale Alimentação */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasFood}
-                                                onChange={(e) => setHasFood(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                            />
-                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.food.name}</span>
-                                        </label>
-                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.food.defaultValue)}</span>
-                                    </div>
-
-                                    {/* Seguro de Vida */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasLifeInsurance}
-                                                onChange={(e) => setHasLifeInsurance(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                            />
-                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.lifeInsurance.name}</span>
-                                        </label>
-                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.lifeInsurance.defaultValue)}</span>
-                                    </div>
-
-                                    {/* Auxílio Farmácia */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasPharmacy}
-                                                onChange={(e) => setHasPharmacy(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                            />
-                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.pharmacy.name}</span>
-                                        </label>
-                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.pharmacy.defaultValue)}</span>
-                                    </div>
-
-                                    {/* Controle de Ponto */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasGpsPoint}
-                                                onChange={(e) => setHasGpsPoint(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                            />
-                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.gpsPoint.name}</span>
-                                        </label>
-                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.gpsPoint.defaultValue)}</span>
-                                    </div>
-
-                                    {/* PLR */}
-                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasPlr}
-                                                onChange={(e) => setHasPlr(e.target.checked)}
-                                                className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
-                                            />
-                                            <span className="text-sm font-bold text-gray-700">{BENEFIT_OPTIONS.others.plr.name}</span>
-                                        </label>
-                                        <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.plr.defaultValue)}</span>
-                                    </div>
-                                </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-metarh-dark text-white uppercase text-xs">
+                                        <tr>
+                                            <th className="p-3 rounded-tl-xl">Benefícios</th>
+                                            <th className="p-3 text-center">Quantidade</th>
+                                            <th className="p-3 text-right">Valor Unit.</th>
+                                            <th className="p-3 text-center">Dias</th>
+                                            <th className="p-3 text-right">Valor Fornecido</th>
+                                            <th className="p-3 text-center">% | $ Descontos</th>
+                                            <th className="p-3 text-right">Valor Desc Colab.</th>
+                                            <th className="p-3 text-right rounded-tr-xl">Valor Cliente c/ Desc Colab.</th>
+                                            <th className="p-3"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {benefitsList.map((item) => {
+                                            const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item);
+                                            return (
+                                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="p-3 font-medium text-gray-800 min-w-[200px]">
+                                                        {item.type === 'custom' ? (
+                                                            <input
+                                                                type="text"
+                                                                value={item.name}
+                                                                onChange={(e) => updateBenefit(item.id, 'name', e.target.value)}
+                                                                className="w-full p-1 border border-gray-200 rounded bg-white text-sm"
+                                                            />
+                                                        ) : (
+                                                            <div>{item.name}</div>
+                                                        )}
+                                                        {item.type === 'plan_selection' && (
+                                                            <select
+                                                                value={item.selectedPlanId}
+                                                                onChange={(e) => updateBenefit(item.id, 'selectedPlanId', e.target.value)}
+                                                                className="mt-1 w-full p-1 text-xs border border-gray-200 rounded bg-white text-gray-600"
+                                                            >
+                                                                {item.id === 'medical' && BENEFIT_OPTIONS.medical.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                                {item.id === 'dental' && BENEFIT_OPTIONS.dental.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                                {item.id === 'wellhub' && BENEFIT_OPTIONS.wellhub.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                            </select>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-3 text-center">
+                                                        <input
+                                                            type="number"
+                                                            value={item.quantity}
+                                                            onChange={(e) => updateBenefit(item.id, 'quantity', Number(e.target.value))}
+                                                            className="w-12 p-1 text-center border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                            min="0"
+                                                        />
+                                                    </td>
+                                                    <td className="p-3 text-right">
+                                                        {item.type === 'plan_selection' ? (
+                                                            <span className="text-gray-600">{fmtCurrency(unitValue)}</span>
+                                                        ) : (
+                                                            <input
+                                                                type="number"
+                                                                value={item.unitValue}
+                                                                onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
+                                                                className="w-20 p-1 text-right border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                step="0.01"
+                                                            />
+                                                        )}
+                                                    </td>
+                                                    <td className="p-3 text-center">
+                                                        {item.type === 'daily' ? (
+                                                            <input
+                                                                type="number"
+                                                                value={item.days}
+                                                                onChange={(e) => updateBenefit(item.id, 'days', Number(e.target.value))}
+                                                                className="w-12 p-1 text-center border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                min="0"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-gray-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-3 text-right font-medium text-gray-700">
+                                                        {fmtCurrency(providedValue)}
+                                                    </td>
+                                                    <td className="p-3 text-center">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <input
+                                                                type="number"
+                                                                value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
+                                                                onChange={(e) => {
+                                                                    const val = Number(e.target.value);
+                                                                    updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
+                                                                }}
+                                                                className="w-16 p-1 text-center border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                step={item.discountType === 'percentage' ? "0.1" : "0.01"}
+                                                            />
+                                                            <button
+                                                                onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
+                                                                className="text-xs font-bold text-metarh-medium hover:bg-metarh-medium/10 px-1 rounded w-6"
+                                                                title={item.discountType === 'percentage' ? 'Porcentagem' : 'Valor Fixo'}
+                                                            >
+                                                                {item.discountType === 'percentage' ? '%' : '$'}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3 text-right text-red-500">
+                                                        -{fmtCurrency(collabDiscount)}
+                                                    </td>
+                                                    <td className="p-3 text-right font-bold text-metarh-dark bg-gray-50/50">
+                                                        {fmtCurrency(clientCost)}
+                                                    </td>
+                                                    <td className="p-3 text-center">
+                                                        {item.type === 'custom' && (
+                                                            <button
+                                                                onClick={() => setBenefitsList(prev => prev.filter(i => i.id !== item.id))}
+                                                                className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
 
-                            <div className="space-y-4">
-                                {/* Medical Plan */}
-                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-3xl border border-gray-200">
-                                    <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Plano Médico</label>
-                                    <div className="md:col-span-2 flex gap-4">
-                                        <select
-                                            value={selectedMedicalPlan}
-                                            onChange={(e) => setSelectedMedicalPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
-                                        >
-                                            {BENEFIT_OPTIONS.medical.map(opt => (
-                                                <option key={opt.id} value={opt.id}>{opt.name}</option>
-                                            ))}
-                                        </select>
-                                        <div className="w-32 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
-                                            {fmtCurrency(BENEFIT_OPTIONS.medical.find(p => p.id === selectedMedicalPlan)?.value || 0)}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Dental Plan */}
-                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-3xl border border-gray-200">
-                                    <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Plano Odontológico</label>
-                                    <div className="md:col-span-2 flex gap-4">
-                                        <select
-                                            value={selectedDentalPlan}
-                                            onChange={(e) => setSelectedDentalPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
-                                        >
-                                            {BENEFIT_OPTIONS.dental.map(opt => (
-                                                <option key={opt.id} value={opt.id}>{opt.name}</option>
-                                            ))}
-                                        </select>
-                                        <div className="w-32 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
-                                            {fmtCurrency(BENEFIT_OPTIONS.dental.find(p => p.id === selectedDentalPlan)?.value || 0)}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Wellhub */}
-                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-3xl border border-gray-200">
-                                    <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Wellhub (Gympass)</label>
-                                    <div className="md:col-span-2 flex gap-4">
-                                        <select
-                                            value={selectedWellhubPlan}
-                                            onChange={(e) => setSelectedWellhubPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
-                                        >
-                                            {BENEFIT_OPTIONS.wellhub.map(opt => (
-                                                <option key={opt.id} value={opt.id}>{opt.name}</option>
-                                            ))}
-                                        </select>
-                                        <div className="w-32 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
-                                            {fmtCurrency(BENEFIT_OPTIONS.wellhub.find(p => p.id === selectedWellhubPlan)?.value || 0)}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-6">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Outros Benefícios (Personalizado)</label>
-                                {customBenefits.map((item, idx) => (
-                                    <div key={item.id} className="flex gap-2 mb-2">
-                                        <input
-                                            type="text"
-                                            value={item.name}
-                                            onChange={(e) => {
-                                                const newBenefits = [...customBenefits];
-                                                newBenefits[idx].name = e.target.value;
-                                                setCustomBenefits(newBenefits);
-                                            }}
-                                            className="flex-1 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
-                                            placeholder="Nome do benefício"
-                                        />
-                                        <input
-                                            type="number"
-                                            value={item.value}
-                                            onChange={(e) => {
-                                                const newBenefits = [...customBenefits];
-                                                newBenefits[idx].value = Number(e.target.value);
-                                                setCustomBenefits(newBenefits);
-                                            }}
-                                            className="w-24 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
-                                            placeholder="Valor"
-                                        />
-                                        <button onClick={() => setCustomBenefits(customBenefits.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                ))}
+                            <div className="mt-4 flex justify-between items-center">
                                 <button
-                                    onClick={() => setCustomBenefits([...customBenefits, { id: `ben-${Date.now()}`, name: '', value: 0 }])}
+                                    onClick={() => setBenefitsList([...benefitsList, {
+                                        id: `custom-${Date.now()}`,
+                                        name: 'Novo Benefício',
+                                        type: 'custom',
+                                        quantity: 1,
+                                        unitValue: 0,
+                                        discountType: 'fixed',
+                                        discountValue: 0
+                                    }])}
                                     className="text-xs font-bold text-metarh-medium hover:underline flex items-center gap-1"
                                 >
-                                    <Plus size={14} /> Adicionar Benefício
+                                    <Plus size={14} /> Adicionar Item
                                 </button>
-                            </div>
 
-                            {/* Total Benefits Display */}
-                            {result && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Benefícios:</span>
-                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits)}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 4. EXAMS (Separate Box) */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <FileText size={18} /> 4. Exames Clínicos
-                            </h2>
-
-                            {/* Base Exams */}
-                            <div className="bg-gray-50 p-4 rounded-3xl mb-4">
-                                <div className="space-y-2">
-                                    {EXAM_OPTIONS.filter(exam => exam.id !== 'exam-comp').map(exam => (
-                                        <div key={exam.id} className="flex justify-between text-sm text-gray-600 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
-                                            <span>{exam.name}</span>
-                                            <span className="font-mono font-bold">{fmtCurrency(exam.value)}</span>
+                                {result && (
+                                    <div className="flex gap-4">
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
+                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Benefícios:</span>
+                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Custom Exams */}
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Exames Complementares</label>
-                                {customExams.map((item, idx) => (
-                                    <div key={item.id} className="flex gap-2 mb-2">
-                                        <input
-                                            type="text"
-                                            value={item.name}
-                                            onChange={(e) => {
-                                                const newExams = [...customExams];
-                                                newExams[idx].name = e.target.value;
-                                                setCustomExams(newExams);
-                                            }}
-                                            className="flex-1 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
-                                            placeholder="Nome do exame"
-                                        />
-                                        <input
-                                            type="number"
-                                            value={item.value}
-                                            onChange={(e) => {
-                                                const newExams = [...customExams];
-                                                newExams[idx].value = Number(e.target.value);
-                                                setCustomExams(newExams);
-                                            }}
-                                            className="w-24 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
-                                            placeholder="Valor"
-                                        />
-                                        <button onClick={() => setCustomExams(customExams.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600">
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
-                                ))}
-                                <button
-                                    onClick={() => setCustomExams([...customExams, { id: `exam-${Date.now()}`, name: '', value: 0 }])}
-                                    className="text-xs font-bold text-metarh-medium hover:underline flex items-center gap-1"
-                                >
-                                    <Plus size={14} /> Adicionar Exame
-                                </button>
+                                )}
                             </div>
-
-                            {/* Total Exams Display */}
-                            {result && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Exames:</span>
-                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalExams)}</span>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* 5. FEES */}

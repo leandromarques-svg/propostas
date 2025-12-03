@@ -326,8 +326,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const csllValue = grossNF * LABOR_TAX_RATES.csll;
 
         // NEW TOTALS as requested
-        // Total Bruto (NF) = Total Salário Bruto + Total Encargos + Total Benefícios + Total Exames + Total Taxas + Total Recrutamento + Total Tributos
-        const totalBrutoNF = totalGrossSalary + totalCharges + totalBenefits + totalExams + totalFees + teamCost + totalTaxes;
+        // Total Bruto (NF) = Total Salário Bruto + Total Encargos + Total Benefícios + Total Exames + Total Taxas + Total Custo Operacional + Total Tributos
+        const totalBrutoNF = totalGrossSalary + totalCharges + totalBenefits + totalExams + totalFees + totalOperationalCostValue + totalTaxes;
 
         // Total Líquido (Recebido) = Valor Bruto da NF - Retenção IR (15,5%)
         const retentionIR = 0.155;
@@ -1322,7 +1322,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
                                     <div className="bg-purple-50 px-4 py-2 rounded-2xl border border-purple-100">
                                         <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Recrutamento:</span>
-                                        <span className="text-lg font-bold text-purple-700">{fmtCurrency(result.teamCost)}</span>
+                                        <span className="text-lg font-bold text-purple-700">{fmtCurrency(result.recruitmentTeamCost || 0)}</span>
                                     </div>
                                 </div>
                             )}
@@ -1423,13 +1423,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                     </div>
 
+
                                     {/* Fees */}
                                     <div className="pb-4 border-b border-white/10">
-                                        <div className="flex justify-between text-gray-300">
-                                            <span>Taxa Backup ({fmtPercent(backupFeePercent)})</span>
-                                            <span>{fmtCurrency(result.backupFeeValue)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-metarh-lime mt-1">
+                                        <div className="flex justify-between font-bold text-metarh-lime">
                                             <span>Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
                                             <span>{fmtCurrency(result.adminFeeValue)}</span>
                                         </div>

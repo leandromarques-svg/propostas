@@ -464,9 +464,9 @@ const App: React.FC = () => {
               <div className="blob-shape bg-purple-500 w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20 animate-float absolute"></div>
               <div className="blob-shape bg-purple-400 w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-screen filter blur-[80px] opacity-20 animate-float absolute" style={{ animationDelay: '2s' }}></div>
 
-              <div className="relative z-10">
-                {/* Text and Search */}
-                <div className="max-w-3xl">
+              <div className="relative z-10 flex items-center gap-8">
+                {/* Text and Search - Left Side */}
+                <div className="flex-1 max-w-3xl">
                   <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
                     Vamos construir uma proposta incrível hoje, <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>?
                   </h1>
@@ -488,6 +488,15 @@ const App: React.FC = () => {
                     />
                     <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400" size={24} />
                   </div>
+                </div>
+
+                {/* Mosaico Image - Right Side */}
+                <div className="hidden lg:block flex-shrink-0">
+                  <img
+                    src="https://metarh.com.br/wp-content/uploads/2025/12/mosaico_Banner.png"
+                    alt="Mosaico METARH"
+                    className="w-[280px] h-auto object-contain drop-shadow-2xl"
+                  />
                 </div>
               </div>
             </div>

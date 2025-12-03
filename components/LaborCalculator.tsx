@@ -8,6 +8,7 @@ import {
     LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE
 } from '../constants';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
+import { getAppSettings, AppSettings } from './lib/settingsService';
 import { Logo } from './Logo';
 
 interface LaborPosition {
@@ -63,6 +64,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const [qtyJunior, setQtyJunior] = useState(0);
     const [demandedDays, setDemandedDays] = useState(0);
     const [teamRates, setTeamRates] = useState<TeamRates>({ senior: 150, plena: 100, junior: 60 });
+    const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
 
     // Benefits Selection
     const [selectedMedicalPlan, setSelectedMedicalPlan] = useState<string>(BENEFIT_OPTIONS.medical[0].id);
@@ -96,13 +98,28 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // Results State
     const [result, setResult] = useState<any>(null);
 
-    // Load team rates
+    // Load team rates and app settings
     useEffect(() => {
-        const loadRates = async () => {
-            const rates = await getTeamRates();
+        const loadData = async () => {
+            const [rates, settings] = await Promise.all([
+                getTeamRates(),
+                getAppSettings()
+            ]);
             setTeamRates(rates);
+            setAppSettings(settings);
+
+            // Update defaults from settings
+            if (settings) {
+                setSatRate(settings.sat_rate);
+
+                // Update benefit defaults if not already set (optional, but good for initial load)
+                // For now, we just ensure the options are available for selection
+                if (settings.benefit_options.medical.length > 0) setSelectedMedicalPlan(settings.benefit_options.medical[0].id);
+                if (settings.benefit_options.dental.length > 0) setSelectedDentalPlan(settings.benefit_options.dental[0].id);
+                if (settings.benefit_options.wellhub.length > 0) setSelectedWellhubPlan(settings.benefit_options.wellhub[0].id);
+            }
         };
-        loadRates();
+        loadData();
     }, []);
 
     // --- CALCULATIONS ---
@@ -113,7 +130,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
         customBenefits, backupFeePercent, adminFeePercent,
         hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
-        satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates
+        satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates, appSettings,
+        // Add exams to dependency if we make them dynamic state
     ]);
 
     const calculateLaborPricing = () => {
@@ -136,9 +154,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
             // 3. Unhealthiness (Insalubridade) - % on Minimum Wage
             let unhealthinessValue = 0;
-            if (pos.unhealthinessLevel === 'min') unhealthinessValue = MINIMUM_WAGE * 0.10;
-            if (pos.unhealthinessLevel === 'med') unhealthinessValue = MINIMUM_WAGE * 0.20;
-            if (pos.unhealthinessLevel === 'max') unhealthinessValue = MINIMUM_WAGE * 0.40;
+            const minimumWage = appSettings?.minimum_wage || MINIMUM_WAGE;
+            if (pos.unhealthinessLevel === 'min') unhealthinessValue = minimumWage * 0.10;
+            if (pos.unhealthinessLevel === 'med') unhealthinessValue = minimumWage * 0.20;
+            if (pos.unhealthinessLevel === 'max') unhealthinessValue = minimumWage * 0.40;
 
             // 4. Night Shift (Adicional Noturno) - % on Base Salary (usually)
             // If hourly, on hourly earnings.
@@ -206,23 +225,28 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const groupBValue = totalGrossSalary * groupBPercent;
         const totalCharges = groupAValue + groupBValue;
 
-        // Benefits
-        const medicalPlan = BENEFIT_OPTIONS.medical.find(p => p.id === selectedMedicalPlan);
-        const dentalPlan = BENEFIT_OPTIONS.dental.find(p => p.id === selectedDentalPlan);
-        const wellhubPlan = BENEFIT_OPTIONS.wellhub.find(p => p.id === selectedWellhubPlan);
+        // Benefits - Use dynamic values from appSettings
+        const medicalOptions = appSettings?.benefit_options.medical || BENEFIT_OPTIONS.medical;
+        const dentalOptions = appSettings?.benefit_options.dental || BENEFIT_OPTIONS.dental;
+        const wellhubOptions = appSettings?.benefit_options.wellhub || BENEFIT_OPTIONS.wellhub;
+        const othersOptions = appSettings?.benefit_options.others || {};
+
+        const medicalPlan = medicalOptions.find(p => p.id === selectedMedicalPlan);
+        const dentalPlan = dentalOptions.find(p => p.id === selectedDentalPlan);
+        const wellhubPlan = wellhubOptions.find(p => p.id === selectedWellhubPlan);
 
         const medicalCost = (medicalPlan?.value || 0) * totalPositions;
         const dentalCost = (dentalPlan?.value || 0) * totalPositions;
         const wellhubCost = (wellhubPlan?.value || 0) * totalPositions;
 
-        // Standard Benefits
-        const transportCost = hasTransport ? (BENEFIT_OPTIONS.others.transport.defaultValue * transportDays) * totalPositions : 0;
-        const mealCost = hasMeal ? (BENEFIT_OPTIONS.others.meal.defaultValue * mealDays) * totalPositions : 0;
-        const foodCost = hasFood ? BENEFIT_OPTIONS.others.food.defaultValue * totalPositions : 0;
-        const lifeInsuranceCost = hasLifeInsurance ? BENEFIT_OPTIONS.others.lifeInsurance.defaultValue * totalPositions : 0;
-        const pharmacyCost = hasPharmacy ? BENEFIT_OPTIONS.others.pharmacy.defaultValue * totalPositions : 0;
-        const gpsPointCost = hasGpsPoint ? BENEFIT_OPTIONS.others.gpsPoint.defaultValue * totalPositions : 0;
-        const plrCost = hasPlr ? BENEFIT_OPTIONS.others.plr.defaultValue * totalPositions : 0;
+        // Standard Benefits - Use dynamic values
+        const transportCost = hasTransport ? ((othersOptions.transport || BENEFIT_OPTIONS.others.transport.defaultValue) * transportDays) * totalPositions : 0;
+        const mealCost = hasMeal ? ((othersOptions.meal || BENEFIT_OPTIONS.others.meal.defaultValue) * mealDays) * totalPositions : 0;
+        const foodCost = hasFood ? (othersOptions.food || BENEFIT_OPTIONS.others.food.defaultValue) * totalPositions : 0;
+        const lifeInsuranceCost = hasLifeInsurance ? (othersOptions.lifeInsurance || BENEFIT_OPTIONS.others.lifeInsurance.defaultValue) * totalPositions : 0;
+        const pharmacyCost = hasPharmacy ? (othersOptions.pharmacy || BENEFIT_OPTIONS.others.pharmacy.defaultValue) * totalPositions : 0;
+        const gpsPointCost = hasGpsPoint ? (othersOptions.gpsPoint || BENEFIT_OPTIONS.others.gpsPoint.defaultValue) * totalPositions : 0;
+        const plrCost = hasPlr ? (othersOptions.plr || BENEFIT_OPTIONS.others.plr.defaultValue) * totalPositions : 0;
 
         const customBenefitsCost = customBenefits.reduce((sum, item) => sum + item.value, 0) * totalPositions;
 
@@ -1360,15 +1384,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                     </div>
 
-                                    {/* Operational Cost */}
-                                    <div className="bg-white/10 p-4 rounded-3xl border border-white/20">
-                                        <p className="text-xs text-gray-300 uppercase font-bold mb-1">Custo Total Operacional</p>
-                                        <p className="text-2xl font-bold text-white">{fmtCurrency(result.totalOperationalCost)}</p>
-                                        <p className="text-[10px] text-gray-400 text-right">Por mês</p>
-                                    </div>
-
                                     {/* Taxes */}
-                                    <div className="text-xs text-gray-400 space-y-1">
+                                    <div className="text-xs text-gray-400 space-y-1 pb-4 border-b border-white/10">
                                         <p className="font-bold uppercase text-gray-500">Impostos ({fmtPercent(result.totalTaxRate)})</p>
                                         <div className="flex justify-between">
                                             <span>Total Tributos</span>
@@ -1384,25 +1401,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                     {/* NEW TOTALS - As requested */}
                                     <div className="mt-4 space-y-3">
-                                        {/* Total Bruto (NF) */}
-                                        <div className="bg-blue-900/30 p-4 rounded-3xl border border-blue-500/20">
-                                            <p className="text-xs text-blue-200 uppercase font-bold mb-1">Total Bruto (NF)</p>
-                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.totalBrutoNF || 0)}</p>
-                                            <p className="text-[10px] text-blue-300 mt-1">Salário Bruto + Encargos + Benefícios + Exames + Taxas + Recrutamento + Tributos</p>
+                                        {/* Total Líquido - Green background */}
+                                        <div className="bg-green-600 p-4 rounded-3xl border-2 border-green-500 shadow-lg">
+                                            <p className="text-xs text-white uppercase font-bold mb-1">Total Líquido (Recebido)</p>
+                                            <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
+                                            <p className="text-[10px] text-green-100 mt-1">Total Bruto (NF) - Retenção IR (15,5%)</p>
                                         </div>
 
-                                        {/* Total Líquido */}
-                                        <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
-                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
-                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
-                                            <p className="text-[10px] text-green-300 mt-1">Total Bruto (NF) - Retenção IR (15,5%)</p>
-                                        </div>
-
-                                        {/* Lucro L. Operacional */}
+                                        {/* Lucro L. Operacional - Emphasis on % */}
                                         <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
-                                            <div className="flex justify-between items-center mb-1">
+                                            <div className="flex justify-between items-center mb-2">
                                                 <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
-                                                <span className="text-xs font-bold bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full">
+                                                <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full">
                                                     {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
                                                 </span>
                                             </div>
@@ -1462,10 +1472,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             alert('Funcionalidade de Gerar PDF será implementada em breve!');
                                             // TODO: Integrar com pdfGenerator.ts
                                         }}
-                                        className="mt-6 w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 group"
+                                        className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
                                     >
-                                        <FileText size={24} className="group-hover:scale-110 transition-transform" />
-                                        <span className="text-lg">Gerar PDF da Proposta</span>
+                                        <FileText size={18} /> Gerar PDF
                                     </button>
                                 </div>
                             )}

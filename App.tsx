@@ -100,6 +100,19 @@ const App: React.FC = () => {
     return groups;
   }, [searchTerm]);
 
+  // Auto-expand groups when searching
+  useEffect(() => {
+    if (searchTerm) {
+      const allGroups = Object.keys(groupedSolutions).reduce((acc, key) => {
+        acc[key] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+      setExpandedGroups(allGroups);
+    } else {
+      setExpandedGroups({});
+    }
+  }, [searchTerm, groupedSolutions]);
+
   const groupKeys = Object.keys(groupedSolutions).sort();
   const cartCount = cart.length;
   const greeting = getGreeting();

@@ -87,6 +87,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // Custom Benefits
     const [customBenefits, setCustomBenefits] = useState<{ id: string, name: string, value: number }[]>([]);
 
+    // Custom Exams State
+    const [customExams, setCustomExams] = useState<{ id: string, name: string, value: number }[]>([]);
+
     // Charges Config (Detailed)
     const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
     // Removed showChargesConfig (Always visible)
@@ -128,10 +131,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     }, [
         positions, recruitmentType, provisioningMode,
         selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
-        customBenefits, backupFeePercent, adminFeePercent,
+        customBenefits, customExams, backupFeePercent, adminFeePercent,
         hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
         satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates, appSettings,
-        // Add exams to dependency if we make them dynamic state
     ]);
 
     const calculateLaborPricing = () => {
@@ -254,8 +256,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             transportCost + mealCost + foodCost + lifeInsuranceCost +
             pharmacyCost + gpsPointCost + plrCost + customBenefitsCost;
 
-        // Exams
-        const totalExams = EXAM_OPTIONS.reduce((sum, item) => sum + item.value, 0) * totalPositions;
+        // Exams - Include custom exams
+        const baseExamsCost = EXAM_OPTIONS.reduce((sum, item) => sum + item.value, 0) * totalPositions;
+        const customExamsCost = customExams.reduce((sum, item) => sum + item.value, 0) * totalPositions;
+        const totalExams = baseExamsCost + customExamsCost;
 
         // Subtotal for Fees (Salaries + Charges + Benefits + Exams)
         const costBasis = totalGrossSalary + totalCharges + totalBenefits + totalExams;
@@ -304,13 +308,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Total Bruto (NF) = Total Salário Bruto + Total Encargos + Total Benefícios + Total Exames + Total Taxas + Total Recrutamento + Total Tributos
         const totalBrutoNF = totalGrossSalary + totalCharges + totalBenefits + totalExams + totalFees + teamCost + totalTaxes;
 
-        // Total Líquido = Total Salário Bruto - retenção IR (15,5%)
+        // Total Líquido (Recebido) = Valor Bruto da NF - Retenção IR (15,5%)
         const retentionIR = 0.155;
-        const totalLiquido = totalGrossSalary - (totalGrossSalary * retentionIR);
+        const totalLiquido = grossNF - (grossNF * retentionIR);
 
-        // Lucro L. Operacional = Líquido Recebido - Total Recrutamento - Tributos
-        const liquidoRecebido = grossNF - totalTaxes; // Net amount received after taxes
-        const lucroOperacional = liquidoRecebido - teamCost - totalTaxes;
+        // Lucro L. Operacional = Líquido Recebido - Recrutamento (Se houver) - Tributos
+        const lucroOperacional = totalLiquido - teamCost - totalTaxes;
 
         setResult({
             positionsCalculated,
@@ -342,8 +345,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             // New totals
             totalBrutoNF,
             totalLiquido,
-            lucroOperacional,
-            liquidoRecebido
+            lucroOperacional
         });
     };
 
@@ -351,7 +353,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const fmtPercent = (val: number) => `${(val * 100).toFixed(2)}%`;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
             <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
@@ -1108,15 +1110,57 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <FileText size={18} /> 4. Exames Clínicos
                             </h2>
-                            <div className="bg-gray-50 p-4 rounded-3xl">
+
+                            {/* Base Exams */}
+                            <div className="bg-gray-50 p-4 rounded-3xl mb-4">
                                 <div className="space-y-2">
-                                    {EXAM_OPTIONS.map(exam => (
+                                    {EXAM_OPTIONS.filter(exam => exam.id !== 'exam-comp').map(exam => (
                                         <div key={exam.id} className="flex justify-between text-sm text-gray-600 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
                                             <span>{exam.name}</span>
                                             <span className="font-mono font-bold">{fmtCurrency(exam.value)}</span>
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+
+                            {/* Custom Exams */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Exames Complementares</label>
+                                {customExams.map((item, idx) => (
+                                    <div key={item.id} className="flex gap-2 mb-2">
+                                        <input
+                                            type="text"
+                                            value={item.name}
+                                            onChange={(e) => {
+                                                const newExams = [...customExams];
+                                                newExams[idx].name = e.target.value;
+                                                setCustomExams(newExams);
+                                            }}
+                                            className="flex-1 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
+                                            placeholder="Nome do exame"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={item.value}
+                                            onChange={(e) => {
+                                                const newExams = [...customExams];
+                                                newExams[idx].value = Number(e.target.value);
+                                                setCustomExams(newExams);
+                                            }}
+                                            className="w-24 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
+                                            placeholder="Valor"
+                                        />
+                                        <button onClick={() => setCustomExams(customExams.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    onClick={() => setCustomExams([...customExams, { id: `exam-${Date.now()}`, name: '', value: 0 }])}
+                                    className="text-xs font-bold text-metarh-medium hover:underline flex items-center gap-1"
+                                >
+                                    <Plus size={14} /> Adicionar Exame
+                                </button>
                             </div>
 
                             {/* Total Exams Display */}
@@ -1397,24 +1441,28 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
                                         <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
                                         <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
+                                        <p className="text-[10px] opacity-70 mt-1">Custo Base + Taxas + Tributos</p>
                                     </div>
 
                                     {/* NEW TOTALS - As requested */}
                                     <div className="mt-4 space-y-3">
-                                        {/* Total Líquido - Green background */}
-                                        <div className="bg-green-600 p-4 rounded-3xl border-2 border-green-500 shadow-lg">
-                                            <p className="text-xs text-white uppercase font-bold mb-1">Total Líquido (Recebido)</p>
+                                        {/* Total Líquido - Green background (same style as PricingCalculator) */}
+                                        <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
+                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
                                             <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
-                                            <p className="text-[10px] text-green-100 mt-1">Total Bruto (NF) - Retenção IR (15,5%)</p>
+                                            <p className="text-[10px] text-green-300 mt-1">Valor Bruto da NF - Retenção IR (15,5%)</p>
                                         </div>
 
-                                        {/* Lucro L. Operacional - Emphasis on % */}
+                                        {/* Lucro L. Operacional - Emphasis on % with legend below */}
                                         <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
-                                            <div className="flex justify-between items-center mb-2">
+                                            <div className="flex justify-between items-start mb-2">
                                                 <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
-                                                <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full">
-                                                    {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
-                                                </span>
+                                                <div className="text-center">
+                                                    <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full block">
+                                                        {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
+                                                    </span>
+                                                    <p className="text-[9px] text-yellow-300 mt-1">% do Líquido</p>
+                                                </div>
                                             </div>
                                             <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
                                             <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>

@@ -287,7 +287,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
   const fmtPercent = (val: number) => `${(val * 100).toFixed(2)}%`;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}

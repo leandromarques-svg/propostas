@@ -12,6 +12,7 @@ import { ChatBot } from './components/ChatBot';
 import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayoutEditor';
 import { PricingCalculator } from './components/PricingCalculator';
 import { LaborCalculator } from './components/LaborCalculator';
+import { TrilhandoPlusCalculator } from './components/TrilhandoPlusCalculator';
 import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
 import { AppSettingsModal } from './components/AppSettingsModal';
@@ -74,7 +75,7 @@ const App: React.FC = () => {
   const [viewPackageSummary, setViewPackageSummary] = useState<string | null>(null);
 
   // Calculator Dashboard State
-  const [activeCalculator, setActiveCalculator] = useState<'pricing' | 'labor' | null>(null);
+  const [activeCalculator, setActiveCalculator] = useState<'pricing' | 'labor' | 'trilhando' | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState(''); // For banner search
@@ -266,6 +267,17 @@ const App: React.FC = () => {
                   <Users size={16} />
                   Gestão de Mão de Obra
                 </button>
+                <button
+                  onClick={() => {
+                    setView('calculator');
+                    setActiveCalculator('trilhando');
+                    setShowCalculatorMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
+                >
+                  <Sparkles size={16} />
+                  Calculadora Trilhando+
+                </button>
               </div>
             )}
           </div>
@@ -352,32 +364,41 @@ const App: React.FC = () => {
         </div>
       );
     }
+    if (activeCalculator === 'trilhando') {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+          {renderHeader()}
+          <TrilhandoPlusCalculator onCancel={() => setActiveCalculator(null)} />
+          <Footer />
+        </div>
+      );
+    }
 
     // Calculator Dashboard
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col animate-fade-in">
         {renderHeader()}
 
-        <div className="flex-1 p-8 max-w-5xl mx-auto w-full flex items-center justify-center">
-          <div className="grid md:grid-cols-2 gap-8 w-full">
+        <div className="flex-1 p-8 max-w-6xl mx-auto w-full flex items-center justify-center">
+          <div className="grid md:grid-cols-3 gap-6 w-full">
             {/* Pricing Calculator Card */}
             <button
               onClick={() => setActiveCalculator('pricing')}
-              className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
+              className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Calculator size={120} className="text-metarh-medium" />
+                <Calculator size={100} className="text-metarh-medium" />
               </div>
               <div className="relative z-10">
-                <div className="w-16 h-16 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Calculator size={32} className="text-metarh-medium" />
+                <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Calculator size={28} className="text-metarh-medium" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Calculadora de Projetos</h2>
-                <p className="text-gray-500 mb-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Calculadora de Projetos</h2>
+                <p className="text-sm text-gray-500 mb-4">
                   Precificação de projetos de consultoria, R&S e serviços pontuais.
                 </p>
-                <div className="flex items-center gap-2 text-metarh-medium font-bold group-hover:translate-x-2 transition-transform">
-                  Acessar Calculadora <ArrowRight size={18} />
+                <div className="flex items-center gap-2 text-metarh-medium font-bold text-sm group-hover:translate-x-2 transition-transform">
+                  Acessar <ArrowRight size={16} />
                 </div>
               </div>
             </button>
@@ -385,21 +406,43 @@ const App: React.FC = () => {
             {/* Labor Calculator Card */}
             <button
               onClick={() => setActiveCalculator('labor')}
-              className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
+              className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Users size={120} className="text-metarh-medium" />
+                <Users size={100} className="text-metarh-medium" />
               </div>
               <div className="relative z-10">
-                <div className="w-16 h-16 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Users size={32} className="text-metarh-medium" />
+                <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Users size={28} className="text-metarh-medium" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestão de Mão de Obra</h2>
-                <p className="text-gray-500 mb-6">
-                  Cálculo de custos para mão de obra administrada, temporários e terceiros (CLT).
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Gestão de Mão de Obra</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Cálculo de custos para mão de obra administrada e terceiros.
                 </p>
-                <div className="flex items-center gap-2 text-metarh-medium font-bold group-hover:translate-x-2 transition-transform">
-                  Acessar Calculadora <ArrowRight size={18} />
+                <div className="flex items-center gap-2 text-metarh-medium font-bold text-sm group-hover:translate-x-2 transition-transform">
+                  Acessar <ArrowRight size={16} />
+                </div>
+              </div>
+            </button>
+
+            {/* Trilhando+ Calculator Card */}
+            <button
+              onClick={() => setActiveCalculator('trilhando')}
+              className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Sparkles size={100} className="text-metarh-medium" />
+              </div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Sparkles size={28} className="text-metarh-medium" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Calculadora Trilhando+</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Precificação exclusiva para projetos do programa Trilhando+.
+                </p>
+                <div className="flex items-center gap-2 text-metarh-medium font-bold text-sm group-hover:translate-x-2 transition-transform">
+                  Acessar <ArrowRight size={16} />
                 </div>
               </div>
             </button>
@@ -430,17 +473,17 @@ const App: React.FC = () => {
   /*
   if (view === 'layout-editor') {
     return (
-      <ProposalLayoutEditor
-        currentLayout={proposalLayout}
-        onSave={(newLayout) => {
-          setProposalLayout(newLayout);
-          setView('catalog');
-        }}
-        onCancel={() => setView('catalog')}
-      />
-    );
+          <ProposalLayoutEditor
+            currentLayout={proposalLayout}
+            onSave={(newLayout) => {
+              setProposalLayout(newLayout);
+              setView('catalog');
+            }}
+            onCancel={() => setView('catalog')}
+          />
+          );
   }
-  */
+          */
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">

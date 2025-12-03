@@ -146,9 +146,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             let effectiveBase = base; // Default to monthly base
 
             if (pos.isHourly) {
-                effectiveBase = hourlyRate * pos.hoursQuantity;
+                // hoursPerMonth is the quantity of hours to be paid
+                effectiveBase = hourlyRate * pos.hoursPerMonth;
             } else if (pos.isDailyWorker) {
-                effectiveBase = dailyRate * pos.daysQuantity;
+                // daysPerMonth is the quantity of days to be paid
+                effectiveBase = dailyRate * pos.daysPerMonth;
             }
 
             const hazardValue = effectiveBase * pos.hazardPay;
@@ -1387,18 +1389,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                     {/* Dica do Especialista - Same logic as PricingCalculator */}
                                     {(() => {
-                                        const netLiquid = result.grossNF * 0.985; // Total Líquido (após retenção IR)
+                                        const netLiquid = result.grossNF * 0.845; // Total Líquido (após retenção IR 15.5%)
                                         const realProfit = netLiquid - result.totalOperationalCost - result.totalTaxes;
                                         const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
 
                                         return (
                                             <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
-                                                    ? 'bg-red-500/10 border-red-400'
-                                                    : profitMarginPercentage < 10
-                                                        ? 'bg-orange-500/10 border-orange-400'
-                                                        : profitMarginPercentage <= 35
-                                                            ? 'bg-yellow-500/10 border-yellow-400'
-                                                            : 'bg-green-500/10 border-green-400'
+                                                ? 'bg-red-500/10 border-red-400'
+                                                : profitMarginPercentage < 10
+                                                    ? 'bg-orange-500/10 border-orange-400'
+                                                    : profitMarginPercentage <= 35
+                                                        ? 'bg-yellow-500/10 border-yellow-400'
+                                                        : 'bg-green-500/10 border-green-400'
                                                 }`}>
                                                 <p className="text-xs font-bold mb-2 flex items-center gap-1">
                                                     {realProfit < 0 ? '🚨' :

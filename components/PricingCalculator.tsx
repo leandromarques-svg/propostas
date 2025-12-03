@@ -6,6 +6,7 @@ import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, Fi
 import { SupabaseStatus } from './SupabaseStatus';
 import { generateProposalPDF } from './lib/pdfGenerator';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
+import { Logo } from './Logo';
 
 interface PricingCalculatorProps {
   onCancel: () => void;
@@ -337,7 +338,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 </div>
 
                 {inputs.positions.map((position, idx) => (
-                  <div key={position.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <div key={position.id} className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-bold text-gray-600">Cargo {idx + 1}</span>
                       {inputs.positions.length > 1 && (
@@ -366,7 +367,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                               )
                             }));
                           }}
-                          className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+                          className="w-full p-3 bg-white rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
                           placeholder="Ex: Analista Sr"
                         />
                       </div>
@@ -383,7 +384,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                               )
                             }));
                           }}
-                          className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+                          className="w-full p-3 bg-white rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
                         />
                       </div>
                       <div>
@@ -399,7 +400,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                               )
                             }));
                           }}
-                          className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+                          className="w-full p-3 bg-white rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
                         />
                       </div>
                     </div>
@@ -408,7 +409,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               </div>
 
               {/* AI Project Description */}
-              <div className="mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-4 rounded-xl">
+              <div className="mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-4 rounded-3xl">
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
                   📝 Descrição do Projeto (IA)
                 </label>
@@ -416,13 +417,13 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
                   placeholder="Descreva o projeto: cargo, localização, urgência, modelo de trabalho, dificuldade do perfil..."
-                  className="w-full p-3 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none bg-white"
+                  className="w-full p-3 rounded-2xl border border-purple-200 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none bg-white"
                   rows={3}
                 />
                 <button
                   onClick={handleAnalyzeWithAI}
                   disabled={isAnalyzing || !projectDescription.trim()}
-                  className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-bold text-sm hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
+                  className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold text-sm hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
                 >
                   {isAnalyzing ? (
                     <>
@@ -438,7 +439,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 </button>
               </div>
 
-              <div className="grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-xl">
+              <div className="grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-3xl">
                 <div className="md:col-span-5">
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
                     Escala de Complexidade (0-5)
@@ -451,9 +452,9 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                       step="0.5"
                       value={complexityScale}
                       onChange={(e) => setComplexityScale(parseFloat(e.target.value))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-metarh-medium"
+                      className="flex-1 h-2 bg-gray-200 rounded-2xl appearance-none cursor-pointer accent-metarh-medium"
                     />
-                    <div className="w-16 text-center font-bold text-lg text-metarh-medium border border-gray-200 rounded-lg py-1 bg-white">
+                    <div className="w-16 text-center font-bold text-lg text-metarh-medium border border-gray-200 rounded-2xl py-1 bg-white">
                       {complexityScale}
                     </div>
                   </div>
@@ -471,7 +472,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     <span>Coeficiente: <strong className="text-metarh-medium text-lg">{result.totalWeight.toFixed(1)}</strong> / 5</span>
                     <span className="text-gray-500">Salário Referência Total: {fmtCurrency(result.referenceSalaryTotal)}</span>
                   </div>
-                  <div className="bg-metarh-medium/10 border border-metarh-medium/30 rounded-lg p-3">
+                  <div className="bg-metarh-medium/10 border border-metarh-medium/30 rounded-2xl p-3">
                     <div className="flex items-center gap-2">
                       <AlertCircle size={16} className="text-metarh-medium" />
                       <span className="text-sm font-bold text-metarh-dark">
@@ -494,7 +495,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 <BarChart3 size={18} /> 2. Custos Operacionais
               </h2>
 
-              <div className="mb-6 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+              <div className="mb-6 bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
                 <div className="flex justify-between items-center mb-3">
                   <label className="block text-xs font-bold text-gray-700 uppercase">Equipe (Qtd Profissionais)</label>
                   <div className="w-40">
@@ -504,7 +505,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                         type="number"
                         value={inputs.demandedDays || ''}
                         onChange={(e) => handleNumberChange('demandedDays', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
+                        className="w-full px-3 py-2 rounded-2xl border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
                         placeholder="0"
                       />
                       <span className="text-[10px] text-gray-500 whitespace-nowrap">
@@ -521,7 +522,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
                 {/* Team Totals */}
                 {result && (
-                  <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-lg p-3">
+                  <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-2xl p-3">
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-bold text-gray-700">Total da Equipe:</span>
                       <span className="font-bold text-metarh-dark">{inputs.qtyConsultant2 + inputs.qtyConsultant1 + inputs.qtyAssistant} profissionais</span>
@@ -549,7 +550,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                         type="text"
                         value={item.name}
                         onChange={(e) => handleUpdateFixedItem(item.id, 'name', e.target.value)}
-                        className="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm"
+                        className="flex-1 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
                         placeholder="Nome do item"
                       />
                       <div className="w-24">
@@ -557,7 +558,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                           type="number"
                           value={item.cost || ''}
                           onChange={(e) => handleUpdateFixedItem(item.id, 'cost', e.target.value)}
-                          className="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-right"
+                          className="w-full p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm text-right"
                           placeholder="R$ Unit."
                         />
                       </div>
@@ -566,7 +567,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                           type="number"
                           value={item.quantity || ''}
                           onChange={(e) => handleUpdateFixedItem(item.id, 'quantity', e.target.value)}
-                          className="w-full p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-center"
+                          className="w-full p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm text-center"
                           placeholder="Qtd"
                         />
                       </div>
@@ -580,7 +581,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 {/* Fixed Costs Total */}
                 {result && (
                   <>
-                    <div className="mt-4 bg-gray-100 border border-gray-300 rounded-lg p-3">
+                    <div className="mt-4 bg-gray-100 border border-gray-300 rounded-2xl p-3">
                       <div className="flex justify-between items-center text-sm">
                         <span className="font-bold text-gray-700">Total Custos Fixos:</span>
                         <span className="font-bold text-gray-900 text-lg">{fmtCurrency(result.fixedItemsCostTotal)}</span>
@@ -588,7 +589,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     </div>
 
                     {/* Total Operational Costs */}
-                    <div className="mt-4 bg-gradient-to-br from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-lg p-4">
+                    <div className="mt-4 bg-gradient-to-br from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-2xl p-4">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-metarh-dark uppercase text-sm">Total Custos Operacionais:</span>
                         <span className="font-bold text-metarh-dark text-xl">{fmtCurrency(result.totalOperationalCost)}</span>
@@ -607,7 +608,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               </h2>
 
               {/* Admin Fee */}
-              <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-xl">
+              <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
                 <div className="flex items-center gap-2 mb-3">
                   <input
@@ -615,13 +616,13 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     step="1"
                     value={inputs.marginMultiplier}
                     onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
-                    className="w-20 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                    className="w-20 p-2 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
                   />
                   <span className="text-sm text-gray-600">%</span>
                   <span className="text-xs text-gray-500">sobre salário referência</span>
                 </div>
                 {result && (
-                  <div className="bg-white rounded-lg p-3 border border-gray-300">
+                  <div className="bg-white rounded-2xl p-3 border border-gray-300">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-gray-600">Valor Total:</span>
                       <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
@@ -650,7 +651,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
                     {/* Highlighted Reference Salary */}
                     {/* Highlighted Reference Salary */}
-                    <div className="bg-white/10 border border-white/20 rounded-xl p-3 my-3">
+                    <div className="bg-white/10 border border-white/20 rounded-3xl p-3 my-3">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-bold text-metarh-lime uppercase tracking-wider">Salário Referência</span>
                         <span className="text-xl font-bold text-white">{fmtCurrency(result.referenceSalaryTotal)}</span>
@@ -665,7 +666,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   </div>
 
                   {/* Taxes Breakdown */}
-                  <div className="bg-white/5 p-4 rounded-xl space-y-1 text-xs">
+                  <div className="bg-white/5 p-4 rounded-3xl space-y-1 text-xs">
                     <p className="font-bold text-gray-300 mb-2 uppercase tracking-wider">Impostos (NF)</p>
                     <Row label="ISS" value={fmtCurrency(result.taxIss)} small />
                     <Row label="PIS (1.65%)" value={fmtCurrency(result.taxPis)} small />
@@ -698,7 +699,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400 p-4 rounded-2xl">
                       <p className="text-xs uppercase font-bold mb-2 text-purple-300 tracking-wider">💰 Lucro L. Operacional</p>
                       <p className="text-2xl font-bold text-white mb-1">{fmtCurrency(result.realProfit)}</p>
-                      <div className="bg-white/10 rounded-lg p-2 mt-2 border border-purple-300/30">
+                      <div className="bg-white/10 rounded-2xl p-2 mt-2 border border-purple-300/30">
                         <p className="text-2xl font-bold text-purple-200 text-center">
                           {result.profitMarginPercentage.toFixed(1)}%
                         </p>
@@ -751,6 +752,12 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
         </div>
       </div>
+      {/* Footer */}
+      <footer className="mt-12 bg-metarh-dark py-8 rounded-t-[3rem] -mx-4 md:-mx-8 mb-[-2rem]">
+        <div className="flex justify-center">
+          <Logo variant="white" orientation="horizontal" className="h-8" />
+        </div>
+      </footer>
     </div>
   );
 };
@@ -764,7 +771,7 @@ const InputField: React.FC<{ label: string, type: string, value: any, onChange: 
       type={type}
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
+      className="w-full p-3 bg-gray-50 rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
     />
   </div>
 );
@@ -775,7 +782,7 @@ const SelectField: React.FC<{ label: string, value: number, onChange: (val: stri
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
+      className="w-full p-3 bg-gray-50 rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
     >
       {options.map((opt, i) => <option key={i} value={opt.value}>{opt.label}</option>)}
     </select>

@@ -8,6 +8,7 @@ import {
     LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE
 } from '../constants';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
+import { Logo } from './Logo';
 
 interface LaborPosition {
     id: string;
@@ -125,9 +126,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             const base = pos.baseSalary;
 
             // Hourly and Daily Rate Calculations (Reference)
-            // If hoursPerMonth is 0, avoid division by zero
-            const hourlyRate = pos.hoursPerMonth > 0 ? base / pos.hoursPerMonth : 0;
-            const dailyRate = pos.daysPerMonth > 0 ? base / pos.daysPerMonth : 0;
+            // Hourly and Daily Rate Calculations (Standard 220h / 22d)
+            const hourlyRate = base / 220;
+            const dailyRate = base / 22;
 
             // 2. Hazard Pay (Periculosidade) - % on Base Salary (or calculated base?)
             // Usually Hazard Pay is on the base salary. If hourly, it should be on the hourly earnings?
@@ -391,7 +392,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                     </h3>
                     <div className="grid md:grid-cols-3 gap-4">
                         {/* Provisionado */}
-                        <div className={`bg-white p-4 rounded-xl border-2 transition-all ${provisioningMode === 'full' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                        <div className={`bg-white p-4 rounded-3xl border-2 transition-all ${provisioningMode === 'full' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
                             <h4 className="font-bold text-gray-800 mb-2">Provisionado</h4>
                             <p className="text-xs text-gray-600 mb-3">Inclui todas as provisões trabalhistas (Grupo A + Grupo B completo)</p>
                             <div className="space-y-2">
@@ -414,7 +415,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         </div>
 
                         {/* Semi Provisionado */}
-                        <div className={`bg-white p-4 rounded-xl border-2 transition-all ${provisioningMode === 'semi' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                        <div className={`bg-white p-4 rounded-3xl border-2 transition-all ${provisioningMode === 'semi' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
                             <h4 className="font-bold text-gray-800 mb-2">Semi Provisionado</h4>
                             <p className="text-xs text-gray-600 mb-3">Exclui Aviso Prévio, Depósito Rescisão e Auxílio Doença</p>
                             <div className="space-y-2">
@@ -437,7 +438,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         </div>
 
                         {/* Não Provisionado */}
-                        <div className={`bg-white p-4 rounded-xl border-2 transition-all ${provisioningMode === 'none' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                        <div className={`bg-white p-4 rounded-3xl border-2 transition-all ${provisioningMode === 'none' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
                             <h4 className="font-bold text-gray-800 mb-2">Não Provisionado</h4>
                             <p className="text-xs text-gray-600 mb-3">Apenas Grupo A (encargos sociais obrigatórios)</p>
                             <div className="space-y-2">
@@ -475,7 +476,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                             <div className="space-y-4">
                                 {positions.map((pos, idx) => (
-                                    <div key={pos.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
+                                    <div key={pos.id} className="bg-gray-50 p-4 rounded-3xl border border-gray-200 relative">
                                         <div className="flex justify-between items-start mb-4">
                                             <h3 className="text-sm font-bold text-gray-700">Cargo {idx + 1}</h3>
                                             {positions.length > 1 && (
@@ -495,7 +496,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     type="text"
                                                     value={pos.roleName}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, roleName: e.target.value } : p))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                     placeholder="Ex: Analista Administrativo"
                                                 />
                                             </div>
@@ -506,7 +507,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         type="number"
                                                         value={pos.vacancies}
                                                         onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, vacancies: Number(e.target.value) } : p))}
-                                                        className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                     />
                                                 </div>
                                                 <div>
@@ -515,7 +516,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         type="number"
                                                         value={pos.baseSalary}
                                                         onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, baseSalary: Number(e.target.value) } : p))}
-                                                        className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                         placeholder="Referência"
                                                     />
                                                 </div>
@@ -523,7 +524,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
 
                                         {/* Hourly Mode Toggle */}
-                                        <div className="mt-4 flex items-center gap-4 bg-white p-2 rounded-lg border border-gray-200">
+                                        <div className="mt-4 flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-200">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -547,14 +548,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     </div>
                                                     <div className="flex items-center gap-2 ml-auto">
                                                         <span className="text-xs text-gray-500 uppercase font-bold">Valor Hora:</span>
-                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.hoursPerMonth > 0 ? pos.baseSalary / pos.hoursPerMonth : 0)}</span>
+                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.baseSalary / 220)}</span>
                                                     </div>
                                                 </>
                                             )}
                                         </div>
 
                                         {/* Daily Worker Mode Toggle */}
-                                        <div className="mt-2 flex items-center gap-4 bg-white p-2 rounded-lg border border-gray-200">
+                                        <div className="mt-2 flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-200">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -578,7 +579,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     </div>
                                                     <div className="flex items-center gap-2 ml-auto">
                                                         <span className="text-xs text-gray-500 uppercase font-bold">Valor Dia:</span>
-                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.daysPerMonth > 0 ? pos.baseSalary / pos.daysPerMonth : 0)}</span>
+                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.baseSalary / 22)}</span>
                                                     </div>
                                                 </>
                                             )}
@@ -590,7 +591,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <select
                                                     value={pos.hazardPay}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hazardPay: Number(e.target.value) as any } : p))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
+                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
                                                 >
                                                     <option value={0}>Não se aplica</option>
                                                     <option value={0.30}>30%</option>
@@ -602,7 +603,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <select
                                                     value={pos.unhealthinessLevel}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, unhealthinessLevel: e.target.value as any } : p))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
+                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
                                                 >
                                                     <option value="none">Não se aplica</option>
                                                     <option value="min">Mínimo (10%)</option>
@@ -663,7 +664,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 {/* Total Gross Salary Display */}
                                 {result && (
                                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
                                             <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Salário Bruto:</span>
                                             <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalGrossSalary)}</span>
                                         </div>
@@ -680,7 +681,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                             <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
                                 {/* Group A */}
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                                     <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Encargos Sociais Obrigatórios - Grupo A</h3>
                                     <div className="space-y-2 text-xs text-gray-600">
                                         <div className="flex justify-between">
@@ -750,7 +751,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
 
                                 {/* Group B */}
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                                     <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Encargos Trabalhistas | Provisões - Grupo B</h3>
                                     <div className="space-y-2 text-xs text-gray-600">
                                         {result?.groupBItems && Object.entries(result.groupBItems).map(([key, val]) => (
@@ -774,7 +775,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
 
                             {/* Highlighted Total Charges */}
-                            <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-xl p-4 flex justify-between items-center">
+                            <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-3xl p-4 flex justify-between items-center">
                                 <span className="text-sm font-bold text-metarh-dark uppercase">Total de Encargos (A + B)</span>
                                 <div className="text-right">
                                     <span className="text-2xl font-bold text-metarh-medium">
@@ -800,7 +801,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Benefícios Padrão</h3>
                                 <div className="grid md:grid-cols-2 gap-4">
                                     {/* Vale Transporte */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200">
                                         <div className="flex items-center justify-between mb-2">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
@@ -835,7 +836,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Vale Refeição */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200">
                                         <div className="flex items-center justify-between mb-2">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
@@ -870,7 +871,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Vale Alimentação */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -884,7 +885,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Seguro de Vida */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -898,7 +899,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Auxílio Farmácia */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -912,7 +913,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Controle de Ponto */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -926,7 +927,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* PLR */}
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-200 flex items-center justify-between">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -943,57 +944,57 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                             <div className="space-y-4">
                                 {/* Medical Plan */}
-                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-3xl border border-gray-200">
                                     <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Plano Médico</label>
                                     <div className="md:col-span-2 flex gap-4">
                                         <select
                                             value={selectedMedicalPlan}
                                             onChange={(e) => setSelectedMedicalPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
+                                            className="flex-1 p-2 bg-white rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
                                         >
                                             {BENEFIT_OPTIONS.medical.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.name}</option>
                                             ))}
                                         </select>
-                                        <div className="w-32 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
+                                        <div className="w-32 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
                                             {fmtCurrency(BENEFIT_OPTIONS.medical.find(p => p.id === selectedMedicalPlan)?.value || 0)}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Dental Plan */}
-                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-3xl border border-gray-200">
                                     <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Plano Odontológico</label>
                                     <div className="md:col-span-2 flex gap-4">
                                         <select
                                             value={selectedDentalPlan}
                                             onChange={(e) => setSelectedDentalPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
+                                            className="flex-1 p-2 bg-white rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
                                         >
                                             {BENEFIT_OPTIONS.dental.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.name}</option>
                                             ))}
                                         </select>
-                                        <div className="w-32 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
+                                        <div className="w-32 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
                                             {fmtCurrency(BENEFIT_OPTIONS.dental.find(p => p.id === selectedDentalPlan)?.value || 0)}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Wellhub */}
-                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                <div className="grid md:grid-cols-3 gap-4 items-center bg-gray-50 p-3 rounded-3xl border border-gray-200">
                                     <label className="text-xs font-bold text-gray-500 uppercase md:col-span-1">Wellhub (Gympass)</label>
                                     <div className="md:col-span-2 flex gap-4">
                                         <select
                                             value={selectedWellhubPlan}
                                             onChange={(e) => setSelectedWellhubPlan(e.target.value)}
-                                            className="flex-1 p-2 bg-white rounded-lg border border-gray-300 text-sm text-metarh-dark font-medium"
+                                            className="flex-1 p-2 bg-white rounded-2xl border border-gray-300 text-sm text-metarh-dark font-medium"
                                         >
                                             {BENEFIT_OPTIONS.wellhub.map(opt => (
                                                 <option key={opt.id} value={opt.id}>{opt.name}</option>
                                             ))}
                                         </select>
-                                        <div className="w-32 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
+                                        <div className="w-32 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-right text-gray-700 flex items-center justify-end">
                                             {fmtCurrency(BENEFIT_OPTIONS.wellhub.find(p => p.id === selectedWellhubPlan)?.value || 0)}
                                         </div>
                                     </div>
@@ -1012,7 +1013,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 newBenefits[idx].name = e.target.value;
                                                 setCustomBenefits(newBenefits);
                                             }}
-                                            className="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm"
+                                            className="flex-1 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
                                             placeholder="Nome do benefício"
                                         />
                                         <input
@@ -1023,7 +1024,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 newBenefits[idx].value = Number(e.target.value);
                                                 setCustomBenefits(newBenefits);
                                             }}
-                                            className="w-24 p-2 bg-gray-50 rounded-lg border border-gray-200 text-sm"
+                                            className="w-24 p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm"
                                             placeholder="Valor"
                                         />
                                         <button onClick={() => setCustomBenefits(customBenefits.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600">
@@ -1042,7 +1043,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             {/* Total Benefits Display */}
                             {result && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
                                         <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Benefícios:</span>
                                         <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits)}</span>
                                     </div>
@@ -1055,7 +1056,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <FileText size={18} /> 4. Exames Clínicos
                             </h2>
-                            <div className="bg-gray-50 p-4 rounded-xl">
+                            <div className="bg-gray-50 p-4 rounded-3xl">
                                 <div className="space-y-2">
                                     {EXAM_OPTIONS.map(exam => (
                                         <div key={exam.id} className="flex justify-between text-sm text-gray-600 border-b border-gray-200 last:border-0 pb-2 last:pb-0">
@@ -1069,7 +1070,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             {/* Total Exams Display */}
                             {result && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
                                         <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Exames:</span>
                                         <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalExams)}</span>
                                     </div>
@@ -1084,14 +1085,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </h2>
 
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa de Backup (%)</label>
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="number"
                                             value={backupFeePercent * 100}
                                             onChange={(e) => setBackupFeePercent(Number(e.target.value) / 100)}
-                                            className="w-20 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-center"
+                                            className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
                                         />
                                         <span className="text-gray-500 font-bold">%</span>
                                         <div className="flex-1 text-right">
@@ -1099,14 +1100,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="number"
                                             value={adminFeePercent * 100}
                                             onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                            className="w-20 p-2 bg-white rounded-lg border border-gray-300 text-sm font-bold text-center"
+                                            className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
                                         />
                                         <span className="text-gray-500 font-bold">%</span>
                                         <div className="flex-1 text-right">
@@ -1119,7 +1120,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             {/* Total Fees Display */}
                             {result && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-lg border border-metarh-medium/20">
+                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
                                         <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Taxas:</span>
                                         <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalFees)}</span>
                                     </div>
@@ -1161,7 +1162,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             {recruitmentType === 'selection' && (
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Team Inputs (from Pricing Calculator) */}
-                                    <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                                    <div className="bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
                                         <div className="flex justify-between items-center mb-3">
                                             <label className="block text-xs font-bold text-gray-700 uppercase">Equipe de Recrutamento</label>
                                             <div className="w-40">
@@ -1171,7 +1172,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         type="number"
                                                         value={demandedDays || ''}
                                                         onChange={(e) => setDemandedDays(Number(e.target.value))}
-                                                        className="w-full px-3 py-2 rounded-lg border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
+                                                        className="w-full px-3 py-2 rounded-2xl border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
                                                         placeholder="0"
                                                     />
                                                     <span className="text-[10px] text-gray-500 whitespace-nowrap">
@@ -1187,7 +1188,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     type="number"
                                                     value={qtySenior}
                                                     onChange={(e) => setQtySenior(Number(e.target.value))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -1196,7 +1197,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     type="number"
                                                     value={qtyPlena}
                                                     onChange={(e) => setQtyPlena(Number(e.target.value))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -1205,7 +1206,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     type="number"
                                                     value={qtyJunior}
                                                     onChange={(e) => setQtyJunior(Number(e.target.value))}
-                                                    className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                 />
                                             </div>
                                         </div>
@@ -1216,7 +1217,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             {/* Total Recruitment Display */}
                             {result && recruitmentType === 'selection' && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-purple-50 px-4 py-2 rounded-lg border border-purple-100">
+                                    <div className="bg-purple-50 px-4 py-2 rounded-2xl border border-purple-100">
                                         <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Recrutamento:</span>
                                         <span className="text-lg font-bold text-purple-700">{fmtCurrency(result.teamCost)}</span>
                                     </div>
@@ -1232,7 +1233,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                             {result && (
                                 <div className="space-y-3">
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between text-gray-600">
                                                 <span>ISS ({fmtPercent(LABOR_TAX_RATES.iss)})</span>
@@ -1258,7 +1259,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Total Tributos */}
-                                    <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex justify-between items-center">
+                                    <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
                                         <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
                                         <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
                                     </div>
@@ -1332,7 +1333,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     {/* Operational Cost */}
-                                    <div className="bg-white/10 p-4 rounded-xl border border-white/20">
+                                    <div className="bg-white/10 p-4 rounded-3xl border border-white/20">
                                         <p className="text-xs text-gray-300 uppercase font-bold mb-1">Custo Total Operacional</p>
                                         <p className="text-2xl font-bold text-white">{fmtCurrency(result.totalOperationalCost)}</p>
                                         <p className="text-[10px] text-gray-400 text-right">Por mês</p>
@@ -1356,21 +1357,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     {/* NEW TOTALS - As requested */}
                                     <div className="mt-4 space-y-3">
                                         {/* Total Bruto (NF) */}
-                                        <div className="bg-blue-900/30 p-4 rounded-xl border border-blue-500/20">
+                                        <div className="bg-blue-900/30 p-4 rounded-3xl border border-blue-500/20">
                                             <p className="text-xs text-blue-200 uppercase font-bold mb-1">Total Bruto (NF)</p>
                                             <p className="text-xl font-bold text-white">{fmtCurrency(result.totalBrutoNF || 0)}</p>
                                             <p className="text-[10px] text-blue-300 mt-1">Salário Bruto + Encargos + Benefícios + Exames + Taxas + Recrutamento + Tributos</p>
                                         </div>
 
                                         {/* Total Líquido */}
-                                        <div className="bg-green-900/30 p-4 rounded-xl border border-green-500/20">
+                                        <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
                                             <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido</p>
                                             <p className="text-xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
                                             <p className="text-[10px] text-green-300 mt-1">Salário Bruto - Retenção IR (15,5%)</p>
                                         </div>
 
                                         {/* Lucro L. Operacional */}
-                                        <div className="bg-yellow-900/30 p-4 rounded-xl border border-yellow-500/20">
+                                        <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
                                             <p className="text-xs text-yellow-200 uppercase font-bold mb-1">Lucro L. Operacional</p>
                                             <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
                                             <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
@@ -1379,7 +1380,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                     {recruitmentType === 'selection' && result.teamCost > 0 && (
                                         <div className="mt-4 space-y-2">
-                                            <div className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20">
+                                            <div className="p-3 bg-purple-900/30 rounded-3xl border border-purple-500/20">
                                                 <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
                                                 <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
                                                 <p className="text-[10px] text-purple-300">Custo interno estimado</p>
@@ -1440,6 +1441,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                 </div>
             </div>
+
+            {/* Footer */}
+            <footer className="mt-12 bg-metarh-dark py-8 rounded-t-[3rem] -mx-4 md:-mx-8 mb-[-2rem]">
+                <div className="flex justify-center">
+                    <Logo variant="white" orientation="horizontal" className="h-8" />
+                </div>
+            </footer>
         </div>
     );
 };

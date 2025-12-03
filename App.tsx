@@ -194,28 +194,126 @@ const App: React.FC = () => {
     return <LoginScreen onLoginSuccess={handleLogin} users={allUsers} isExiting={isLoginExiting} />;
   }
 
+  const renderHeader = () => (
+    <header className="bg-gradient-to-r from-metarh-medium to-purple-700 text-white px-6 py-3 shadow-lg sticky top-0 z-30">
+      <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-4">
+        {/* Left: Logo + Greeting */}
+        <div className="flex items-center gap-6">
+          <Logo variant="white" orientation="horizontal" className="h-7 w-auto" />
+          <div className="hidden md:block">
+            <p className="text-sm font-medium opacity-90">{greeting}, <span className="font-bold">{currentUser.name.split(' ')[0]}</span></p>
+          </div>
+        </div>
+
+        {/* Center: Navigation Menu */}
+        <nav className="flex items-center gap-2">
+          <button
+            onClick={() => setView('catalog')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'catalog' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
+          >
+            <span className="flex items-center gap-2">
+              <Layers size={18} />
+              <span className="hidden sm:inline">Catálogo</span>
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              setView('calculator');
+              setActiveCalculator(null);
+            }}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'calculator' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
+          >
+            <span className="flex items-center gap-2">
+              <Calculator size={18} />
+              <span className="hidden sm:inline">Calculadoras</span>
+            </span>
+          </button>
+          <button
+            onClick={() => setIsSummaryModalOpen(true)}
+            className="px-4 py-2 rounded-lg font-medium text-sm bg-white/10 hover:bg-white/20 transition-all relative"
+          >
+            <span className="flex items-center gap-2">
+              <ShoppingBag size={18} />
+              <span className="hidden sm:inline">Minhas Propostas</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-yellow-400 text-metarh-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </span>
+          </button>
+        </nav>
+
+        {/* Right: Profile + Admin Controls */}
+        <div className="flex items-center gap-3">
+          {currentUser.isAdmin && (
+            <>
+              <button
+                onClick={() => setIsUserManagementOpen(true)}
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                title="Gerenciar Usuários"
+              >
+                <Crown size={20} className="text-yellow-300" />
+              </button>
+              <button
+                onClick={() => setIsAppSettingsModalOpen(true)}
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                title="Configurações"
+              >
+                <Settings size={20} />
+              </button>
+            </>
+          )}
+          <div className="h-6 w-px bg-white/20"></div>
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            className="flex items-center gap-2 hover:bg-white/10 rounded-lg p-1 pr-3 transition-all"
+          >
+            <div className="relative">
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.name}
+                className="w-8 h-8 rounded-full object-cover border-2 border-white/30"
+              />
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-metarh-medium rounded-full"></div>
+            </div>
+            <span className="hidden lg:inline text-sm font-medium">{currentUser.name.split(' ')[0]}</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="p-2 bg-white/10 hover:bg-red-500 rounded-lg transition-all"
+            title="Sair"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+
   // --- RENDER CALCULATORS ---
   if (view === 'calculator') {
     if (activeCalculator === 'pricing') {
-      return <PricingCalculator onCancel={() => setActiveCalculator(null)} />;
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+          {renderHeader()}
+          <PricingCalculator onCancel={() => setActiveCalculator(null)} />
+        </div>
+      );
     }
     if (activeCalculator === 'labor') {
-      return <LaborCalculator onCancel={() => setActiveCalculator(null)} />;
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+          {renderHeader()}
+          <LaborCalculator onCancel={() => setActiveCalculator(null)} />
+        </div>
+      );
     }
 
     // Calculator Dashboard
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col animate-fade-in">
-        <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setView('catalog')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <ArrowRight className="rotate-180 text-gray-500" />
-            </button>
-            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <Calculator className="text-metarh-medium" /> Calculadoras
-            </h1>
-          </div>
-        </div>
+        {renderHeader()}
 
         <div className="flex-1 p-8 max-w-5xl mx-auto w-full flex items-center justify-center">
           <div className="grid md:grid-cols-2 gap-8 w-full">
@@ -299,100 +397,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
       {/* Top Navigation Bar */}
-      <header className="bg-gradient-to-r from-metarh-medium to-purple-700 text-white px-6 py-3 shadow-lg sticky top-0 z-30">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-4">
-          {/* Left: Logo + Greeting */}
-          <div className="flex items-center gap-6">
-            <Logo variant="white" orientation="horizontal" className="h-7 w-auto" />
-            <div className="hidden md:block">
-              <p className="text-sm font-medium opacity-90">{greeting}, <span className="font-bold">{currentUser.name.split(' ')[0]}</span></p>
-            </div>
-          </div>
-
-          {/* Center: Navigation Menu */}
-          <nav className="flex items-center gap-2">
-            <button
-              onClick={() => setView('catalog')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'catalog' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
-            >
-              <span className="flex items-center gap-2">
-                <Layers size={18} />
-                <span className="hidden sm:inline">Catálogo</span>
-              </span>
-            </button>
-            <button
-              onClick={() => {
-                setView('calculator');
-                setActiveCalculator(null);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'calculator' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
-            >
-              <span className="flex items-center gap-2">
-                <Calculator size={18} />
-                <span className="hidden sm:inline">Calculadoras</span>
-              </span>
-            </button>
-            <button
-              onClick={() => setIsSummaryModalOpen(true)}
-              className="px-4 py-2 rounded-lg font-medium text-sm bg-white/10 hover:bg-white/20 transition-all relative"
-            >
-              <span className="flex items-center gap-2">
-                <ShoppingBag size={18} />
-                <span className="hidden sm:inline">Minhas Propostas</span>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-metarh-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </span>
-            </button>
-          </nav>
-
-          {/* Right: Profile + Admin Controls */}
-          <div className="flex items-center gap-3">
-            {currentUser.isAdmin && (
-              <>
-                <button
-                  onClick={() => setIsUserManagementOpen(true)}
-                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-                  title="Gerenciar Usuários"
-                >
-                  <Crown size={20} className="text-yellow-300" />
-                </button>
-                <button
-                  onClick={() => setIsAppSettingsModalOpen(true)}
-                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-                  title="Configurações"
-                >
-                  <Settings size={20} />
-                </button>
-              </>
-            )}
-            <div className="h-6 w-px bg-white/20"></div>
-            <button
-              onClick={() => setIsProfileModalOpen(true)}
-              className="flex items-center gap-2 hover:bg-white/10 rounded-lg p-1 pr-3 transition-all"
-            >
-              <div className="relative">
-                <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.name}
-                  className="w-8 h-8 rounded-full object-cover border-2 border-white/30"
-                />
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-metarh-medium rounded-full"></div>
-              </div>
-              <span className="hidden lg:inline text-sm font-medium">{currentUser.name.split(' ')[0]}</span>
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-2 bg-white/10 hover:bg-red-500 rounded-lg transition-all"
-              title="Sair"
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
-      </header>
+      {renderHeader()}
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">

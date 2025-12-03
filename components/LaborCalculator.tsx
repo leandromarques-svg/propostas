@@ -1475,12 +1475,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                 </div>
             </div>
 
-            {/* Footer */}
-            <footer className="mt-12 bg-metarh-dark py-8 rounded-t-[3rem] -mx-4 md:-mx-8 mb-[-2rem]">
-                <div className="flex justify-center">
-                    <Logo variant="white" orientation="horizontal" className="h-8" />
-                </div>
-            </footer>
+
         </div>
     );
 };

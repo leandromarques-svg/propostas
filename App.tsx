@@ -16,6 +16,7 @@ import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight, Sparkles } from 'lucide-react';
+import { Footer } from './components/Footer';
 
 // Package Themes Helper
 const getPackageTheme = (packageKey: string) => {
@@ -127,9 +128,9 @@ const App: React.FC = () => {
     }, 500);
   };
 
-  const addToCart = (solution: SolutionData) => {
+  const addToCart = (solution: SolutionData, selections?: CartSelections) => {
     if (!cart.find(item => item.solution.id === solution.id)) {
-      setCart([...cart, { solution, quantity: 1, selections: { benefits: [], publicNeeds: [], toolsUsed: [] } }]);
+      setCart([...cart, { solution, quantity: 1, selections: selections || { benefits: [], publicNeeds: [], toolsUsed: [] } }]);
     }
   };
 
@@ -298,6 +299,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
           {renderHeader()}
           <PricingCalculator onCancel={() => setActiveCalculator(null)} />
+          <Footer />
         </div>
       );
     }
@@ -306,6 +308,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
           {renderHeader()}
           <LaborCalculator onCancel={() => setActiveCalculator(null)} />
+          <Footer />
         </div>
       );
     }
@@ -368,13 +371,18 @@ const App: React.FC = () => {
 
   if (view === 'proposal') {
     return (
-      <ProposalView
-        cart={cart}
-        onBack={() => setView('catalog')}
-        onSave={handleSaveProposal}
-        currentUser={currentUser}
-        layout={proposalLayout}
-      />
+      <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+        {renderHeader()}
+        <ProposalView
+          cart={cart}
+          onBack={() => setView('catalog')}
+          onSaveToHistory={handleSaveProposal}
+          user={currentUser}
+          history={proposalHistory}
+          onRemove={removeFromCart}
+        />
+        <Footer />
+      </div>
     );
   }
 
@@ -569,6 +577,7 @@ const App: React.FC = () => {
                 })
               )}
             </div>
+            <Footer />
           </div>
         </div>
 
@@ -610,8 +619,8 @@ const App: React.FC = () => {
           solution={selectedSolution}
           isOpen={!!selectedSolution}
           onClose={() => setSelectedSolution(null)}
-          onAddToCart={() => {
-            addToCart(selectedSolution);
+          onAddToProposal={(s, selections) => {
+            addToCart(s, selections);
             setSelectedSolution(null);
           }}
         />
@@ -621,7 +630,7 @@ const App: React.FC = () => {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         user={currentUser}
-        onUpdateUser={handleUpdateUser}
+        onSave={handleUpdateUser}
       />
 
       <UserManagementModal

@@ -543,15 +543,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             placeholder="220"
                                                         />
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Horas:</span>
-                                                        <input
-                                                            type="number"
-                                                            value={pos.hoursQuantity}
-                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hoursQuantity: Number(e.target.value) } : p))}
-                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
-                                                        />
-                                                    </div>
                                                     <div className="flex items-center gap-2 ml-auto">
                                                         <span className="text-xs text-gray-500 uppercase font-bold">Valor Hora:</span>
                                                         <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.hoursPerMonth > 0 ? pos.baseSalary / pos.hoursPerMonth : 0)}</span>
@@ -581,15 +572,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysPerMonth: Number(e.target.value) } : p))}
                                                             className="w-20 p-1 text-sm border border-gray-300 rounded"
                                                             placeholder="22"
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Dias:</span>
-                                                        <input
-                                                            type="number"
-                                                            value={pos.daysQuantity}
-                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysQuantity: Number(e.target.value) } : p))}
-                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2 ml-auto">
@@ -727,17 +709,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.incra || 0)}</span>
                                             </div>
                                         </div>
-                                        <div className="flex justify-between items-center bg-white p-1 rounded border border-gray-200">
-                                            <span className="font-bold text-metarh-medium">Seguro Acidente Trabalho - SAT</span>
-                                            <div className="flex items-center gap-1">
-                                                <input
-                                                    type="number"
-                                                    value={(satRate * 100).toFixed(2)}
-                                                    onChange={(e) => setSatRate(Number(e.target.value) / 100)}
-                                                    className="w-12 p-1 text-right border-none bg-transparent outline-none font-bold"
-                                                />
-                                                <span>%</span>
-                                                <span className="font-bold text-gray-800 ml-1">{fmtCurrency(result?.totalGrossSalary * satRate || 0)}</span>
+                                        <div className="flex justify-between">
+                                            <span>Seguro Acidente Trabalho - SAT</span>
+                                            <div className="flex gap-2">
+                                                <span>{fmtPercent(satRate)}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * satRate || 0)}</span>
                                             </div>
                                         </div>
                                         <div className="flex justify-between">
@@ -1292,7 +1268,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                     {/* RIGHT COLUMN - RESULTS */}
                     <div className="lg:col-span-1">
-                        <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl lg:fixed lg:top-4 lg:right-4 lg:w-[380px] lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+                        <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl lg:sticky lg:top-4">
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                                 <BarChart3 size={24} className="text-metarh-lime" /> Resultado
                             </h2>
@@ -1409,35 +1385,40 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                     )}
 
-                                    {/* Dica do Especialista */}
-                                    <div className="mt-6 bg-gradient-to-br from-orange-900/40 to-yellow-900/40 p-5 rounded-2xl border border-orange-500/30">
-                                        <div className="flex items-start gap-3">
-                                            <Sparkles size={24} className="text-yellow-300 flex-shrink-0 mt-1" />
-                                            <div>
-                                                <h3 className="text-sm font-bold text-yellow-200 uppercase mb-2">💡 Dica do Especialista</h3>
-                                                <div className="text-xs text-gray-200 space-y-2">
-                                                    {result.lucroOperacional && result.lucroOperacional < 0 && (
-                                                        <p className="bg-red-900/30 p-2 rounded border border-red-500/30">
-                                                            ⚠️ <strong>Atenção:</strong> O lucro operacional está negativo. Considere revisar os custos ou aumentar a margem administrativa.
-                                                        </p>
-                                                    )}
-                                                    {provisioningMode === 'none' && (
-                                                        <p className="bg-yellow-900/30 p-2 rounded border border-yellow-500/30">
-                                                            ⚡ <strong>Contrato Não Provisionado:</strong> Lembre-se de manter uma reserva financeira para cobrir encargos rescisórios.
-                                                        </p>
-                                                    )}
-                                                    {provisioningMode === 'full' && (
-                                                        <p className="bg-green-900/30 p-2 rounded border border-green-500/30">
-                                                            ✅ <strong>Contrato Provisionado:</strong> Você está com máxima segurança jurídica e previsibilidade de custos.
-                                                        </p>
-                                                    )}
-                                                    <p className="bg-blue-900/30 p-2 rounded border border-blue-500/30">
-                                                        📊 <strong>Análise Geral:</strong> Revise sempre os benefícios oferecidos para manter a competitividade no mercado e a satisfação dos colaboradores.
-                                                    </p>
-                                                </div>
+                                    {/* Dica do Especialista - Same logic as PricingCalculator */}
+                                    {(() => {
+                                        const netLiquid = result.grossNF * 0.985; // Total Líquido (após retenção IR)
+                                        const realProfit = netLiquid - result.totalOperationalCost - result.totalTaxes;
+                                        const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
+
+                                        return (
+                                            <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
+                                                    ? 'bg-red-500/10 border-red-400'
+                                                    : profitMarginPercentage < 10
+                                                        ? 'bg-orange-500/10 border-orange-400'
+                                                        : profitMarginPercentage <= 35
+                                                            ? 'bg-yellow-500/10 border-yellow-400'
+                                                            : 'bg-green-500/10 border-green-400'
+                                                }`}>
+                                                <p className="text-xs font-bold mb-2 flex items-center gap-1">
+                                                    {realProfit < 0 ? '🚨' :
+                                                        profitMarginPercentage < 10 ? '😅' :
+                                                            profitMarginPercentage <= 35 ? '😉' : '🚀'}
+                                                    <span className="text-white">Dica do Especialista</span>
+                                                </p>
+                                                <p className="text-xs text-gray-300 leading-relaxed">
+                                                    {realProfit < 0
+                                                        ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
+                                                        : profitMarginPercentage < 10
+                                                            ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
+                                                            : profitMarginPercentage <= 35
+                                                                ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
+                                                                : 'Aí sim! Margem top (acima de 35%). O comercial tá voando! Pode fechar sem medo. 🚀'
+                                                    }
+                                                </p>
                                             </div>
-                                        </div>
-                                    </div>
+                                        );
+                                    })()}
 
                                     {/* Botão Gerar PDF */}
                                     <button

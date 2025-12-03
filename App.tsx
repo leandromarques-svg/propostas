@@ -303,7 +303,7 @@ const App: React.FC = () => {
         <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-4">
           {/* Left: Logo + Greeting */}
           <div className="flex items-center gap-6">
-            <Logo className="w-8 h-8 text-white" />
+            <Logo variant="white" orientation="horizontal" className="h-7 w-auto" />
             <div className="hidden md:block">
               <p className="text-sm font-medium opacity-90">{greeting}, <span className="font-bold">{currentUser.name.split(' ')[0]}</span></p>
             </div>
@@ -403,18 +403,22 @@ const App: React.FC = () => {
 
             {/* Hero Banner - Purple with Search */}
             <div className="bg-gradient-to-br from-purple-700 via-purple-600 to-purple-800 rounded-[3rem] p-12 mb-8 shadow-2xl relative overflow-hidden">
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-900/30 rounded-full blur-3xl"></div>
+              {/* Animated Background Blobs - Same as loading screen */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <div className="w-[800px] h-[800px] border-[1px] border-white/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s' }}></div>
+                <div className="w-[600px] h-[600px] border-[1px] border-white/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s', animationDelay: '0.5s' }}></div>
+              </div>
+              <div className="blob-shape bg-purple-500 w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20 animate-float absolute"></div>
+              <div className="blob-shape bg-purple-400 w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-screen filter blur-[80px] opacity-20 animate-float absolute" style={{ animationDelay: '2s' }}></div>
 
-              <div className="relative z-10 grid lg:grid-cols-2 gap-8 items-center">
-                {/* Left side - Text and Search */}
-                <div>
+              <div className="relative z-10">
+                {/* Text and Search */}
+                <div className="max-w-3xl">
                   <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                    Vamos construir uma proposta incrível hoje, <span className="text-yellow-300">{currentUser.name.split(' ')[0]}</span>?
+                    Vamos construir uma proposta incrível hoje, <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>?
                   </h1>
                   <p className="text-lg text-purple-100 mb-6">
-                    Explore nossa <strong className="text-yellow-300">árvore de soluções</strong> e personalize cada item para criar propostas exclusivas para nossos clientes.
+                    Explore nossa <strong style={{ color: '#c9f545' }}>árvore de soluções</strong> e personalize cada item para criar propostas exclusivas para nossos clientes.
                   </p>
 
                   {/* Search Bar */}
@@ -425,28 +429,11 @@ const App: React.FC = () => {
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
-                        setSearchTerm(e.target.value); // Sync with main search
+                        setSearchTerm(e.target.value);
                       }}
-                      className="w-full px-6 py-4 pr-12 rounded-2xl border-2 border-purple-300/30 bg-white/95 backdrop-blur-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-yellow-300/50 focus:border-yellow-300 transition-all shadow-lg"
+                      className="w-full px-6 py-4 pr-12 rounded-2xl border-2 border-purple-300/30 bg-white/95 backdrop-blur-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#c9f545]/50 focus:border-[#c9f545] transition-all shadow-lg"
                     />
                     <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400" size={24} />
-                  </div>
-                </div>
-
-                {/* Right side - Image/Illustration */}
-                <div className="hidden lg:flex justify-end items-center">
-                  <div className="relative">
-                    <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white/20 shadow-2xl">
-                      <div className="text-center">
-                        <Users size={80} className="text-white/80 mx-auto mb-4" />
-                        <p className="text-white font-bold text-xl">Soluções RH</p>
-                        <p className="text-purple-200 text-sm">Personalizadas</p>
-                      </div>
-                    </div>
-                    {/* Floating elements */}
-                    <div className="absolute -top-4 -right-4 w-24 h-24 bg-yellow-300 rounded-full flex items-center justify-center shadow-xl animate-bounce">
-                      <Sparkles size={32} className="text-purple-700" />
-                    </div>
                   </div>
                 </div>
               </div>

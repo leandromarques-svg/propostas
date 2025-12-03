@@ -892,138 +892,136 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
                         </div>
 
-                        {/* 3. BENEFITS (Unified Table) */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                        {/* 3. BENEFITS (Cards Layout) */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <Sparkles size={18} /> 3. Benefícios
                             </h2>
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-metarh-dark text-white uppercase text-xs">
-                                        <tr>
-                                            <th className="p-3 rounded-tl-xl">Benefícios</th>
-                                            <th className="p-3 text-center">Quantidade</th>
-                                            <th className="p-3 text-right">Valor Unit.</th>
-                                            <th className="p-3 text-center">Dias</th>
-                                            <th className="p-3 text-right">Valor Fornecido</th>
-                                            <th className="p-3 text-center">% | $ Descontos</th>
-                                            <th className="p-3 text-right">Valor Desc Colab.</th>
-                                            <th className="p-3 text-right rounded-tr-xl">Valor Cliente c/ Desc Colab.</th>
-                                            <th className="p-3"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {benefitsList.map((item) => {
-                                            const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item);
-                                            return (
-                                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="p-3 font-medium text-gray-800 min-w-[200px]">
-                                                        {item.type === 'custom' ? (
-                                                            <input
-                                                                type="text"
-                                                                value={item.name}
-                                                                onChange={(e) => updateBenefit(item.id, 'name', e.target.value)}
-                                                                className="w-full p-1 border border-gray-200 rounded bg-white text-sm"
-                                                            />
-                                                        ) : (
-                                                            <div>{item.name}</div>
-                                                        )}
-                                                        {item.type === 'plan_selection' && (
-                                                            <select
-                                                                value={item.selectedPlanId}
-                                                                onChange={(e) => updateBenefit(item.id, 'selectedPlanId', e.target.value)}
-                                                                className="mt-1 w-full p-1 text-xs border border-gray-200 rounded bg-white text-gray-600"
-                                                            >
-                                                                {item.id === 'medical' && BENEFIT_OPTIONS.medical.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-                                                                {item.id === 'dental' && BENEFIT_OPTIONS.dental.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-                                                                {item.id === 'wellhub' && BENEFIT_OPTIONS.wellhub.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-                                                            </select>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-3 text-center">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {benefitsList.map((item) => {
+                                    const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item);
+                                    return (
+                                        <div key={item.id} className="bg-gray-50 p-4 rounded-3xl border border-gray-200 hover:shadow-md transition-all relative group">
+                                            {/* Header: Name & Remove Button */}
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex-1 mr-2">
+                                                    {item.type === 'custom' ? (
+                                                        <input
+                                                            type="text"
+                                                            value={item.name}
+                                                            onChange={(e) => updateBenefit(item.id, 'name', e.target.value)}
+                                                            className="w-full p-1 bg-white border border-gray-200 rounded text-sm font-bold text-gray-700 focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                            placeholder="Nome do Benefício"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm font-bold text-gray-700 block">{item.name}</span>
+                                                    )}
+
+                                                    {item.type === 'plan_selection' && (
+                                                        <select
+                                                            value={item.selectedPlanId}
+                                                            onChange={(e) => updateBenefit(item.id, 'selectedPlanId', e.target.value)}
+                                                            className="mt-1 w-full p-1 text-xs border border-gray-200 rounded bg-white text-gray-600 focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                        >
+                                                            {item.id === 'medical' && BENEFIT_OPTIONS.medical.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                            {item.id === 'dental' && BENEFIT_OPTIONS.dental.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                            {item.id === 'wellhub' && BENEFIT_OPTIONS.wellhub.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                        </select>
+                                                    )}
+                                                </div>
+                                                {item.type === 'custom' && (
+                                                    <button
+                                                        onClick={() => setBenefitsList(prev => prev.filter(i => i.id !== item.id))}
+                                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Inputs Row */}
+                                            <div className="grid grid-cols-3 gap-2 mb-3">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qtd</label>
+                                                    <input
+                                                        type="number"
+                                                        value={item.quantity}
+                                                        onChange={(e) => updateBenefit(item.id, 'quantity', Number(e.target.value))}
+                                                        className="w-full p-1 text-center bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Valor Unit.</label>
+                                                    {item.type === 'plan_selection' ? (
+                                                        <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-600 truncate">
+                                                            {fmtCurrency(unitValue)}
+                                                        </div>
+                                                    ) : (
                                                         <input
                                                             type="number"
-                                                            value={item.quantity}
-                                                            onChange={(e) => updateBenefit(item.id, 'quantity', Number(e.target.value))}
-                                                            className="w-12 p-1 text-center border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                            value={item.unitValue}
+                                                            onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
+                                                            className="w-full p-1 text-center bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                            step="0.01"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Dias</label>
+                                                    {item.type === 'daily' ? (
+                                                        <input
+                                                            type="number"
+                                                            value={item.days}
+                                                            onChange={(e) => updateBenefit(item.id, 'days', Number(e.target.value))}
+                                                            className="w-full p-1 text-center bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
                                                             min="0"
                                                         />
-                                                    </td>
-                                                    <td className="p-3 text-right">
-                                                        {item.type === 'plan_selection' ? (
-                                                            <span className="text-gray-600">{fmtCurrency(unitValue)}</span>
-                                                        ) : (
-                                                            <input
-                                                                type="number"
-                                                                value={item.unitValue}
-                                                                onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
-                                                                className="w-20 p-1 text-right border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                                step="0.01"
-                                                            />
-                                                        )}
-                                                    </td>
-                                                    <td className="p-3 text-center">
-                                                        {item.type === 'daily' ? (
-                                                            <input
-                                                                type="number"
-                                                                value={item.days}
-                                                                onChange={(e) => updateBenefit(item.id, 'days', Number(e.target.value))}
-                                                                className="w-12 p-1 text-center border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                                min="0"
-                                                            />
-                                                        ) : (
-                                                            <span className="text-gray-300">-</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-3 text-right font-medium text-gray-700">
-                                                        {fmtCurrency(providedValue)}
-                                                    </td>
-                                                    <td className="p-3 text-center">
-                                                        <div className="flex items-center justify-center gap-1">
-                                                            <input
-                                                                type="number"
-                                                                value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
-                                                                onChange={(e) => {
-                                                                    const val = Number(e.target.value);
-                                                                    updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
-                                                                }}
-                                                                className="w-16 p-1 text-center border border-gray-200 rounded bg-white focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                                step={item.discountType === 'percentage' ? "0.1" : "0.01"}
-                                                            />
-                                                            <button
-                                                                onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
-                                                                className="text-xs font-bold text-metarh-medium hover:bg-metarh-medium/10 px-1 rounded w-6"
-                                                                title={item.discountType === 'percentage' ? 'Porcentagem' : 'Valor Fixo'}
-                                                            >
-                                                                {item.discountType === 'percentage' ? '%' : '$'}
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-3 text-right text-red-500">
-                                                        -{fmtCurrency(collabDiscount)}
-                                                    </td>
-                                                    <td className="p-3 text-right font-bold text-metarh-dark bg-gray-50/50">
-                                                        {fmtCurrency(clientCost)}
-                                                    </td>
-                                                    <td className="p-3 text-center">
-                                                        {item.type === 'custom' && (
-                                                            <button
-                                                                onClick={() => setBenefitsList(prev => prev.filter(i => i.id !== item.id))}
-                                                                className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                    ) : (
+                                                        <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-400">-</div>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                            <div className="mt-4 flex justify-between items-center">
+                                            {/* Discount Row */}
+                                            <div className="bg-white p-2 rounded-xl border border-gray-100 mb-3">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase">Desconto Colaborador</span>
+                                                    <button
+                                                        onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
+                                                        className="text-[10px] font-bold text-metarh-medium bg-metarh-medium/10 px-1.5 py-0.5 rounded hover:bg-metarh-medium/20 transition-colors"
+                                                    >
+                                                        {item.discountType === 'percentage' ? '%' : 'R$'}
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
+                                                        onChange={(e) => {
+                                                            const val = Number(e.target.value);
+                                                            updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
+                                                        }}
+                                                        className="w-16 p-1 text-center border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                        step={item.discountType === 'percentage' ? "0.1" : "0.01"}
+                                                    />
+                                                    <span className="text-xs text-red-500 font-medium flex-1 text-right truncate">
+                                                        -{fmtCurrency(collabDiscount)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Footer: Client Cost */}
+                                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                                <span className="text-xs font-bold text-gray-600">Custo Cliente:</span>
+                                                <span className="text-sm font-bold text-metarh-dark">{fmtCurrency(clientCost)}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Add Button Card */}
                                 <button
                                     onClick={() => setBenefitsList([...benefitsList, {
                                         id: `custom-${Date.now()}`,
@@ -1034,20 +1032,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         discountType: 'fixed',
                                         discountValue: 0
                                     }])}
-                                    className="text-xs font-bold text-metarh-medium hover:underline flex items-center gap-1"
+                                    className="bg-gray-50 p-4 rounded-3xl border-2 border-dashed border-gray-300 hover:border-metarh-medium hover:bg-metarh-medium/5 transition-all flex flex-col items-center justify-center min-h-[200px] text-gray-400 hover:text-metarh-medium group"
                                 >
-                                    <Plus size={14} /> Adicionar Item
-                                </button>
-
-                                {result && (
-                                    <div className="flex gap-4">
-                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Benefícios:</span>
-                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
-                                        </div>
+                                    <div className="bg-white p-3 rounded-full shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                        <Plus size={24} />
                                     </div>
-                                )}
+                                    <span className="text-sm font-bold">Adicionar Item</span>
+                                </button>
                             </div>
+
+                            {/* Total Benefits Display */}
+                            {result && (
+                                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                                    <div className="bg-metarh-medium/10 px-6 py-3 rounded-2xl border border-metarh-medium/20 flex items-center gap-3">
+                                        <span className="text-sm font-bold text-gray-600 uppercase">Total Benefícios + Exames:</span>
+                                        <span className="text-2xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 5. FEES */}

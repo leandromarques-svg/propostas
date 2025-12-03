@@ -524,64 +524,92 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
 
                                         {/* Hourly Mode Toggle */}
-                                        <div className="mt-4 flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-200">
-                                            <label className="flex items-center gap-2 cursor-pointer">
+                                        <div className="mt-4 flex flex-wrap items-center gap-4 bg-white p-3 rounded-2xl border border-gray-200 shadow-sm">
+                                            <label className="flex items-center gap-2 cursor-pointer min-w-[100px]">
                                                 <input
                                                     type="checkbox"
                                                     checked={pos.isHourly}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isHourly: e.target.checked, isDailyWorker: e.target.checked ? false : p.isDailyWorker } : p))}
-                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
+                                                    className="w-5 h-5 text-metarh-medium rounded-lg accent-metarh-medium transition-all"
                                                 />
                                                 <span className="text-sm font-bold text-gray-700">Horista</span>
                                             </label>
+
                                             {pos.isHourly && (
-                                                <>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Horas/Mês:</span>
+                                                <div className="flex-1 flex flex-wrap items-center gap-4 animate-fade-in">
+                                                    {/* Custo/Hora */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Custo/Hora</span>
+                                                        <span className="text-sm font-bold text-metarh-medium bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
+                                                            {fmtCurrency(pos.baseSalary / 220)}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Qtd Input */}
+                                                    <div className="flex flex-col flex-1 min-w-[120px]">
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold mb-1">QTDE horas/mês</span>
                                                         <input
                                                             type="number"
                                                             value={pos.hoursPerMonth}
                                                             onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hoursPerMonth: Number(e.target.value) } : p))}
-                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
-                                                            placeholder="220"
+                                                            className="w-full p-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-metarh-medium outline-none transition-all"
+                                                            placeholder="0"
                                                         />
                                                     </div>
-                                                    <div className="flex items-center gap-2 ml-auto">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Valor Hora:</span>
-                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.baseSalary / 220)}</span>
+
+                                                    {/* Total */}
+                                                    <div className="flex flex-col items-end min-w-[100px]">
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Custo Total</span>
+                                                        <span className="text-lg font-bold text-metarh-dark">
+                                                            {fmtCurrency((pos.baseSalary / 220) * pos.hoursPerMonth)}
+                                                        </span>
                                                     </div>
-                                                </>
+                                                </div>
                                             )}
                                         </div>
 
                                         {/* Daily Worker Mode Toggle */}
-                                        <div className="mt-2 flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-200">
-                                            <label className="flex items-center gap-2 cursor-pointer">
+                                        <div className="mt-2 flex flex-wrap items-center gap-4 bg-white p-3 rounded-2xl border border-gray-200 shadow-sm">
+                                            <label className="flex items-center gap-2 cursor-pointer min-w-[100px]">
                                                 <input
                                                     type="checkbox"
                                                     checked={pos.isDailyWorker}
                                                     onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isDailyWorker: e.target.checked, isHourly: e.target.checked ? false : p.isHourly } : p))}
-                                                    className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
+                                                    className="w-5 h-5 text-metarh-medium rounded-lg accent-metarh-medium transition-all"
                                                 />
                                                 <span className="text-sm font-bold text-gray-700">Diarista</span>
                                             </label>
+
                                             {pos.isDailyWorker && (
-                                                <>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Dias/Mês:</span>
+                                                <div className="flex-1 flex flex-wrap items-center gap-4 animate-fade-in">
+                                                    {/* Custo/Dia */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Custo/Dia</span>
+                                                        <span className="text-sm font-bold text-metarh-medium bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
+                                                            {fmtCurrency(pos.baseSalary / 22)}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Qtd Input */}
+                                                    <div className="flex flex-col flex-1 min-w-[120px]">
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold mb-1">QTDE dias/mês</span>
                                                         <input
                                                             type="number"
                                                             value={pos.daysPerMonth}
                                                             onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysPerMonth: Number(e.target.value) } : p))}
-                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
-                                                            placeholder="22"
+                                                            className="w-full p-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-metarh-medium outline-none transition-all"
+                                                            placeholder="0"
                                                         />
                                                     </div>
-                                                    <div className="flex items-center gap-2 ml-auto">
-                                                        <span className="text-xs text-gray-500 uppercase font-bold">Valor Dia:</span>
-                                                        <span className="text-sm font-bold text-metarh-medium">{fmtCurrency(pos.baseSalary / 22)}</span>
+
+                                                    {/* Total */}
+                                                    <div className="flex flex-col items-end min-w-[100px]">
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Custo Total</span>
+                                                        <span className="text-lg font-bold text-metarh-dark">
+                                                            {fmtCurrency((pos.baseSalary / 22) * pos.daysPerMonth)}
+                                                        </span>
                                                     </div>
-                                                </>
+                                                </div>
                                             )}
                                         </div>
 
@@ -1365,14 +1393,19 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                         {/* Total Líquido */}
                                         <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
-                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido</p>
+                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
                                             <p className="text-xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
-                                            <p className="text-[10px] text-green-300 mt-1">Salário Bruto - Retenção IR (15,5%)</p>
+                                            <p className="text-[10px] text-green-300 mt-1">Total Bruto (NF) - Retenção IR (15,5%)</p>
                                         </div>
 
                                         {/* Lucro L. Operacional */}
                                         <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
-                                            <p className="text-xs text-yellow-200 uppercase font-bold mb-1">Lucro L. Operacional</p>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
+                                                <span className="text-xs font-bold bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full">
+                                                    {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
+                                                </span>
+                                            </div>
                                             <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
                                             <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
                                         </div>

@@ -1231,10 +1231,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             )}
                         </div>
 
-                        {/* 6. RECRUITMENT (Separate Box) */}
+                        {/* 6. CUSTO OPERACIONAL */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <Briefcase size={18} /> 6. Recrutamento e Seleção
+                                <Briefcase size={18} /> 6. Custo Operacional
                             </h2>
 
                             <div className="flex gap-4 mb-6">
@@ -1247,7 +1247,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         onChange={() => setRecruitmentType('indication')}
                                         className="text-metarh-medium accent-metarh-medium"
                                     />
-                                    <span className="text-sm font-bold text-gray-700">Indicação do Cliente (Sem custo)</span>
+                                    <span className="text-sm font-bold text-gray-700">Sem Custo Operacional</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
                                     <input
@@ -1258,16 +1258,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         onChange={() => setRecruitmentType('selection')}
                                         className="text-metarh-medium accent-metarh-medium"
                                     />
-                                    <span className="text-sm font-bold text-gray-700">Recrutamento METARH</span>
+                                    <span className="text-sm font-bold text-gray-700">Com Custo Operacional</span>
                                 </label>
                             </div>
 
                             {recruitmentType === 'selection' && (
                                 <div className="space-y-6 animate-fade-in">
-                                    {/* Team Inputs (from Pricing Calculator) */}
+                                    {/* 1. Recrutamento e Seleção */}
                                     <div className="bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
                                         <div className="flex justify-between items-center mb-3">
-                                            <label className="block text-xs font-bold text-gray-700 uppercase">Equipe de Recrutamento</label>
+                                            <label className="block text-xs font-bold text-gray-700 uppercase">1. Recrutamento e Seleção</label>
                                             <div className="w-40">
                                                 <label className="block text-[10px] font-bold text-metarh-medium uppercase mb-1">Dias Demandados</label>
                                                 <div className="flex items-center gap-2">
@@ -1313,16 +1313,108 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 />
                                             </div>
                                         </div>
+                                        {result && (
+                                            <div className="mt-3 bg-white p-2 rounded-2xl border border-purple-200">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                    <span className="text-sm font-bold text-purple-700">{fmtCurrency(result.recruitmentTeamCost || 0)}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* 2. Operação Administrativa */}
+                                    <div className="bg-blue-50/50 p-4 rounded-3xl border border-blue-100">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-700 uppercase">2. Operação Administrativa</label>
+                                                <p className="text-[10px] text-gray-500 mt-1">Time único de operações: R$ 745,00/hora</p>
+                                            </div>
+                                            <div className="w-40">
+                                                <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">Dias Demandados</label>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        value={operationalAdminDays || ''}
+                                                        onChange={(e) => setOperationalAdminDays(Number(e.target.value))}
+                                                        className="w-full px-3 py-2 rounded-2xl border border-blue-300/30 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold bg-white"
+                                                        placeholder="0"
+                                                    />
+                                                    <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                                        = {operationalAdminDays * 9}h úteis
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {result && (
+                                            <div className="mt-3 bg-white p-2 rounded-2xl border border-blue-200">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                    <span className="text-sm font-bold text-blue-700">{fmtCurrency(result.operationalAdminCost || 0)}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* 3. Custos Extras */}
+                                    <div className="bg-orange-50/50 p-4 rounded-3xl border border-orange-100">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase mb-3">3. Custos Extras (Alimentável)</label>
+                                        {extraCosts.map((item, idx) => (
+                                            <div key={item.id} className="flex gap-2 mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={item.name}
+                                                    onChange={(e) => {
+                                                        const newCosts = [...extraCosts];
+                                                        newCosts[idx].name = e.target.value;
+                                                        setExtraCosts(newCosts);
+                                                    }}
+                                                    className="flex-1 p-2 bg-white rounded-2xl border border-gray-200 text-sm"
+                                                    placeholder="Nome do custo"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={item.value}
+                                                    onChange={(e) => {
+                                                        const newCosts = [...extraCosts];
+                                                        newCosts[idx].value = Number(e.target.value);
+                                                        setExtraCosts(newCosts);
+                                                    }}
+                                                    className="w-32 p-2 bg-white rounded-2xl border border-gray-200 text-sm"
+                                                    placeholder="Valor (R$)"
+                                                />
+                                                <button
+                                                    onClick={() => setExtraCosts(extraCosts.filter((_, i) => i !== idx))}
+                                                    className="text-red-400 hover:text-red-600"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={() => setExtraCosts([...extraCosts, { id: `extra-${Date.now()}`, name: '', value: 0 }])}
+                                            className="text-xs font-bold text-orange-600 hover:underline flex items-center gap-1"
+                                        >
+                                            <Plus size={14} /> Adicionar Custo Extra
+                                        </button>
+                                        {result && extraCosts.length > 0 && (
+                                            <div className="mt-3 bg-white p-2 rounded-2xl border border-orange-200">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                    <span className="text-sm font-bold text-orange-700">{fmtCurrency(result.extraCostTotal || 0)}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Total Recruitment Display */}
+                            {/* Total Custo Operacional Display */}
                             {result && recruitmentType === 'selection' && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-purple-50 px-4 py-2 rounded-2xl border border-purple-100">
-                                        <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Recrutamento:</span>
-                                        <span className="text-lg font-bold text-purple-700">{fmtCurrency(result.recruitmentTeamCost || 0)}</span>
+                                    <div className="bg-gradient-to-r from-purple-50 to-orange-50 px-6 py-3 rounded-2xl border-2 border-purple-200">
+                                        <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Custo Operacional:</span>
+                                        <span className="text-xl font-bold text-purple-700">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
                                     </div>
                                 </div>
                             )}
@@ -1334,12 +1426,27 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 <DollarSign size={18} /> 7. Tributos
                             </h2>
 
+                            {/* ISS City Selector */}
+                            <div className="mb-4 bg-blue-50 p-4 rounded-3xl border border-blue-100">
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Cidade (Para cálculo do ISS)</label>
+                                <select
+                                    value={selectedCity}
+                                    onChange={(e) => setSelectedCity(e.target.value)}
+                                    className="w-full p-3 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-metarh-dark focus:ring-2 focus:ring-blue-400 outline-none"
+                                >
+                                    <option value="São Paulo - SP">São Paulo - SP (5%)</option>
+                                    <option value="Barueri - SP">Barueri - SP (2%)</option>
+                                    <option value="Outra Localidade (5%)">Outra Localidade (5%)</option>
+                                </select>
+                                <p className="text-[10px] text-gray-500 mt-2">A alíquota de ISS varia conforme a cidade</p>
+                            </div>
+
                             {result && (
                                 <div className="space-y-3">
                                     <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between text-gray-600">
-                                                <span>ISS ({fmtPercent(LABOR_TAX_RATES.iss)})</span>
+                                                <span>ISS - {selectedCity}</span>
                                                 <span className="font-bold text-gray-800">{fmtCurrency(result.issValue || 0)}</span>
                                             </div>
                                             <div className="flex justify-between text-gray-600">

@@ -94,9 +94,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
     // Removed showChargesConfig (Always visible)
 
-    // Fees
-    const [backupFeePercent, setBackupFeePercent] = useState<number>(0.05); // Taxa de Backup default 5%
+    // Fees (Removed Backup Fee)
     const [adminFeePercent, setAdminFeePercent] = useState<number>(0.10); // Taxa Administrativa default 10%
+
+    // Operational Costs (ex-Recruitment)
+    const [operationalAdminDays, setOperationalAdminDays] = useState<number>(0); // Dias para Operação Administrativa
+    const [extraCosts, setExtraCosts] = useState<{ id: string, name: string, value: number }[]>([]); // Custos Extras
+
+    // ISS Selection
+    const [selectedCity, setSelectedCity] = useState<string>('São Paulo - SP');
 
     // Results State
     const [result, setResult] = useState<any>(null);
@@ -131,9 +137,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     }, [
         positions, recruitmentType, provisioningMode,
         selectedMedicalPlan, selectedDentalPlan, selectedWellhubPlan,
-        customBenefits, customExams, backupFeePercent, adminFeePercent,
+        customBenefits, customExams, adminFeePercent,
         hasTransport, transportDays, hasMeal, mealDays, hasFood, hasLifeInsurance, hasPharmacy, hasGpsPoint, hasPlr,
         satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates, appSettings,
+        operationalAdminDays, extraCosts, selectedCity,
     ]);
 
     const calculateLaborPricing = () => {
@@ -264,30 +271,44 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Subtotal for Fees (Salaries + Charges + Benefits + Exams)
         const costBasis = totalGrossSalary + totalCharges + totalBenefits + totalExams;
 
-        // Fees
-        const backupFeeValue = costBasis * backupFeePercent;
-
-        // Admin Fee Basis: Cost Basis + Backup Fee
-        const adminFeeBasis = costBasis + backupFeeValue;
-        const adminFeeValue = adminFeeBasis * adminFeePercent;
-        const totalFees = backupFeeValue + adminFeeValue;
+        // Fees (Removed Backup Fee)
+        const adminFeeValue = costBasis * adminFeePercent;
+        const totalFees = adminFeeValue;
 
         // Total Operational Cost (Custo Total)
-        const totalOperationalCost = adminFeeBasis + adminFeeValue;
+        const totalOperationalCost = costBasis + adminFeeValue;
 
-        // Recruitment Team Cost (Internal Cost)
+        // Operational Costs (New Structure)
+        // 1. Recruitment Team Cost
         const hoursPerDay = 9;
         const projectHours = demandedDays * hoursPerDay;
-        const teamCost = (
+        const recruitmentTeamCost = (
             (qtySenior * teamRates.senior) +
             (qtyPlena * teamRates.plena) +
             (qtyJunior * teamRates.junior)
         ) * projectHours;
 
+        // 2. Administrative Operation Cost (R$ 745/hour)
+        const operationalAdminHourlyRate = 745;
+        const operationalAdminCost = operationalAdminDays * hoursPerDay * operationalAdminHourlyRate;
 
-        // Taxes (Tributos)
+        // 3. Extra Costs
+        const extraCostTotal = extraCosts.reduce((sum, item) => sum + item.value, 0);
+
+        // Total Operational Cost (Custo Operacional)
+        const totalOperationalCostValue = recruitmentTeamCost + operationalAdminCost + extraCostTotal;
+
+
+        // Taxes (Tributos) - ISS now varies by city
+        const issRateOptions = [
+            { city: 'São Paulo - SP', rate: 0.05 },
+            { city: 'Barueri - SP', rate: 0.02 },
+            { city: 'Outra Localidade (5%)', rate: 0.05 },
+        ];
+        const selectedIssRate = issRateOptions.find(opt => opt.city === selectedCity)?.rate || 0.05;
+
         const totalTaxRate =
-            LABOR_TAX_RATES.iss +
+            selectedIssRate +
             LABOR_TAX_RATES.pis +
             LABOR_TAX_RATES.cofins +
             LABOR_TAX_RATES.irrf +
@@ -298,7 +319,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const totalTaxes = grossNF * totalTaxRate;
 
         // Individual Taxes
-        const issValue = grossNF * LABOR_TAX_RATES.iss;
+        const issValue = grossNF * selectedIssRate;
         const pisValue = grossNF * LABOR_TAX_RATES.pis;
         const cofinsValue = grossNF * LABOR_TAX_RATES.cofins;
         const irrfValue = grossNF * LABOR_TAX_RATES.irrf;
@@ -312,8 +333,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const retentionIR = 0.155;
         const totalLiquido = grossNF - (grossNF * retentionIR);
 
-        // Lucro L. Operacional = Líquido Recebido - Recrutamento (Se houver) - Tributos
-        const lucroOperacional = totalLiquido - teamCost - totalTaxes;
+        // Lucro L. Operacional = Líquido Recebido - Custo Operacional (Se houver) - Tributos
+        const lucroOperacional = totalLiquido - totalOperationalCostValue - totalTaxes;
 
         setResult({
             positionsCalculated,
@@ -328,14 +349,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             totalBenefits,
             totalExams,
             costBasis,
-            backupFeeValue,
             adminFeeValue,
             totalFees,
             totalOperationalCost,
             grossNF,
             totalTaxes,
             totalTaxRate,
-            teamCost,
+            // Operational Costs breakdown
+            recruitmentTeamCost,
+            operationalAdminCost,
+            extraCostTotal,
+            totalOperationalCostValue,
             // Individual taxes
             issValue,
             pisValue,
@@ -1174,41 +1198,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             )}
                         </div>
 
-                        {/* 5. FEES (Separate Box) */}
+                        {/* 5. FEES */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <DollarSign size={18} /> 5. Taxas
                             </h2>
 
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa de Backup (%)</label>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="number"
-                                            value={backupFeePercent * 100}
-                                            onChange={(e) => setBackupFeePercent(Number(e.target.value) / 100)}
-                                            className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
-                                        />
-                                        <span className="text-gray-500 font-bold">%</span>
-                                        <div className="flex-1 text-right">
-                                            <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.backupFeeValue || 0)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="number"
-                                            value={adminFeePercent * 100}
-                                            onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                            className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
-                                        />
-                                        <span className="text-gray-500 font-bold">%</span>
-                                        <div className="flex-1 text-right">
-                                            <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.adminFeeValue || 0)}</span>
-                                        </div>
+                            <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        value={adminFeePercent * 100}
+                                        onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
+                                        className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
+                                    />
+                                    <span className="text-gray-500 font-bold">%</span>
+                                    <div className="flex-1 text-right">
+                                        <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.adminFeeValue || 0)}</span>
                                     </div>
                                 </div>
                             </div>

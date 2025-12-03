@@ -408,37 +408,6 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 ))}
               </div>
 
-              {/* AI Project Description */}
-              <div className="mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-4 rounded-3xl">
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
-                  📝 Descrição do Projeto (IA)
-                </label>
-                <textarea
-                  value={projectDescription}
-                  onChange={(e) => setProjectDescription(e.target.value)}
-                  placeholder="Descreva o projeto: cargo, localização, urgência, modelo de trabalho, dificuldade do perfil..."
-                  className="w-full p-3 rounded-2xl border border-purple-200 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none bg-white"
-                  rows={3}
-                />
-                <button
-                  onClick={handleAnalyzeWithAI}
-                  disabled={isAnalyzing || !projectDescription.trim()}
-                  className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold text-sm hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Analisando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} />
-                      Analisar com IA
-                    </>
-                  )}
-                </button>
-              </div>
-
               <div className="grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-3xl">
                 <div className="md:col-span-5">
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-2">

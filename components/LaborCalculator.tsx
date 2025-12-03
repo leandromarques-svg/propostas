@@ -526,13 +526,23 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <input
                                                     type="checkbox"
                                                     checked={pos.isHourly}
-                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isHourly: e.target.checked } : p))}
+                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isHourly: e.target.checked, isDailyWorker: e.target.checked ? false : p.isDailyWorker } : p))}
                                                     className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                                 />
                                                 <span className="text-sm font-bold text-gray-700">Horista</span>
                                             </label>
                                             {pos.isHourly && (
                                                 <>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Horas/Mês:</span>
+                                                        <input
+                                                            type="number"
+                                                            value={pos.hoursPerMonth}
+                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, hoursPerMonth: Number(e.target.value) } : p))}
+                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
+                                                            placeholder="220"
+                                                        />
+                                                    </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-xs text-gray-500 uppercase font-bold">Qtd Horas:</span>
                                                         <input
@@ -556,13 +566,23 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <input
                                                     type="checkbox"
                                                     checked={pos.isDailyWorker}
-                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isDailyWorker: e.target.checked } : p))}
+                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isDailyWorker: e.target.checked, isHourly: e.target.checked ? false : p.isHourly } : p))}
                                                     className="w-4 h-4 text-metarh-medium rounded accent-metarh-medium"
                                                 />
                                                 <span className="text-sm font-bold text-gray-700">Diarista</span>
                                             </label>
                                             {pos.isDailyWorker && (
                                                 <>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-500 uppercase font-bold">Qtd Dias/Mês:</span>
+                                                        <input
+                                                            type="number"
+                                                            value={pos.daysPerMonth}
+                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysPerMonth: Number(e.target.value) } : p))}
+                                                            className="w-20 p-1 text-sm border border-gray-300 rounded"
+                                                            placeholder="22"
+                                                        />
+                                                    </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-xs text-gray-500 uppercase font-bold">Qtd Dias:</span>
                                                         <input
@@ -816,14 +836,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.transport.defaultValue)}/dia</span>
                                         </div>
                                         {hasTransport && (
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className="text-xs text-gray-500">Dias/Mês:</span>
-                                                <input
-                                                    type="number"
-                                                    value={transportDays}
-                                                    onChange={(e) => setTransportDays(Number(e.target.value))}
-                                                    className="w-16 p-1 text-sm border border-gray-300 rounded"
-                                                />
+                                            <div className="space-y-2 mt-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-gray-500">Dias:</span>
+                                                    <input
+                                                        type="number"
+                                                        value={transportDays}
+                                                        onChange={(e) => setTransportDays(Number(e.target.value))}
+                                                        className="w-16 p-1 text-sm border border-gray-300 rounded"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                                                    <span className="text-xs text-gray-600 font-bold">Total:</span>
+                                                    <span className="text-sm font-bold text-metarh-medium">
+                                                        {fmtCurrency(BENEFIT_OPTIONS.others.transport.defaultValue * transportDays)}
+                                                    </span>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -843,14 +871,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             <span className="text-xs text-gray-500">{fmtCurrency(BENEFIT_OPTIONS.others.meal.defaultValue)}/dia</span>
                                         </div>
                                         {hasMeal && (
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className="text-xs text-gray-500">Dias/Mês:</span>
-                                                <input
-                                                    type="number"
-                                                    value={mealDays}
-                                                    onChange={(e) => setMealDays(Number(e.target.value))}
-                                                    className="w-16 p-1 text-sm border border-gray-300 rounded"
-                                                />
+                                            <div className="space-y-2 mt-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-gray-500">Dias:</span>
+                                                    <input
+                                                        type="number"
+                                                        value={mealDays}
+                                                        onChange={(e) => setMealDays(Number(e.target.value))}
+                                                        className="w-16 p-1 text-sm border border-gray-300 rounded"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                                                    <span className="text-xs text-gray-600 font-bold">Total:</span>
+                                                    <span className="text-sm font-bold text-metarh-medium">
+                                                        {fmtCurrency(BENEFIT_OPTIONS.others.meal.defaultValue * mealDays)}
+                                                    </span>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -1256,7 +1292,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                     {/* RIGHT COLUMN - RESULTS */}
                     <div className="lg:col-span-1">
-                        <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl sticky top-24">
+                        <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl lg:fixed lg:top-4 lg:right-4 lg:w-[380px] lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                                 <BarChart3 size={24} className="text-metarh-lime" /> Resultado
                             </h2>

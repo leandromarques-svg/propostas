@@ -280,6 +280,8 @@ const App: React.FC = () => {
     );
   }
 
+  // Temporarily disabled - Layout Editor
+  /*
   if (view === 'layout-editor') {
     return (
       <ProposalLayoutEditor
@@ -292,143 +294,108 @@ const App: React.FC = () => {
       />
     );
   }
+  */
 
   return (
-    <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900 animate-fade-in">
-      {/* Sidebar */}
-      <aside className="w-20 lg:w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 transition-all duration-300 shadow-sm">
-        <div className="p-4 lg:p-6 flex justify-center lg:justify-start border-b border-gray-100">
-          <Logo className="w-10 h-10 lg:w-8 lg:h-8 text-metarh-medium" />
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+      {/* Top Navigation Bar */}
+      <header className="bg-gradient-to-r from-metarh-medium to-purple-700 text-white px-6 py-3 shadow-lg sticky top-0 z-30">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-4">
+          {/* Left: Logo + Greeting */}
+          <div className="flex items-center gap-6">
+            <Logo className="w-8 h-8 text-white" />
+            <div className="hidden md:block">
+              <p className="text-sm font-medium opacity-90">{greeting}, <span className="font-bold">{currentUser.name.split(' ')[0]}</span></p>
+            </div>
+          </div>
 
-        </div>
-
-        <nav className="flex-1 py-6 px-3 space-y-2">
-          <button
-            onClick={() => setView('catalog')}
-            className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group ${view === 'catalog' ? 'bg-metarh-medium text-white shadow-md shadow-metarh-medium/20' : 'text-gray-500 hover:bg-gray-50 hover:text-metarh-medium'}`}
-          >
-            <Layers size={22} className={`transition-transform group-hover:scale-110 ${view === 'catalog' ? '' : 'text-gray-400 group-hover:text-metarh-medium'}`} />
-            <span className="hidden lg:block ml-3 font-medium">Catálogo</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setView('calculator');
-              setActiveCalculator(null); // Reset to dashboard
-            }}
-            className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group ${view === 'calculator' ? 'bg-metarh-medium text-white shadow-md shadow-metarh-medium/20' : 'text-gray-500 hover:bg-gray-50 hover:text-metarh-medium'}`}
-          >
-            <Calculator size={22} className={`transition-transform group-hover:scale-110 ${view === 'calculator' ? '' : 'text-gray-400 group-hover:text-metarh-medium'}`} />
-            <span className="hidden lg:block ml-3 font-medium">Calculadoras</span>
-          </button>
-
-          {currentUser.isAdmin && (
+          {/* Center: Navigation Menu */}
+          <nav className="flex items-center gap-2">
             <button
-              onClick={() => setView('layout-editor')}
-              className="w-full flex items-center p-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-metarh-medium transition-all duration-200 group"
+              onClick={() => setView('catalog')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'catalog' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
             >
-              <Layout size={22} className="text-gray-400 group-hover:text-metarh-medium transition-transform group-hover:scale-110" />
-              <span className="hidden lg:block ml-3 font-medium">Layout Proposta</span>
+              <span className="flex items-center gap-2">
+                <Layers size={18} />
+                <span className="hidden sm:inline">Catálogo</span>
+              </span>
             </button>
-          )}
+            <button
+              onClick={() => {
+                setView('calculator');
+                setActiveCalculator(null);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'calculator' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
+            >
+              <span className="flex items-center gap-2">
+                <Calculator size={18} />
+                <span className="hidden sm:inline">Calculadoras</span>
+              </span>
+            </button>
+            <button
+              onClick={() => setIsSummaryModalOpen(true)}
+              className="px-4 py-2 rounded-lg font-medium text-sm bg-white/10 hover:bg-white/20 transition-all relative"
+            >
+              <span className="flex items-center gap-2">
+                <ShoppingBag size={18} />
+                <span className="hidden sm:inline">Minhas Propostas</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-metarh-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </span>
+            </button>
+          </nav>
 
-          <div className="pt-4 mt-4 border-t border-gray-100">
-            <p className="hidden lg:block px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Histórico</p>
-            {proposalHistory.length === 0 ? (
-              <div className="hidden lg:block px-3 py-4 text-sm text-gray-400 italic text-center bg-gray-50 rounded-lg mx-2 border border-dashed border-gray-200">
-                Nenhuma proposta recente
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {proposalHistory.slice(0, 3).map((prop) => (
-                  <button
-                    key={prop.id}
-                    className="w-full flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-metarh-medium transition-colors text-left group"
-                  >
-                    <FileDown size={18} className="text-gray-400 group-hover:text-metarh-medium min-w-[18px]" />
-                    <div className="hidden lg:block ml-3 overflow-hidden">
-                      <p className="text-sm font-medium truncate">{prop.clientName}</p>
-                      <p className="text-xs text-gray-400">{new Date(prop.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
-
-        <div className="p-4 border-t border-gray-200 bg-gray-50/50">
-          <div className="flex items-center p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all cursor-pointer group" onClick={() => setIsProfileModalOpen(true)}>
-            <div className="relative">
-              <img
-                src={currentUser.avatarUrl}
-                alt={currentUser.name}
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-metarh-medium transition-colors"
-              />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-            </div>
-            <div className="hidden lg:block ml-3 overflow-hidden">
-              <p className="text-sm font-bold text-gray-800 truncate">{currentUser.name}</p>
-              <p className="text-xs text-gray-500 truncate">{currentUser.role}</p>
-            </div>
-          </div>
-          <div className="mt-2 flex gap-1">
+          {/* Right: Profile + Admin Controls */}
+          <div className="flex items-center gap-3">
             {currentUser.isAdmin && (
               <>
                 <button
                   onClick={() => setIsUserManagementOpen(true)}
-                  className="flex-1 p-2 text-gray-400 hover:text-metarh-medium hover:bg-white rounded-lg transition-all"
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
                   title="Gerenciar Usuários"
                 >
-                  <Shield size={18} className="mx-auto" />
+                  <Crown size={20} className="text-yellow-300" />
                 </button>
                 <button
                   onClick={() => setIsAppSettingsModalOpen(true)}
-                  className="flex-1 p-2 text-gray-400 hover:text-metarh-medium hover:bg-white rounded-lg transition-all"
-                  title="Configurar Valores"
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                  title="Configurações"
                 >
-                  <Settings size={18} className="mx-auto" />
+                  <Settings size={20} />
                 </button>
               </>
             )}
+            <div className="h-6 w-px bg-white/20"></div>
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex items-center gap-2 hover:bg-white/10 rounded-lg p-1 pr-3 transition-all"
+            >
+              <div className="relative">
+                <img
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.name}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-white/30"
+                />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-metarh-medium rounded-full"></div>
+              </div>
+              <span className="hidden lg:inline text-sm font-medium">{currentUser.name.split(' ')[0]}</span>
+            </button>
             <button
               onClick={handleLogout}
-              className="flex-1 p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-all"
+              className="p-2 bg-white/10 hover:bg-red-500 rounded-lg transition-all"
               title="Sair"
             >
-              <LogOut size={18} className="mx-auto" />
+              <LogOut size={18} />
             </button>
           </div>
         </div>
-      </aside>
+      </header>
 
       {/* Main Content */}
-      <main className={`flex-1 ml-20 lg:ml-64 transition-all duration-300 flex flex-col h-screen overflow-hidden`}>
-        {/* Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
-          <div className="flex items-center gap-4 flex-1 max-w-2xl">
-            <div className="relative w-full group">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-metarh-medium transition-colors" size={20} />
-              <input
-                type="text"
-                placeholder="Buscar soluções, serviços ou pacotes..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-transparent focus:bg-white focus:border-metarh-medium focus:ring-4 focus:ring-metarh-medium/10 rounded-xl transition-all outline-none text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 ml-4">
-            <SupabaseStatus />
-            <div className="h-8 w-px bg-gray-200"></div>
-            <div className="flex items-center gap-2 bg-metarh-medium/10 px-4 py-2 rounded-full border border-metarh-medium/20">
-              <ShoppingBag size={20} className="text-metarh-medium" />
-              <span className="font-bold text-metarh-dark">{cartCount}</span>
-              <span className="text-sm text-gray-600 hidden sm:inline">itens selecionados</span>
-            </div>
-          </div>
-        </header>
+      <main className="flex-1 flex flex-col overflow-hidden">
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
@@ -498,7 +465,7 @@ const App: React.FC = () => {
               ) : (
                 groupKeys.map(group => {
                   const theme = getPackageTheme(group);
-                  const isExpanded = expandedGroups[group] ?? true; // Default expanded
+                  const isExpanded = expandedGroups[group] ?? false; // Default closed
 
                   return (
                     <div
@@ -615,7 +582,7 @@ const App: React.FC = () => {
 
         {/* Footer Actions */}
         {cart.length > 0 && (
-          <div className="fixed bottom-0 left-0 lg:left-64 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 animate-slide-up">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 animate-slide-up">
             <div className="max-w-7xl mx-auto flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <div className="bg-metarh-medium/10 p-3 rounded-xl">

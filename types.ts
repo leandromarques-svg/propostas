@@ -15,7 +15,7 @@ export interface SolutionData {
   aboutSolution: string; // About the parent solution package
 }
 
-export type ViewState = 'catalog' | 'proposal' | 'layout_editor' | 'calculator';
+export type ViewState = 'catalog' | 'proposal' | 'calculator';
 
 export interface CartSelections {
   benefits: string[];

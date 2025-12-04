@@ -764,7 +764,8 @@ export const BENEFIT_OPTIONS = {
     healthCare: { name: 'Saúde da Gente', defaultValue: 40.00 },
     gpsPoint: { name: 'Controle de Ponto GPS', defaultValue: 7.63 },
     plr: { name: 'PLR (Provisão Mensal)', defaultValue: 330.88 },
-    operationalTeam: { name: 'Time de Operações (hora)', defaultValue: 745.00 }
+    operationalTeam: { name: 'Time de Operações (hora)', defaultValue: 745.00 },
+    adminOperations: { name: 'Operação Administrativa (hora)', defaultValue: 248.05 }
   }
 };
 

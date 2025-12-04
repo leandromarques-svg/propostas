@@ -38,6 +38,7 @@ export interface BenefitItem {
     discountType: 'percentage' | 'fixed';
     discountValue: number;
     selectedPlanId?: string;
+    discountBase?: 'salary' | 'benefit'; // Para Vale Transporte: desconto sobre salário base ou valor fornecido
 }
 
 interface LaborCalculatorProps {
@@ -83,7 +84,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // New Benefits Structure (Unified)
     const [benefitsList, setBenefitsList] = useState<BenefitItem[]>([
         // Alimentação e Transporte
-        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.06 }, // 6% padrão
+        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.06, discountBase: 'benefit' }, // 6% padrão
         { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 },
         { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01 },
         // Saúde e Bem estar  
@@ -152,7 +153,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         operationalAdminDays, extraCosts, selectedCity,
     ]);
 
-    const calculateBenefitRow = (item: BenefitItem) => {
+    const calculateBenefitRow = (item: BenefitItem, averageBaseSalary: number = 0) => {
         let unitValue = item.unitValue;
 
         // Se for plano selecionável, pega o valor do plano selecionado
@@ -167,10 +168,19 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             : (item.quantity * unitValue);
 
         let collabDiscount = 0;
-        if (item.discountType === 'percentage') {
-            collabDiscount = providedValue * item.discountValue;
+
+        // Lógica especial para Vale Transporte
+        if (item.id === 'transport' && item.discountBase === 'salary' && averageBaseSalary > 0) {
+            // 6% do salário base, mas não pode exceder o valor fornecido
+            const salaryDiscount = averageBaseSalary * 0.06;
+            collabDiscount = Math.min(salaryDiscount, providedValue);
         } else {
-            collabDiscount = item.discountValue;
+            // Lógica padrão
+            if (item.discountType === 'percentage') {
+                collabDiscount = providedValue * item.discountValue;
+            } else {
+                collabDiscount = item.discountValue;
+            }
         }
 
         const clientCost = providedValue - collabDiscount;
@@ -273,8 +283,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         let totalBenefits = 0;
         let totalExams = 0;
 
+        // Calculate average base salary for VT discount calculation
+        const averageBaseSalary = totalPositions > 0 ? totalBaseSalary / totalPositions : 0;
+
         benefitsList.forEach(item => {
-            const { clientCost } = calculateBenefitRow(item);
+            const { clientCost } = calculateBenefitRow(item, averageBaseSalary);
 
             // Check if it's an exam
             if (item.id.startsWith('exam-')) {
@@ -412,6 +425,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         if (id.startsWith('exam-')) return { name: 'Exames', icon: '🩺', color: 'purple' };
         return { name: 'Outros', icon: '🔧', color: 'gray' };
     };
+
+    // Calculate average base salary for VT discount calculation
+    const averageBaseSalary = React.useMemo(() => {
+        let totalBaseSalary = 0;
+        let totalVacancies = 0;
+        positions.forEach(pos => {
+            totalBaseSalary += pos.baseSalary * pos.vacancies;
+            totalVacancies += pos.vacancies;
+        });
+        return totalVacancies > 0 ? totalBaseSalary / totalVacancies : 0;
+    }, [positions]);
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
@@ -863,11 +887,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         </div>
 
                         {/* 3. BENEFITS (Organized by Category) */}
+
+                        {/* 3. BENEFITS (Organized by Category) */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <Sparkles size={18} /> 3. Benefícios
                             </h2>
-
 
                             {/* Benefits organized by category */}
                             <div className="space-y-6">
@@ -889,7 +914,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             {/* Benefits Cards */}
                                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                                                 {categoryItems.map((item) => {
-                                                    const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item);
+                                                    const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item, averageBaseSalary);
                                                     categorySubtotal += clientCost * (result?.totalPositions || 1);
 
                                                     return (
@@ -975,46 +1000,68 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                 </div>
                                                             </div>
 
-                                                            {/* Discount Row */}
-                                                            <div className="bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2">
-                                                                <div className="flex justify-between items-center mb-1">
-                                                                    <span className="text-[10px] font-bold text-gray-500 uppercase">Desc. Colab.</span>
-                                                                    <button
-                                                                        onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
-                                                                        className="text-[10px] font-bold text-metarh-medium bg-metarh-medium/10 px-1.5 py-0.5 rounded hover:bg-metarh-medium/20 transition-colors"
+                                                            {/* Discount Row - Hidden for wellhub, gpsPoint, plr */}
+                                                            {!['wellhub', 'gpsPoint', 'plr'].includes(item.id) && (
+                                                                <div className="bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2">
+                                                                    <div className="flex justify-between items-center mb-1">
+                                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">Desc. Colab.</span>
+                                                                        <button
+                                                                            onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
+                                                                            className="text-[10px] font-bold text-metarh-medium bg-metarh-medium/10 px-1.5 py-0.5 rounded hover:bg-metarh-medium/20 transition-colors"
+                                                                        >
+                                                                            {item.discountType === 'percentage' ? '%' : 'R$'}
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <input
+                                                                            type="number"
+                                                                            value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
+                                                                            onChange={(e) => {
+                                                                                let val = Number(e.target.value);
+
+                                                                                // Validações de desconto por tipo de benefício
+                                                                                if (item.discountType === 'percentage') {
+                                                                                    // Vale Transporte: máximo 6%
+                                                                                    if (item.id === 'transport' && val > 6) {
+                                                                                        val = 6;
+                                                                                    }
+                                                                                    // Vale Refeição e Alimentação: máximo 20%
+                                                                                    if (['meal', 'food'].includes(item.id) && val > 20) {
+                                                                                        val = 20;
+                                                                                    }
+                                                                                }
+
+                                                                                updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
+                                                                            }}
+                                                                            className="w-16 p-1 text-center border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none bg-white"
+                                                                            step={item.discountType === 'percentage' ? "0.1" : "0.01"}
+                                                                        />
+                                                                        <span className="text-xs text-red-500 font-medium flex-1 text-right truncate">
+                                                                            -{fmtCurrency(collabDiscount)}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Vale Transporte: Discount Base Selector */}
+                                                            {item.id === 'transport' && (
+                                                                <div className="bg-blue-50 p-2 rounded-xl border border-blue-100 mb-2">
+                                                                    <div className="flex justify-between items-center mb-1">
+                                                                        <span className="text-[10px] font-bold text-blue-600 uppercase">Base do Desconto:</span>
+                                                                    </div>
+                                                                    <select
+                                                                        value={item.discountBase || 'benefit'}
+                                                                        onChange={(e) => updateBenefit(item.id, 'discountBase', e.target.value as 'salary' | 'benefit')}
+                                                                        className="w-full p-1 text-xs border border-blue-200 rounded bg-white text-gray-700 focus:ring-2 focus:ring-blue-300/50 outline-none"
                                                                     >
-                                                                        {item.discountType === 'percentage' ? '%' : 'R$'}
-                                                                    </button>
+                                                                        <option value="benefit">Valor Fornecido/Mês</option>
+                                                                        <option value="salary">Salário Base</option>
+                                                                    </select>
+                                                                    <p className="text-[9px] text-blue-600 mt-1">
+                                                                        {item.discountBase === 'salary' ? '6% do salário base (limitado ao valor fornecido)' : '6% do valor fornecido'}
+                                                                    </p>
                                                                 </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
-                                                                        onChange={(e) => {
-                                                                            let val = Number(e.target.value);
-
-                                                                            // Validações de desconto por tipo de benefício
-                                                                            if (item.discountType === 'percentage') {
-                                                                                // Vale Transporte: máximo 6%
-                                                                                if (item.id === 'transport' && val > 6) {
-                                                                                    val = 6;
-                                                                                }
-                                                                                // Vale Refeição e Alimentação: máximo 20%
-                                                                                if (['meal', 'food'].includes(item.id) && val > 20) {
-                                                                                    val = 20;
-                                                                                }
-                                                                            }
-
-                                                                            updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
-                                                                        }}
-                                                                        className="w-16 p-1 text-center border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none bg-white"
-                                                                        step={item.discountType === 'percentage' ? "0.1" : "0.01"}
-                                                                    />
-                                                                    <span className="text-xs text-red-500 font-medium flex-1 text-right truncate">
-                                                                        -{fmtCurrency(collabDiscount)}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                            )}
 
                                                             {/* Footer: Client Cost */}
                                                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
@@ -1056,465 +1103,465 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                     );
                                 })}
-
-
-                                {/* Total Benefits Display */}
-                                {result && (
-                                    <div className="bg-gradient-to-r from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-3xl p-5">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-lg font-bold text-metarh-dark uppercase">✨ Total Benefícios:</span>
-                                            <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-2 text-right">Soma dos subtotais de categorias (Custo Cliente)</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 5. FEES */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <DollarSign size={18} /> 5. Taxas
-                            </h2>
-
-                            <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        value={adminFeePercent * 100}
-                                        onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                        className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
-                                    />
-                                    <span className="text-gray-500 font-bold">%</span>
-                                    <div className="flex-1 text-right">
-                                        <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.adminFeeValue || 0)}</span>
-                                    </div>
-                                </div>
                             </div>
 
-                            {/* Total Fees Display */}
+                            {/* Total Benefits Display */}
                             {result && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Taxas:</span>
-                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalFees)}</span>
+                                <div className="bg-gradient-to-r from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-3xl p-5">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-lg font-bold text-metarh-dark uppercase">✨ Total Benefícios:</span>
+                                        <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
                                     </div>
+                                    <p className="text-xs text-gray-500 mt-2 text-right">Soma dos subtotais de categorias (Custo Cliente)</p>
                                 </div>
                             )}
-                        </div>
-
-                        {/* 6. CUSTO OPERACIONAL */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <Briefcase size={18} /> 6. Custo Operacional
-                            </h2>
-
-                            <div className="flex gap-4 mb-6">
-                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
-                                    <input
-                                        type="radio"
-                                        name="recruitmentType"
-                                        value="indication"
-                                        checked={recruitmentType === 'indication'}
-                                        onChange={() => setRecruitmentType('indication')}
-                                        className="text-metarh-medium accent-metarh-medium"
-                                    />
-                                    <span className="text-sm font-bold text-gray-700">Sem Custo Operacional</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
-                                    <input
-                                        type="radio"
-                                        name="recruitmentType"
-                                        value="selection"
-                                        checked={recruitmentType === 'selection'}
-                                        onChange={() => setRecruitmentType('selection')}
-                                        className="text-metarh-medium accent-metarh-medium"
-                                    />
-                                    <span className="text-sm font-bold text-gray-700">Com Custo Operacional</span>
-                                </label>
-                            </div>
-
-                            {recruitmentType === 'selection' && (
-                                <div className="space-y-6 animate-fade-in">
-                                    {/* 1. Recrutamento e Seleção */}
-                                    <div className="bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <label className="block text-xs font-bold text-gray-700 uppercase">1. Recrutamento e Seleção</label>
-                                            <div className="w-40">
-                                                <label className="block text-[10px] font-bold text-metarh-medium uppercase mb-1">Dias Demandados</label>
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        value={demandedDays || ''}
-                                                        onChange={(e) => setDemandedDays(Number(e.target.value))}
-                                                        className="w-full px-3 py-2 rounded-2xl border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
-                                                        placeholder="0"
-                                                    />
-                                                    <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                                                        = {demandedDays * 9}h úteis
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div>
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Senior</label>
-                                                <input
-                                                    type="number"
-                                                    value={qtySenior}
-                                                    onChange={(e) => setQtySenior(Number(e.target.value))}
-                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Plena</label>
-                                                <input
-                                                    type="number"
-                                                    value={qtyPlena}
-                                                    onChange={(e) => setQtyPlena(Number(e.target.value))}
-                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Junior</label>
-                                                <input
-                                                    type="number"
-                                                    value={qtyJunior}
-                                                    onChange={(e) => setQtyJunior(Number(e.target.value))}
-                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                        {result && (
-                                            <div className="mt-3 bg-white p-2 rounded-2xl border border-purple-200">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs font-bold text-gray-600">Subtotal:</span>
-                                                    <span className="text-sm font-bold text-purple-700">{fmtCurrency(result.recruitmentTeamCost || 0)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* 2. Operação Administrativa */}
-                                    <div className="bg-blue-50/50 p-4 rounded-3xl border border-blue-100">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <div>
-                                                <label className="block text-xs font-bold text-gray-700 uppercase">2. Operação Administrativa</label>
-                                                <p className="text-[10px] text-gray-500 mt-1">Time único de operações: R$ 745,00/hora</p>
-                                            </div>
-                                            <div className="w-40">
-                                                <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">Dias Demandados</label>
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        value={operationalAdminDays || ''}
-                                                        onChange={(e) => setOperationalAdminDays(Number(e.target.value))}
-                                                        className="w-full px-3 py-2 rounded-2xl border border-blue-300/30 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold bg-white"
-                                                        placeholder="0"
-                                                    />
-                                                    <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                                                        = {operationalAdminDays * 9}h úteis
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {result && (
-                                            <div className="mt-3 bg-white p-2 rounded-2xl border border-blue-200">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs font-bold text-gray-600">Subtotal:</span>
-                                                    <span className="text-sm font-bold text-blue-700">{fmtCurrency(result.operationalAdminCost || 0)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* 3. Custos Extras */}
-                                    <div className="bg-orange-50/50 p-4 rounded-3xl border border-orange-100">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase mb-3">3. Custos Extras (Alimentável)</label>
-                                        {extraCosts.map((item, idx) => (
-                                            <div key={item.id} className="flex gap-2 mb-2">
-                                                <input
-                                                    type="text"
-                                                    value={item.name}
-                                                    onChange={(e) => {
-                                                        const newCosts = [...extraCosts];
-                                                        newCosts[idx].name = e.target.value;
-                                                        setExtraCosts(newCosts);
-                                                    }}
-                                                    className="flex-1 p-2 bg-white rounded-2xl border border-gray-200 text-sm"
-                                                    placeholder="Nome do custo"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    value={item.value}
-                                                    onChange={(e) => {
-                                                        const newCosts = [...extraCosts];
-                                                        newCosts[idx].value = Number(e.target.value);
-                                                        setExtraCosts(newCosts);
-                                                    }}
-                                                    className="w-32 p-2 bg-white rounded-2xl border border-gray-200 text-sm"
-                                                    placeholder="Valor (R$)"
-                                                />
-                                                <button
-                                                    onClick={() => setExtraCosts(extraCosts.filter((_, i) => i !== idx))}
-                                                    className="text-red-400 hover:text-red-600"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <button
-                                            onClick={() => setExtraCosts([...extraCosts, { id: `extra-${Date.now()}`, name: '', value: 0 }])}
-                                            className="text-xs font-bold text-orange-600 hover:underline flex items-center gap-1"
-                                        >
-                                            <Plus size={14} /> Adicionar Custo Extra
-                                        </button>
-                                        {result && extraCosts.length > 0 && (
-                                            <div className="mt-3 bg-white p-2 rounded-2xl border border-orange-200">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs font-bold text-gray-600">Subtotal:</span>
-                                                    <span className="text-sm font-bold text-orange-700">{fmtCurrency(result.extraCostTotal || 0)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Total Custo Operacional Display */}
-                            {result && recruitmentType === 'selection' && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-gradient-to-r from-purple-50 to-orange-50 px-6 py-3 rounded-2xl border-2 border-purple-200">
-                                        <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Custo Operacional:</span>
-                                        <span className="text-xl font-bold text-purple-700">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 7. TRIBUTOS (Separate Box) */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <DollarSign size={18} /> 7. Tributos
-                            </h2>
-
-                            {/* ISS City Selector */}
-                            <div className="mb-4 bg-blue-50 p-4 rounded-3xl border border-blue-100">
-                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Cidade (Para cálculo do ISS)</label>
-                                <select
-                                    value={selectedCity}
-                                    onChange={(e) => setSelectedCity(e.target.value)}
-                                    className="w-full p-3 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-metarh-dark focus:ring-2 focus:ring-blue-400 outline-none"
-                                >
-                                    <option value="São Paulo - SP">São Paulo - SP (5%)</option>
-                                    <option value="Barueri - SP">Barueri - SP (2%)</option>
-                                    <option value="Outra Localidade (5%)">Outra Localidade (5%)</option>
-                                </select>
-                                <p className="text-[10px] text-gray-500 mt-2">A alíquota de ISS varia conforme a cidade</p>
-                            </div>
-
-                            {result && (
-                                <div className="space-y-3">
-                                    <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                        <div className="space-y-2 text-sm">
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>ISS - {selectedCity}</span>
-                                                <span className="font-bold text-gray-800">{fmtCurrency(result.issValue || 0)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>PIS ({fmtPercent(LABOR_TAX_RATES.pis)})</span>
-                                                <span className="font-bold text-gray-800">{fmtCurrency(result.pisValue || 0)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>COFINS ({fmtPercent(LABOR_TAX_RATES.cofins)})</span>
-                                                <span className="font-bold text-gray-800">{fmtCurrency(result.cofinsValue || 0)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>IRRF ({fmtPercent(LABOR_TAX_RATES.irrf)})</span>
-                                                <span className="font-bold text-gray-800">{fmtCurrency(result.irrfValue || 0)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>CSLL ({fmtPercent(LABOR_TAX_RATES.csll)})</span>
-                                                <span className="font-bold text-gray-800">{fmtCurrency(result.csllValue || 0)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Total Tributos */}
-                                    <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
-                                        <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
-                                        <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
+                        </div >
                     </div>
 
-                    {/* RIGHT COLUMN - RESULTS */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl lg:sticky lg:top-4">
-                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                                <BarChart3 size={24} className="text-metarh-lime" /> Resultado
-                            </h2>
+                    {/* 5. FEES */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <DollarSign size={18} /> 5. Taxas
+                        </h2>
 
-                            {result && (
-                                <div className="space-y-4 text-sm">
+                        <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={adminFeePercent * 100}
+                                    onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
+                                    className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
+                                />
+                                <span className="text-gray-500 font-bold">%</span>
+                                <div className="flex-1 text-right">
+                                    <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.adminFeeValue || 0)}</span>
+                                </div>
+                            </div>
+                        </div>
 
-                                    {/* Salaries */}
-                                    <div className="pb-4 border-b border-white/10">
-                                        <div className="flex justify-between text-gray-300">
-                                            <span>Total Salários Base</span>
-                                            <span>{fmtCurrency(result.totalBaseSalary)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-white mt-1">
-                                            <span>Total Salários Bruto</span>
-                                            <span>{fmtCurrency(result.totalGrossSalary)}</span>
-                                        </div>
-                                    </div>
+                        {/* Total Fees Display */}
+                        {result && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
+                                    <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Taxas:</span>
+                                    <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalFees)}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
-                                    {/* Charges */}
-                                    <div className="pb-4 border-b border-white/10">
-                                        <p className="text-xs font-bold text-gray-400 uppercase mb-2">Encargos</p>
-                                        <div className="flex justify-between text-gray-300 text-xs">
-                                            <span>Grupo A ({fmtPercent(result.groupAPercent)})</span>
-                                            <span>{fmtCurrency(result.groupAValue)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-gray-300 text-xs">
-                                            <span>Grupo B ({fmtPercent(result.groupBPercent)})</span>
-                                            <span>{fmtCurrency(result.groupBValue)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-white mt-1">
-                                            <span>Total Encargos</span>
-                                            <span>{fmtCurrency(result.totalCharges)}</span>
-                                        </div>
-                                    </div>
+                    {/* 6. CUSTO OPERACIONAL */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <Briefcase size={18} /> 6. Custo Operacional
+                        </h2>
 
-                                    {/* Benefits & Exams */}
-                                    <div className="pb-4 border-b border-white/10">
-                                        <div className="flex justify-between text-gray-300">
-                                            <span>Total Benefícios</span>
-                                            <span>{fmtCurrency(result.totalBenefits)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-gray-300">
-                                            <span>Total Exames</span>
-                                            <span>{fmtCurrency(result.totalExams)}</span>
-                                        </div>
-                                    </div>
+                        <div className="flex gap-4 mb-6">
+                            <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="recruitmentType"
+                                    value="indication"
+                                    checked={recruitmentType === 'indication'}
+                                    onChange={() => setRecruitmentType('indication')}
+                                    className="text-metarh-medium accent-metarh-medium"
+                                />
+                                <span className="text-sm font-bold text-gray-700">Sem Custo Operacional</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="recruitmentType"
+                                    value="selection"
+                                    checked={recruitmentType === 'selection'}
+                                    onChange={() => setRecruitmentType('selection')}
+                                    className="text-metarh-medium accent-metarh-medium"
+                                />
+                                <span className="text-sm font-bold text-gray-700">Com Custo Operacional</span>
+                            </label>
+                        </div>
 
-
-                                    {/* Fees */}
-                                    <div className="pb-4 border-b border-white/10">
-                                        <div className="flex justify-between font-bold text-metarh-lime">
-                                            <span>Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
-                                            <span>{fmtCurrency(result.adminFeeValue)}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Taxes */}
-                                    <div className="text-xs text-gray-400 space-y-1 pb-4 border-b border-white/10">
-                                        <p className="font-bold uppercase text-gray-500">Impostos ({fmtPercent(result.totalTaxRate)})</p>
-                                        <div className="flex justify-between">
-                                            <span>Total Tributos</span>
-                                            <span>{fmtCurrency(result.totalTaxes)}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Final Gross NF */}
-                                    <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
-                                        <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
-                                        <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
-                                        <p className="text-[10px] opacity-70 mt-1">Custo Base + Taxas + Tributos</p>
-                                    </div>
-
-                                    {/* NEW TOTALS - As requested */}
-                                    <div className="mt-4 space-y-3">
-                                        {/* Total Líquido - Green background (same style as PricingCalculator) */}
-                                        <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
-                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
-                                            <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
-                                            <p className="text-[10px] text-green-300 mt-1">Valor Bruto da NF - Retenção IR (15,5%)</p>
-                                        </div>
-
-                                        {/* Lucro L. Operacional - Emphasis on % with legend below */}
-                                        <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
-                                                <div className="text-center">
-                                                    <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full block">
-                                                        {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
-                                                    </span>
-                                                    <p className="text-[9px] text-yellow-300 mt-1">% do Líquido</p>
-                                                </div>
+                        {recruitmentType === 'selection' && (
+                            <div className="space-y-6 animate-fade-in">
+                                {/* 1. Recrutamento e Seleção */}
+                                <div className="bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">1. Recrutamento e Seleção</label>
+                                        <div className="w-40">
+                                            <label className="block text-[10px] font-bold text-metarh-medium uppercase mb-1">Dias Demandados</label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={demandedDays || ''}
+                                                    onChange={(e) => setDemandedDays(Number(e.target.value))}
+                                                    className="w-full px-3 py-2 rounded-2xl border border-metarh-medium/30 focus:ring-2 focus:ring-metarh-medium outline-none text-center font-bold bg-white"
+                                                    placeholder="0"
+                                                />
+                                                <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                                    = {demandedDays * 9}h úteis
+                                                </span>
                                             </div>
-                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
-                                            <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
                                         </div>
                                     </div>
-
-                                    {recruitmentType === 'selection' && result.teamCost > 0 && (
-                                        <div className="mt-4 space-y-2">
-                                            <div className="p-3 bg-purple-900/30 rounded-3xl border border-purple-500/20">
-                                                <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
-                                                <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
-                                                <p className="text-[10px] text-purple-300">Custo interno estimado</p>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Senior</label>
+                                            <input
+                                                type="number"
+                                                value={qtySenior}
+                                                onChange={(e) => setQtySenior(Number(e.target.value))}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Plena</label>
+                                            <input
+                                                type="number"
+                                                value={qtyPlena}
+                                                onChange={(e) => setQtyPlena(Number(e.target.value))}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Equipe Junior</label>
+                                            <input
+                                                type="number"
+                                                value={qtyJunior}
+                                                onChange={(e) => setQtyJunior(Number(e.target.value))}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    {result && (
+                                        <div className="mt-3 bg-white p-2 rounded-2xl border border-purple-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                <span className="text-sm font-bold text-purple-700">{fmtCurrency(result.recruitmentTeamCost || 0)}</span>
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* Dica do Especialista - Same logic as PricingCalculator */}
-                                    {(() => {
-                                        const netLiquid = result.grossNF * 0.845; // Total Líquido (após retenção IR 15.5%)
-                                        const realProfit = netLiquid - result.totalOperationalCost - result.totalTaxes;
-                                        const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
-
-                                        return (
-                                            <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
-                                                ? 'bg-red-500/10 border-red-400'
-                                                : profitMarginPercentage < 10
-                                                    ? 'bg-orange-500/10 border-orange-400'
-                                                    : profitMarginPercentage <= 35
-                                                        ? 'bg-yellow-500/10 border-yellow-400'
-                                                        : 'bg-green-500/10 border-green-400'
-                                                }`}>
-                                                <p className="text-xs font-bold mb-2 flex items-center gap-1">
-                                                    {realProfit < 0 ? '🚨' :
-                                                        profitMarginPercentage < 10 ? '😅' :
-                                                            profitMarginPercentage <= 35 ? '😉' : '🚀'}
-                                                    <span className="text-white">Dica do Especialista</span>
-                                                </p>
-                                                <p className="text-xs text-gray-300 leading-relaxed">
-                                                    {realProfit < 0
-                                                        ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
-                                                        : profitMarginPercentage < 10
-                                                            ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
-                                                            : profitMarginPercentage <= 35
-                                                                ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
-                                                                : 'Aí sim! Margem top (acima de 35%). O comercial tá voando! Pode fechar sem medo. 🚀'
-                                                    }
-                                                </p>
-                                            </div>
-                                        );
-                                    })()}
-
-                                    {/* Botão Gerar PDF */}
-                                    <button
-                                        onClick={() => {
-                                            alert('Funcionalidade de Gerar PDF será implementada em breve!');
-                                            // TODO: Integrar com pdfGenerator.ts
-                                        }}
-                                        className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
-                                    >
-                                        <FileText size={18} /> Gerar PDF
-                                    </button>
                                 </div>
-                            )}
+
+                                {/* 2. Operação Administrativa */}
+                                <div className="bg-blue-50/50 p-4 rounded-3xl border border-blue-100">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 uppercase">2. Operação Administrativa</label>
+                                            <p className="text-[10px] text-gray-500 mt-1">Time único de operações: R$ 745,00/hora</p>
+                                        </div>
+                                        <div className="w-40">
+                                            <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">Dias Demandados</label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={operationalAdminDays || ''}
+                                                    onChange={(e) => setOperationalAdminDays(Number(e.target.value))}
+                                                    className="w-full px-3 py-2 rounded-2xl border border-blue-300/30 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold bg-white"
+                                                    placeholder="0"
+                                                />
+                                                <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                                    = {operationalAdminDays * 9}h úteis
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {result && (
+                                        <div className="mt-3 bg-white p-2 rounded-2xl border border-blue-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                <span className="text-sm font-bold text-blue-700">{fmtCurrency(result.operationalAdminCost || 0)}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 3. Custos Extras */}
+                                <div className="bg-orange-50/50 p-4 rounded-3xl border border-orange-100">
+                                    <label className="block text-xs font-bold text-gray-700 uppercase mb-3">3. Custos Extras (Alimentável)</label>
+                                    {extraCosts.map((item, idx) => (
+                                        <div key={item.id} className="flex gap-2 mb-2">
+                                            <input
+                                                type="text"
+                                                value={item.name}
+                                                onChange={(e) => {
+                                                    const newCosts = [...extraCosts];
+                                                    newCosts[idx].name = e.target.value;
+                                                    setExtraCosts(newCosts);
+                                                }}
+                                                className="flex-1 p-2 bg-white rounded-2xl border border-gray-200 text-sm"
+                                                placeholder="Nome do custo"
+                                            />
+                                            <input
+                                                type="number"
+                                                value={item.value}
+                                                onChange={(e) => {
+                                                    const newCosts = [...extraCosts];
+                                                    newCosts[idx].value = Number(e.target.value);
+                                                    setExtraCosts(newCosts);
+                                                }}
+                                                className="w-32 p-2 bg-white rounded-2xl border border-gray-200 text-sm"
+                                                placeholder="Valor (R$)"
+                                            />
+                                            <button
+                                                onClick={() => setExtraCosts(extraCosts.filter((_, i) => i !== idx))}
+                                                className="text-red-400 hover:text-red-600"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={() => setExtraCosts([...extraCosts, { id: `extra-${Date.now()}`, name: '', value: 0 }])}
+                                        className="text-xs font-bold text-orange-600 hover:underline flex items-center gap-1"
+                                    >
+                                        <Plus size={14} /> Adicionar Custo Extra
+                                    </button>
+                                    {result && extraCosts.length > 0 && (
+                                        <div className="mt-3 bg-white p-2 rounded-2xl border border-orange-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                <span className="text-sm font-bold text-orange-700">{fmtCurrency(result.extraCostTotal || 0)}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Total Custo Operacional Display */}
+                        {result && recruitmentType === 'selection' && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                <div className="bg-gradient-to-r from-purple-50 to-orange-50 px-6 py-3 rounded-2xl border-2 border-purple-200">
+                                    <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Custo Operacional:</span>
+                                    <span className="text-xl font-bold text-purple-700">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 7. TRIBUTOS (Separate Box) */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <DollarSign size={18} /> 7. Tributos
+                        </h2>
+
+                        {/* ISS City Selector */}
+                        <div className="mb-4 bg-blue-50 p-4 rounded-3xl border border-blue-100">
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Cidade (Para cálculo do ISS)</label>
+                            <select
+                                value={selectedCity}
+                                onChange={(e) => setSelectedCity(e.target.value)}
+                                className="w-full p-3 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-metarh-dark focus:ring-2 focus:ring-blue-400 outline-none"
+                            >
+                                <option value="São Paulo - SP">São Paulo - SP (5%)</option>
+                                <option value="Barueri - SP">Barueri - SP (2%)</option>
+                                <option value="Outra Localidade (5%)">Outra Localidade (5%)</option>
+                            </select>
+                            <p className="text-[10px] text-gray-500 mt-2">A alíquota de ISS varia conforme a cidade</p>
                         </div>
+
+                        {result && (
+                            <div className="space-y-3">
+                                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>ISS - {selectedCity}</span>
+                                            <span className="font-bold text-gray-800">{fmtCurrency(result.issValue || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>PIS ({fmtPercent(LABOR_TAX_RATES.pis)})</span>
+                                            <span className="font-bold text-gray-800">{fmtCurrency(result.pisValue || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>COFINS ({fmtPercent(LABOR_TAX_RATES.cofins)})</span>
+                                            <span className="font-bold text-gray-800">{fmtCurrency(result.cofinsValue || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>IRRF ({fmtPercent(LABOR_TAX_RATES.irrf)})</span>
+                                            <span className="font-bold text-gray-800">{fmtCurrency(result.irrfValue || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>CSLL ({fmtPercent(LABOR_TAX_RATES.csll)})</span>
+                                            <span className="font-bold text-gray-800">{fmtCurrency(result.csllValue || 0)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Total Tributos */}
+                                <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
+                                    <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
+                                    <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                 </div>
-            </div>
+
+                {/* RIGHT COLUMN - RESULTS */}
+                <div className="lg:col-span-1">
+                    <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl lg:sticky lg:top-4">
+                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                            <BarChart3 size={24} className="text-metarh-lime" /> Resultado
+                        </h2>
+
+                        {result && (
+                            <div className="space-y-4 text-sm">
+
+                                {/* Salaries */}
+                                <div className="pb-4 border-b border-white/10">
+                                    <div className="flex justify-between text-gray-300">
+                                        <span>Total Salários Base</span>
+                                        <span>{fmtCurrency(result.totalBaseSalary)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-white mt-1">
+                                        <span>Total Salários Bruto</span>
+                                        <span>{fmtCurrency(result.totalGrossSalary)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Charges */}
+                                <div className="pb-4 border-b border-white/10">
+                                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">Encargos</p>
+                                    <div className="flex justify-between text-gray-300 text-xs">
+                                        <span>Grupo A ({fmtPercent(result.groupAPercent)})</span>
+                                        <span>{fmtCurrency(result.groupAValue)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-300 text-xs">
+                                        <span>Grupo B ({fmtPercent(result.groupBPercent)})</span>
+                                        <span>{fmtCurrency(result.groupBValue)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-white mt-1">
+                                        <span>Total Encargos</span>
+                                        <span>{fmtCurrency(result.totalCharges)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Benefits & Exams */}
+                                <div className="pb-4 border-b border-white/10">
+                                    <div className="flex justify-between text-gray-300">
+                                        <span>Total Benefícios</span>
+                                        <span>{fmtCurrency(result.totalBenefits)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-300">
+                                        <span>Total Exames</span>
+                                        <span>{fmtCurrency(result.totalExams)}</span>
+                                    </div>
+                                </div>
+
+
+                                {/* Fees */}
+                                <div className="pb-4 border-b border-white/10">
+                                    <div className="flex justify-between font-bold text-metarh-lime">
+                                        <span>Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
+                                        <span>{fmtCurrency(result.adminFeeValue)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Taxes */}
+                                <div className="text-xs text-gray-400 space-y-1 pb-4 border-b border-white/10">
+                                    <p className="font-bold uppercase text-gray-500">Impostos ({fmtPercent(result.totalTaxRate)})</p>
+                                    <div className="flex justify-between">
+                                        <span>Total Tributos</span>
+                                        <span>{fmtCurrency(result.totalTaxes)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Final Gross NF */}
+                                <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
+                                    <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
+                                    <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
+                                    <p className="text-[10px] opacity-70 mt-1">Custo Base + Taxas + Tributos</p>
+                                </div>
+
+                                {/* NEW TOTALS - As requested */}
+                                <div className="mt-4 space-y-3">
+                                    {/* Total Líquido - Green background (same style as PricingCalculator) */}
+                                    <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
+                                        <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
+                                        <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
+                                        <p className="text-[10px] text-green-300 mt-1">Valor Bruto da NF - Retenção IR (15,5%)</p>
+                                    </div>
+
+                                    {/* Lucro L. Operacional - Emphasis on % with legend below */}
+                                    <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
+                                            <div className="text-center">
+                                                <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full block">
+                                                    {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
+                                                </span>
+                                                <p className="text-[9px] text-yellow-300 mt-1">% do Líquido</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
+                                        <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
+                                    </div>
+                                </div>
+
+                                {recruitmentType === 'selection' && result.teamCost > 0 && (
+                                    <div className="mt-4 space-y-2">
+                                        <div className="p-3 bg-purple-900/30 rounded-3xl border border-purple-500/20">
+                                            <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
+                                            <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
+                                            <p className="text-[10px] text-purple-300">Custo interno estimado</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Dica do Especialista - Same logic as PricingCalculator */}
+                                {(() => {
+                                    const netLiquid = result.grossNF * 0.845; // Total Líquido (após retenção IR 15.5%)
+                                    const realProfit = netLiquid - result.totalOperationalCost - result.totalTaxes;
+                                    const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
+
+                                    return (
+                                        <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
+                                            ? 'bg-red-500/10 border-red-400'
+                                            : profitMarginPercentage < 10
+                                                ? 'bg-orange-500/10 border-orange-400'
+                                                : profitMarginPercentage <= 35
+                                                    ? 'bg-yellow-500/10 border-yellow-400'
+                                                    : 'bg-green-500/10 border-green-400'
+                                            }`}>
+                                            <p className="text-xs font-bold mb-2 flex items-center gap-1">
+                                                {realProfit < 0 ? '🚨' :
+                                                    profitMarginPercentage < 10 ? '😅' :
+                                                        profitMarginPercentage <= 35 ? '😉' : '🚀'}
+                                                <span className="text-white">Dica do Especialista</span>
+                                            </p>
+                                            <p className="text-xs text-gray-300 leading-relaxed">
+                                                {realProfit < 0
+                                                    ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
+                                                    : profitMarginPercentage < 10
+                                                        ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
+                                                        : profitMarginPercentage <= 35
+                                                            ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
+                                                            : 'Aí sim! Margem top (acima de 35%). O comercial tá voando! Pode fechar sem medo. 🚀'
+                                                }
+                                            </p>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Botão Gerar PDF */}
+                                <button
+                                    onClick={() => {
+                                        alert('Funcionalidade de Gerar PDF será implementada em breve!');
+                                        // TODO: Integrar com pdfGenerator.ts
+                                    }}
+                                    className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
+                                >
+                                    <FileText size={18} /> Gerar PDF
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+            </div >
+        </div >
 
 
         </div >

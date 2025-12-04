@@ -661,6 +661,30 @@ export const TAX_RATES = {
   issOptions: [
     { city: 'São Paulo - SP', rate: 0.05 },
     { city: 'Barueri - SP', rate: 0.02 },
+    { city: 'Osasco - SP', rate: 0.05 },
+    { city: 'Guarulhos - SP', rate: 0.05 },
+    { city: 'Campinas - SP', rate: 0.05 },
+    { city: 'Santo André - SP', rate: 0.05 },
+    { city: 'São Bernardo do Campo - SP', rate: 0.05 },
+    { city: 'São Caetano do Sul - SP', rate: 0.05 },
+    { city: 'Diadema - SP', rate: 0.03 },
+    { city: 'Mauá - SP', rate: 0.05 },
+    { city: 'Ribeirão Preto - SP', rate: 0.05 },
+    { city: 'Sorocaba - SP', rate: 0.05 },
+    { city: 'Santos - SP', rate: 0.05 },
+    { city: 'Rio de Janeiro - RJ', rate: 0.05 },
+    { city: 'Niterói - RJ', rate: 0.05 },
+    { city: 'Belo Horizonte - MG', rate: 0.03 },
+    { city: 'Curitiba - PR', rate: 0.05 },
+    { city: 'Porto Alegre - RS', rate: 0.05 },
+    { city: 'Brasília - DF', rate: 0.05 },
+    { city: 'Salvador - BA', rate: 0.05 },
+    { city: 'Fortaleza - CE', rate: 0.05 },
+    { city: 'Recife - PE', rate: 0.05 },
+    { city: 'Manaus - AM', rate: 0.05 },
+    { city: 'Belém - PA', rate: 0.05 },
+    { city: 'Goiânia - GO', rate: 0.05 },
+    { city: 'Cuiabá - MT', rate: 0.05 },
     { city: 'Outra Localidade (5%)', rate: 0.05 },
   ],
   retentionIR: 0.015 // 1.5% Retention on Gross
@@ -720,16 +744,16 @@ export const BENEFIT_OPTIONS = {
     { id: 'den-none', name: 'Sem Plano Odontológico', value: 0 }
   ],
   wellhub: [
-    { id: 'gym-starter', name: 'GYMPASS STARTER', value: 29.90 },
-    { id: 'gym-basic', name: 'GYMPASS BASIC', value: 49.90 },
-    { id: 'gym-silver', name: 'GYMPASS SILVER', value: 119.90 },
-    { id: 'gym-silver-plus', name: 'GYMPASS SILVER+', value: 184.90 },
-    { id: 'gym-gold', name: 'GYMPASS GOLD', value: 249.90 },
-    { id: 'gym-gold-plus', name: 'GYMPASS GOLD+', value: 379.90 },
-    { id: 'gym-platinum', name: 'GYMPASS PLATINUM', value: 499.90 },
-    { id: 'gym-diamond', name: 'GYMPASS DIAMOND', value: 629.90 },
-    { id: 'gym-diamond-plus', name: 'GYMPASS DIAMOND+', value: 679.90 },
-    { id: 'gym-none', name: 'Sem Wellhub', value: 0 }
+    { id: 'gym-starter', name: 'STARTER', value: 29.90 },
+    { id: 'gym-basic', name: 'BASIC', value: 49.90 },
+    { id: 'gym-silver', name: 'SILVER', value: 119.90 },
+    { id: 'gym-silver-plus', name: 'SILVER+', value: 184.90 },
+    { id: 'gym-gold', name: 'GOLD', value: 249.90 },
+    { id: 'gym-gold-plus', name: 'GOLD+', value: 379.90 },
+    { id: 'gym-platinum', name: 'PLATINUM', value: 499.90 },
+    { id: 'gym-diamond', name: 'DIAMOND', value: 629.90 },
+    { id: 'gym-diamond-plus', name: 'DIAMOND+', value: 679.90 },
+    { id: 'gym-none', name: 'Sem Plano', value: 0 }
   ],
   others: {
     transport: { name: 'Vale Transporte (Diário)', defaultValue: 17.80 },
@@ -737,8 +761,10 @@ export const BENEFIT_OPTIONS = {
     food: { name: 'Vale Alimentação (Mensal)', defaultValue: 163.83 },
     lifeInsurance: { name: 'Seguro de Vida', defaultValue: 16.01 },
     pharmacy: { name: 'Auxílio Farmácia | Omni', defaultValue: 46.96 },
+    healthCare: { name: 'Saúde da Gente', defaultValue: 40.00 },
     gpsPoint: { name: 'Controle de Ponto GPS', defaultValue: 7.63 },
-    plr: { name: 'PLR (Provisão Mensal)', defaultValue: 330.88 }
+    plr: { name: 'PLR (Provisão Mensal)', defaultValue: 330.88 },
+    operationalTeam: { name: 'Time de Operações (hora)', defaultValue: 745.00 }
   }
 };
 

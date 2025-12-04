@@ -82,19 +82,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     // New Benefits Structure (Unified)
     const [benefitsList, setBenefitsList] = useState<BenefitItem[]>([
-        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 }, // 5% na imagem
-        { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 }, // 5% na imagem
-        { id: 'exam-aso', name: 'Exames Clínicos - ASO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-aso')?.value || 0, discountType: 'percentage', discountValue: 0.05 },
-        { id: 'exam-comp', name: 'Exames Médicos Complementares', type: 'monthly', quantity: 0, unitValue: 0, discountType: 'percentage', discountValue: 0.05 },
-        { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'percentage', discountValue: 0.01 },
-        { id: 'medical', name: 'Plano Médico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'percentage', discountValue: 0.02, selectedPlanId: BENEFIT_OPTIONS.medical[2].id }, // Default Sulamerica Executivo
+        // Alimentação e Transporte
+        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.06 }, // 6% padrão
+        { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 },
+        { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01 },
+        // Saúde e Bem estar  
+        { id: 'medical', name: 'Plano Médico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'percentage', discountValue: 0.02, selectedPlanId: BENEFIT_OPTIONS.medical[2].id },
         { id: 'dental', name: 'Plano Odontológico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.dental[0].id },
         { id: 'pharmacy', name: 'Auxílio Farmácia | Omni', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.pharmacy.defaultValue, discountType: 'fixed', discountValue: 0 },
-        { id: 'wellhub', name: 'Wellhub (Gympass)', type: 'plan_selection', quantity: 0, unitValue: 0, discountType: 'percentage', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.wellhub[0].id },
-        { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01 },
+        { id: 'healthCare', name: 'Saúde da Gente', type: 'monthly', quantity: 0, unitValue: BENEFIT_OPTIONS.others.healthCare?.defaultValue || 40, discountType: 'fixed', discountValue: 0 }, // Novo benefício semelhante
+        { id: 'wellhub', name: 'Bem estar', type: 'plan_selection', quantity: 0, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.wellhub[0].id }, // Sem desconto
+        // Outros
         { id: 'lifeInsurance', name: 'Seguro de Vida', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.lifeInsurance.defaultValue, discountType: 'fixed', discountValue: 0 },
         { id: 'gpsPoint', name: 'Controle de Ponto GPS', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.gpsPoint.defaultValue, discountType: 'fixed', discountValue: 0 },
         { id: 'plr', name: 'PLR', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.plr.defaultValue, discountType: 'fixed', discountValue: 0 },
+        // Exames
+        { id: 'exam-aso', name: 'Exames Clínicos - ASO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-aso')?.value || 0, discountType: 'percentage', discountValue: 0.05 },
+        { id: 'exam-comp', name: 'Exames Médicos Complementares', type: 'monthly', quantity: 0, unitValue: 0, discountType: 'percentage', discountValue: 0.05 },
+        { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'percentage', discountValue: 0.01 },
     ]);
 
     // Charges Config (Detailed)
@@ -400,6 +405,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         }));
     };
 
+    // Benefits categorization helper
+    const getCategoryInfo = (id: string) => {
+        if (['transport', 'meal', 'food'].includes(id)) return { name: 'Alimentação e Transporte', icon: '🍽️', color: 'orange' };
+        if (['medical', 'dental', 'pharmacy', 'healthCare', 'wellhub'].includes(id)) return { name: 'Saúde e Bem estar', icon: '🏥', color: 'blue' };
+        if (id.startsWith('exam-')) return { name: 'Exames', icon: '🩺', color: 'purple' };
+        return { name: 'Outros', icon: '🔧', color: 'gray' };
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
             <div className="max-w-7xl mx-auto">
@@ -473,6 +486,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 <div>
                                     <p className="text-xs font-bold text-green-700 mb-1">✓ Pontos Positivos:</p>
                                     <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                        <li>• Segurança Financeira para METARH</li>
                                         <li>• Maior segurança jurídica</li>
                                         <li>• Cobertura total de encargos</li>
                                         <li>• Previsibilidade de custos</li>
@@ -642,50 +656,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             )}
                                         </div>
 
-                                        {/* Daily Worker Mode Toggle */}
-                                        <div className="mt-2 flex flex-wrap items-center gap-4 bg-white p-3 rounded-2xl border border-gray-200 shadow-sm">
-                                            <label className="flex items-center gap-2 cursor-pointer min-w-[100px]">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={pos.isDailyWorker}
-                                                    onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, isDailyWorker: e.target.checked, isHourly: e.target.checked ? false : p.isHourly } : p))}
-                                                    className="w-5 h-5 text-metarh-medium rounded-lg accent-metarh-medium transition-all"
-                                                />
-                                                <span className="text-sm font-bold text-gray-700">Diarista</span>
-                                            </label>
-
-                                            {pos.isDailyWorker && (
-                                                <div className="flex-1 flex flex-wrap items-center gap-4 animate-fade-in">
-                                                    {/* Custo/Dia */}
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Custo/Dia</span>
-                                                        <span className="text-sm font-bold text-metarh-medium bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
-                                                            {fmtCurrency(pos.baseSalary / 22)}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Qtd Input */}
-                                                    <div className="flex flex-col flex-1 min-w-[120px]">
-                                                        <span className="text-[10px] text-gray-400 uppercase font-bold mb-1">QTDE dias/mês</span>
-                                                        <input
-                                                            type="number"
-                                                            value={pos.daysPerMonth}
-                                                            onChange={(e) => setPositions(positions.map(p => p.id === pos.id ? { ...p, daysPerMonth: Number(e.target.value) } : p))}
-                                                            className="w-full p-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-metarh-medium outline-none transition-all"
-                                                            placeholder="0"
-                                                        />
-                                                    </div>
-
-                                                    {/* Total */}
-                                                    <div className="flex flex-col items-end min-w-[100px]">
-                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Custo Total</span>
-                                                        <span className="text-lg font-bold text-metarh-dark">
-                                                            {fmtCurrency((pos.baseSalary / 22) * pos.daysPerMonth)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
 
                                         <div className="grid md:grid-cols-3 gap-4 mt-4">
                                             <div>
@@ -892,164 +862,213 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
                         </div>
 
-                        {/* 3. BENEFITS (Cards Layout) */}
+                        {/* 3. BENEFITS (Organized by Category) */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                             <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                                 <Sparkles size={18} /> 3. Benefícios
                             </h2>
 
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {benefitsList.map((item) => {
-                                    const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item);
+
+                            {/* Benefits organized by category */}
+                            <div className="space-y-6">
+                                {['Alimentação e Transporte', 'Saúde e Bem estar', 'Outros', 'Exames'].map(categoryName => {
+                                    const categoryItems = benefitsList.filter(item => getCategoryInfo(item.id).name === categoryName);
+                                    if (categoryItems.length === 0) return null;
+
+                                    const categoryInfo = getCategoryInfo(categoryItems[0].id);
+                                    let categorySubtotal = 0;
+
                                     return (
-                                        <div key={item.id} className="bg-gray-50 p-4 rounded-3xl border border-gray-200 hover:shadow-md transition-all relative group">
-                                            {/* Header: Name & Remove Button */}
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className="flex-1 mr-2">
-                                                    {item.type === 'custom' ? (
-                                                        <input
-                                                            type="text"
-                                                            value={item.name}
-                                                            onChange={(e) => updateBenefit(item.id, 'name', e.target.value)}
-                                                            className="w-full p-1 bg-white border border-gray-200 rounded text-sm font-bold text-gray-700 focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                            placeholder="Nome do Benefício"
-                                                        />
-                                                    ) : (
-                                                        <span className="text-sm font-bold text-gray-700 block">{item.name}</span>
-                                                    )}
-
-                                                    {item.type === 'plan_selection' && (
-                                                        <select
-                                                            value={item.selectedPlanId}
-                                                            onChange={(e) => updateBenefit(item.id, 'selectedPlanId', e.target.value)}
-                                                            className="mt-1 w-full p-1 text-xs border border-gray-200 rounded bg-white text-gray-600 focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                        >
-                                                            {item.id === 'medical' && BENEFIT_OPTIONS.medical.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-                                                            {item.id === 'dental' && BENEFIT_OPTIONS.dental.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-                                                            {item.id === 'wellhub' && BENEFIT_OPTIONS.wellhub.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-                                                        </select>
-                                                    )}
-                                                </div>
-                                                {item.type === 'custom' && (
-                                                    <button
-                                                        onClick={() => setBenefitsList(prev => prev.filter(i => i.id !== item.id))}
-                                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
+                                        <div key={categoryName} className="border border-gray-200 rounded-3xl p-4 bg-gray-50/50">
+                                            {/* Category Header */}
+                                            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
+                                                <span className="text-2xl">{categoryInfo.icon}</span>
+                                                <h3 className="text-md font-bold text-gray-800">{categoryName}</h3>
                                             </div>
 
-                                            {/* Inputs Row */}
-                                            <div className="grid grid-cols-3 gap-2 mb-3">
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qtd</label>
-                                                    <input
-                                                        type="number"
-                                                        value={item.quantity}
-                                                        onChange={(e) => updateBenefit(item.id, 'quantity', Number(e.target.value))}
-                                                        className="w-full p-1 text-center bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Valor Unit.</label>
-                                                    {item.type === 'plan_selection' ? (
-                                                        <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-600 truncate">
-                                                            {fmtCurrency(unitValue)}
+                                            {/* Benefits Cards */}
+                                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                                {categoryItems.map((item) => {
+                                                    const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item);
+                                                    categorySubtotal += clientCost * (result?.totalPositions || 1);
+
+                                                    return (
+                                                        <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-200 hover:shadow-md transition-all relative group">
+                                                            {/* Header: Name & Remove Button */}
+                                                            <div className="flex justify-between items-start mb-3">
+                                                                <div className="flex-1 mr-2">
+                                                                    {item.type === 'custom' ? (
+                                                                        <input
+                                                                            type="text"
+                                                                            value={item.name}
+                                                                            onChange={(e) => updateBenefit(item.id, 'name', e.target.value)}
+                                                                            className="w-full p-1 bg-gray-50 border border-gray-200 rounded text-sm font-bold text-gray-700 focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                            placeholder="Nome do Benefício"
+                                                                        />
+                                                                    ) : (
+                                                                        <span className="text-sm font-bold text-gray-700 block">{item.name}</span>
+                                                                    )}
+
+                                                                    {item.type === 'plan_selection' && (
+                                                                        <select
+                                                                            value={item.selectedPlanId}
+                                                                            onChange={(e) => updateBenefit(item.id, 'selectedPlanId', e.target.value)}
+                                                                            className="mt-1 w-full p-1 text-xs border border-gray-200 rounded bg-gray-50 text-gray-600 focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                        >
+                                                                            {item.id === 'medical' && BENEFIT_OPTIONS.medical.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                                            {item.id === 'dental' && BENEFIT_OPTIONS.dental.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                                            {item.id === 'wellhub' && BENEFIT_OPTIONS.wellhub.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
+                                                                        </select>
+                                                                    )}
+                                                                </div>
+                                                                {item.type === 'custom' && (
+                                                                    <button
+                                                                        onClick={() => setBenefitsList(prev => prev.filter(i => i.id !== item.id))}
+                                                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Inputs Row */}
+                                                            <div className="grid grid-cols-3 gap-2 mb-3">
+                                                                <div>
+                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qtd</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={item.quantity}
+                                                                        onChange={(e) => updateBenefit(item.id, 'quantity', Number(e.target.value))}
+                                                                        className="w-full p-1 text-center bg-gray-50 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                        min="0"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Valor Unit.</label>
+                                                                    {item.type === 'plan_selection' ? (
+                                                                        <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-600 truncate text-[11px]">
+                                                                            {fmtCurrency(unitValue)}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <input
+                                                                            type="number"
+                                                                            value={item.unitValue}
+                                                                            onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
+                                                                            className="w-full p-1 text-center bg-gray-50 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                            step="0.01"
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Dias</label>
+                                                                    {item.type === 'daily' ? (
+                                                                        <input
+                                                                            type="number"
+                                                                            value={item.days}
+                                                                            onChange={(e) => updateBenefit(item.id, 'days', Number(e.target.value))}
+                                                                            className="w-full p-1 text-center bg-gray-50 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
+                                                                            min="0"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-400">-</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Discount Row */}
+                                                            <div className="bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2">
+                                                                <div className="flex justify-between items-center mb-1">
+                                                                    <span className="text-[10px] font-bold text-gray-500 uppercase">Desc. Colab.</span>
+                                                                    <button
+                                                                        onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
+                                                                        className="text-[10px] font-bold text-metarh-medium bg-metarh-medium/10 px-1.5 py-0.5 rounded hover:bg-metarh-medium/20 transition-colors"
+                                                                    >
+                                                                        {item.discountType === 'percentage' ? '%' : 'R$'}
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
+                                                                        onChange={(e) => {
+                                                                            let val = Number(e.target.value);
+
+                                                                            // Validações de desconto por tipo de benefício
+                                                                            if (item.discountType === 'percentage') {
+                                                                                // Vale Transporte: máximo 6%
+                                                                                if (item.id === 'transport' && val > 6) {
+                                                                                    val = 6;
+                                                                                }
+                                                                                // Vale Refeição e Alimentação: máximo 20%
+                                                                                if (['meal', 'food'].includes(item.id) && val > 20) {
+                                                                                    val = 20;
+                                                                                }
+                                                                            }
+
+                                                                            updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
+                                                                        }}
+                                                                        className="w-16 p-1 text-center border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none bg-white"
+                                                                        step={item.discountType === 'percentage' ? "0.1" : "0.01"}
+                                                                    />
+                                                                    <span className="text-xs text-red-500 font-medium flex-1 text-right truncate">
+                                                                        -{fmtCurrency(collabDiscount)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Footer: Client Cost */}
+                                                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                                                <span className="text-[10px] font-bold text-gray-600 uppercase">Custo Cliente:</span>
+                                                                <span className="text-sm font-bold text-metarh-dark">{fmtCurrency(clientCost)}</span>
+                                                            </div>
                                                         </div>
-                                                    ) : (
-                                                        <input
-                                                            type="number"
-                                                            value={item.unitValue}
-                                                            onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
-                                                            className="w-full p-1 text-center bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                            step="0.01"
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Dias</label>
-                                                    {item.type === 'daily' ? (
-                                                        <input
-                                                            type="number"
-                                                            value={item.days}
-                                                            onChange={(e) => updateBenefit(item.id, 'days', Number(e.target.value))}
-                                                            className="w-full p-1 text-center bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                            min="0"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-400">-</div>
-                                                    )}
-                                                </div>
+                                                    );
+                                                })}
                                             </div>
 
-                                            {/* Discount Row */}
-                                            <div className="bg-white p-2 rounded-xl border border-gray-100 mb-3">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="text-[10px] font-bold text-gray-500 uppercase">Desconto Colaborador</span>
-                                                    <button
-                                                        onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
-                                                        className="text-[10px] font-bold text-metarh-medium bg-metarh-medium/10 px-1.5 py-0.5 rounded hover:bg-metarh-medium/20 transition-colors"
-                                                    >
-                                                        {item.discountType === 'percentage' ? '%' : 'R$'}
-                                                    </button>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
-                                                        onChange={(e) => {
-                                                            const val = Number(e.target.value);
-                                                            updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
-                                                        }}
-                                                        className="w-16 p-1 text-center border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
-                                                        step={item.discountType === 'percentage' ? "0.1" : "0.01"}
-                                                    />
-                                                    <span className="text-xs text-red-500 font-medium flex-1 text-right truncate">
-                                                        -{fmtCurrency(collabDiscount)}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                            {/* Add Button for Category */}
+                                            <button
+                                                onClick={() => {
+                                                    const newBenefit: BenefitItem = {
+                                                        id: `custom-${Date.now()}`,
+                                                        name: `Novo - ${categoryName}`,
+                                                        type: 'custom',
+                                                        quantity: 1,
+                                                        unitValue: 0,
+                                                        discountType: 'fixed',
+                                                        discountValue: 0
+                                                    };
+                                                    setBenefitsList([...benefitsList, newBenefit]);
+                                                }}
+                                                className="w-full bg-white p-3 rounded-2xl border-2 border-dashed border-gray-300 hover:border-metarh-medium hover:bg-metarh-medium/5 transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-metarh-medium group mb-3"
+                                            >
+                                                <Plus size={16} />
+                                                <span className="text-xs font-bold">Adicionar em {categoryName}</span>
+                                            </button>
 
-                                            {/* Footer: Client Cost */}
-                                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                                <span className="text-xs font-bold text-gray-600">Custo Cliente:</span>
-                                                <span className="text-sm font-bold text-metarh-dark">{fmtCurrency(clientCost)}</span>
+                                            {/* Category Subtotal */}
+                                            <div className={`bg-${categoryInfo.color}-50 border-2 border-${categoryInfo.color}-200 rounded-2xl p-3`}>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm font-bold text-gray-700">Subtotal {categoryName}:</span>
+                                                    <span className="text-lg font-bold text-gray-900">{fmtCurrency(categorySubtotal)}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     );
                                 })}
 
-                                {/* Add Button Card */}
-                                <button
-                                    onClick={() => setBenefitsList([...benefitsList, {
-                                        id: `custom-${Date.now()}`,
-                                        name: 'Novo Benefício',
-                                        type: 'custom',
-                                        quantity: 1,
-                                        unitValue: 0,
-                                        discountType: 'fixed',
-                                        discountValue: 0
-                                    }])}
-                                    className="bg-gray-50 p-4 rounded-3xl border-2 border-dashed border-gray-300 hover:border-metarh-medium hover:bg-metarh-medium/5 transition-all flex flex-col items-center justify-center min-h-[200px] text-gray-400 hover:text-metarh-medium group"
-                                >
-                                    <div className="bg-white p-3 rounded-full shadow-sm mb-2 group-hover:scale-110 transition-transform">
-                                        <Plus size={24} />
-                                    </div>
-                                    <span className="text-sm font-bold">Adicionar Item</span>
-                                </button>
-                            </div>
 
-                            {/* Total Benefits Display */}
-                            {result && (
-                                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-6 py-3 rounded-2xl border border-metarh-medium/20 flex items-center gap-3">
-                                        <span className="text-sm font-bold text-gray-600 uppercase">Total Benefícios + Exames:</span>
-                                        <span className="text-2xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
+                                {/* Total Benefits Display */}
+                                {result && (
+                                    <div className="bg-gradient-to-r from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-3xl p-5">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-lg font-bold text-metarh-dark uppercase">✨ Total Benefícios:</span>
+                                            <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2 text-right">Soma dos subtotais de categorias (Custo Cliente)</p>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
                         {/* 5. FEES */}
@@ -1498,6 +1517,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             </div>
 
 
-        </div>
+        </div >
     );
 };

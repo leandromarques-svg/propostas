@@ -103,6 +103,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
 
     const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
+    const [clientName, setClientName] = useState('');
+
     // Removed recruitmentCostPercent
 
     // Recruitment Team State
@@ -550,8 +552,23 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                     </div>
                 </div>
 
+                {/* Client Name Input */}
+                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-6">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                        <Briefcase size={16} /> Cliente / Projeto
+                    </label>
+                    <input
+                        type="text"
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        placeholder="Digite o nome do cliente..."
+                        className="w-full text-xl font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent"
+                    />
+                </div>
+
                 {/* Provisioning Mode Selection */}
                 <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-wrap gap-4 justify-center">
+
                     <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border transition-all ${provisioningMode === 'full' ? 'bg-metarh-medium text-white border-metarh-medium' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
                         <input
                             type="radio"
@@ -1992,7 +2009,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 </button>
 
                                                 <button
-                                                    onClick={() => { generatePDF('client', result, 'Cliente'); setShowPdfModal(false); }}
+                                                    onClick={() => { generatePDF('client', result, clientName || 'Cliente'); setShowPdfModal(false); }}
+
                                                     className="w-full p-4 bg-metarh-medium/5 hover:bg-metarh-medium/10 rounded-2xl border border-metarh-medium/20 flex items-center justify-between group transition-all"
                                                 >
                                                     <div className="flex items-center gap-3">

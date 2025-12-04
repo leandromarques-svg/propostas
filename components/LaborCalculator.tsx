@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
-    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock, Info
+    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock, Info,
+    Shield, Laptop, Smartphone, Car
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
@@ -9,6 +10,8 @@ import {
 } from '../constants';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
 import { getAppSettings, AppSettings } from './lib/settingsService';
+import { generatePDF } from './lib/pdfGenerator';
+
 import { Logo } from './Logo';
 
 interface LaborPosition {
@@ -40,6 +43,37 @@ export interface BenefitItem {
     selectedPlanId?: string;
     discountBase?: 'salary' | 'benefit'; // Para Vale Transporte: desconto sobre salário base ou valor fornecido
 }
+
+// Novas interfaces para seções de custo adicionais
+export interface EpiItem {
+    id: string;
+    name: string;
+    quantity: number;
+    unitCost: number;
+    frequency: 'monthly' | 'quarterly' | 'annually' | 'one-time';
+}
+
+export interface NotebookItem {
+    id: string;
+    model: string;
+    quantity: number;
+    unitCost: number;
+}
+
+export interface CellPhoneItem {
+    id: string;
+    model: string;
+    quantity: number;
+    monthlyCost: number; // Custo mensal do plano
+}
+
+export interface VehicleItem {
+    id: string;
+    type: string;
+    quantity: number;
+    monthlyCost: number; // Aluguel + combustível + manutenção
+}
+
 
 interface LaborCalculatorProps {
     onCancel: () => void;
@@ -103,12 +137,26 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'percentage', discountValue: 0.01 },
     ]);
 
+    // Estados para novas seções de custo
+    const [epiItems, setEpiItems] = useState<EpiItem[]>([
+        { id: 'epi-1', name: 'Capacete', quantity: 0, unitCost: 50, frequency: 'annually' },
+        { id: 'epi-2', name: 'Luvas', quantity: 0, unitCost: 15, frequency: 'quarterly' },
+        { id: 'epi-3', name: 'Óculos de Proteção', quantity: 0, unitCost: 30, frequency: 'annually' },
+    ]);
+
+    const [notebooks, setNotebooks] = useState<NotebookItem[]>([]);
+    const [cellPhones, setCellPhones] = useState<CellPhoneItem[]>([]);
+    const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
+
+
     // Charges Config (Detailed)
     const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
     // Removed showChargesConfig (Always visible)
 
     // Fees (Removed Backup Fee)
     const [adminFeePercent, setAdminFeePercent] = useState<number>(0.10); // Taxa Administrativa default 10%
+    const [calculationMode, setCalculationMode] = useState<'5_columns' | 'final_rate'>('5_columns'); // 5 Colunas (Sobre Custo) vs Taxa Final (Sobre Faturamento)
+
 
     // Operational Costs (ex-Recruitment)
     const [operationalAdminDays, setOperationalAdminDays] = useState<number>(0); // Dias para Operação Administrativa
@@ -119,6 +167,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     // Results State
     const [result, setResult] = useState<any>(null);
+    const [showPdfModal, setShowPdfModal] = useState(false);
+
 
     // Load team rates and app settings
     useEffect(() => {
@@ -305,11 +355,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const costBasis = totalGrossSalary + totalCharges + totalBenefits + totalExams;
 
         // Fees (Removed Backup Fee)
-        const adminFeeValue = costBasis * adminFeePercent;
-        const totalFees = adminFeeValue;
+        // Fees calculation moved to end
 
-        // Total Operational Cost (Custo Total)
-        const totalOperationalCost = costBasis + adminFeeValue;
 
         // Operational Costs (New Structure)
         // 1. Recruitment Team Cost
@@ -325,11 +372,40 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const operationalAdminHourlyRate = 745;
         const operationalAdminCost = operationalAdminDays * hoursPerDay * operationalAdminHourlyRate;
 
+
         // 3. Extra Costs
         const extraCostTotal = extraCosts.reduce((sum, item) => sum + item.value, 0);
 
+        // 4. EPI Costs (materiais de segurança)
+        const epiCostTotal = epiItems.reduce((sum, item) => {
+            const frequencyMultiplier = {
+                'monthly': 1,
+                'quarterly': 1 / 3,
+                'annually': 1 / 12,
+                'one-time': 0 // Custo único não conta no mensal
+            }[item.frequency];
+            return sum + (item.quantity * item.unitCost * frequencyMultiplier * totalPositions);
+        }, 0);
+
+        // 5. Notebooks Cost (custo único dividido por 36 meses de depreciação)
+        const notebooksCostTotal = notebooks.reduce((sum, item) => {
+            return sum + (item.quantity * item.unitCost / 36); // Depreciação de 36 meses
+        }, 0);
+
+        // 6. Cell Phones Cost (custo mensal do plano)
+        const cellPhonesCostTotal = cellPhones.reduce((sum, item) => {
+            return sum + (item.quantity * item.monthlyCost);
+        }, 0);
+
+        // 7. Vehicles Cost (custo mensal - aluguel + combustível + manutenção)
+        const vehiclesCostTotal = vehicles.reduce((sum, item) => {
+            return sum + (item.quantity * item.monthlyCost);
+        }, 0);
+
         // Total Operational Cost (Custo Operacional)
-        const totalOperationalCostValue = recruitmentTeamCost + operationalAdminCost + extraCostTotal;
+        const totalOperationalCostValue = recruitmentTeamCost + operationalAdminCost + extraCostTotal +
+            epiCostTotal + notebooksCostTotal + cellPhonesCostTotal + vehiclesCostTotal;
+
 
 
         // Taxes (Tributos) - ISS now varies by city
@@ -347,9 +423,23 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             LABOR_TAX_RATES.irrf +
             LABOR_TAX_RATES.csll;
 
-        // Gross NF
-        const grossNF = totalOperationalCost / (1 - totalTaxRate);
+        // --- PRICING LOGIC (5 Colunas vs Taxa Final) ---
+        let adminFeeValue = 0;
+        let grossNF = 0;
+
+        if (calculationMode === '5_columns') {
+            // 5 Colunas: Fee is % of Cost Basis (Labor)
+            adminFeeValue = costBasis * adminFeePercent;
+            grossNF = (costBasis + totalOperationalCostValue + adminFeeValue) / (1 - totalTaxRate);
+        } else {
+            // Taxa Final: Fee is % of Gross Revenue (Markup)
+            grossNF = (costBasis + totalOperationalCostValue) / (1 - totalTaxRate - adminFeePercent);
+            adminFeeValue = grossNF * adminFeePercent;
+        }
+
+        const totalFees = adminFeeValue;
         const totalTaxes = grossNF * totalTaxRate;
+        const totalOperationalCost = costBasis + totalOperationalCostValue + adminFeeValue; // For internal reference
 
         // Individual Taxes
         const issValue = grossNF * selectedIssRate;
@@ -358,16 +448,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const irrfValue = grossNF * LABOR_TAX_RATES.irrf;
         const csllValue = grossNF * LABOR_TAX_RATES.csll;
 
-        // NEW TOTALS as requested
-        // Total Bruto (NF) = Total Salário Bruto + Total Encargos + Total Benefícios + Total Exames + Total Taxas + Total Custo Operacional + Total Tributos
-        const totalBrutoNF = totalGrossSalary + totalCharges + totalBenefits + totalExams + totalFees + totalOperationalCostValue + totalTaxes;
+        // NEW TOTALS
+        // Total Bruto (NF)
+        const totalBrutoNF = grossNF;
 
         // Total Líquido (Recebido) = Valor Bruto da NF - Retenção IR (15,5%)
         const retentionIR = 0.155;
         const totalLiquido = grossNF - (grossNF * retentionIR);
 
-        // Lucro L. Operacional = Líquido Recebido - Custo Operacional (Se houver) - Tributos
-        const lucroOperacional = totalLiquido - totalOperationalCostValue - totalTaxes;
+        // Lucro L. Operacional = Líquido Recebido - Custo Total do Projeto (Labor + Ops + Taxes)
+        const projectTotalCost = costBasis + totalOperationalCostValue + totalTaxes;
+        const lucroOperacional = totalLiquido - projectTotalCost;
+
 
         setResult({
             positionsCalculated,
@@ -1125,6 +1217,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         </h2>
 
                         <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                            {/* Mode Switch */}
+                            <div className="flex gap-2 mb-4 bg-white p-1 rounded-xl border border-gray-200 w-fit">
+                                <button
+                                    onClick={() => setCalculationMode('5_columns')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                                >
+                                    5 Colunas (Sobre Custo)
+                                </button>
+                                <button
+                                    onClick={() => setCalculationMode('final_rate')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                                >
+                                    Taxa Final (Markup)
+                                </button>
+                            </div>
+
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
                             <div className="flex items-center gap-2">
                                 <input
@@ -1340,10 +1448,314 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         )}
                     </div>
 
-                    {/* 7. TRIBUTOS (Separate Box) */}
+                    {/* 7. EPI - MATERIAIS */}
                     <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
                         <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                            <DollarSign size={18} /> 7. Tributos
+                            <Shield size={18} /> 7. EPI - Materiais de Segurança
+                        </h2>
+
+                        <div className="space-y-3">
+                            {epiItems.map((item, idx) => (
+                                <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                                    <div className="grid grid-cols-5 gap-3">
+                                        <div className="col-span-2">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item</label>
+                                            <input
+                                                type="text"
+                                                value={item.name}
+                                                onChange={(e) => {
+                                                    const newItems = [...epiItems];
+                                                    newItems[idx].name = e.target.value;
+                                                    setEpiItems(newItems);
+                                                }}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                placeholder="Nome do EPI"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                            <input
+                                                type="number"
+                                                value={item.quantity}
+                                                onChange={(e) => {
+                                                    const newItems = [...epiItems];
+                                                    newItems[idx].quantity = Number(e.target.value);
+                                                    setEpiItems(newItems);
+                                                }}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                min="0"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo Unit.</label>
+                                            <input
+                                                type="number"
+                                                value={item.unitCost}
+                                                onChange={(e) => {
+                                                    const newItems = [...epiItems];
+                                                    newItems[idx].unitCost = Number(e.target.value);
+                                                    setEpiItems(newItems);
+                                                }}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Frequência</label>
+                                            <select
+                                                value={item.frequency}
+                                                onChange={(e) => {
+                                                    const newItems = [...epiItems];
+                                                    newItems[idx].frequency = e.target.value as any;
+                                                    setEpiItems(newItems);
+                                                }}
+                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            >
+                                                <option value="monthly">Mensal</option>
+                                                <option value="quarterly">Trimestral</option>
+                                                <option value="annually">Anual</option>
+                                                <option value="one-time">Única vez</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => setEpiItems([...epiItems, { id: `epi-${Date.now()}`, name: '', quantity: 0, unitCost: 0, frequency: 'monthly' }])}
+                                className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                            >
+                                <Plus size={16} /> Adicionar EPI
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 8. NOTEBOOKS */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <Laptop size={18} /> 8. Notebooks
+                        </h2>
+
+                        <div className="space-y-3">
+                            {notebooks.map((item, idx) => (
+                                <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
+                                        <input
+                                            type="text"
+                                            value={item.model}
+                                            onChange={(e) => {
+                                                const newItems = [...notebooks];
+                                                newItems[idx].model = e.target.value;
+                                                setNotebooks(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            placeholder="Ex: Dell Latitude 5420"
+                                        />
+                                    </div>
+                                    <div className="w-24">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                        <input
+                                            type="number"
+                                            value={item.quantity}
+                                            onChange={(e) => {
+                                                const newItems = [...notebooks];
+                                                newItems[idx].quantity = Number(e.target.value);
+                                                setNotebooks(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div className="w-32">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo</label>
+                                        <input
+                                            type="number"
+                                            value={item.unitCost}
+                                            onChange={(e) => {
+                                                const newItems = [...notebooks];
+                                                newItems[idx].unitCost = Number(e.target.value);
+                                                setNotebooks(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            step="0.01"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setNotebooks(notebooks.filter((_, i) => i !== idx))}
+                                        className="text-red-400 hover:text-red-600 self-end pb-2"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => setNotebooks([...notebooks, { id: `notebook-${Date.now()}`, model: '', quantity: 1, unitCost: 0 }])}
+                                className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                            >
+                                <Plus size={16} /> Adicionar Notebook
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 9. CELULARES */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <Smartphone size={18} /> 9. Celulares
+                        </h2>
+
+                        <div className="space-y-3">
+                            {cellPhones.map((item, idx) => (
+                                <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
+                                        <input
+                                            type="text"
+                                            value={item.model}
+                                            onChange={(e) => {
+                                                const newItems = [...cellPhones];
+                                                newItems[idx].model = e.target.value;
+                                                setCellPhones(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            placeholder="Ex: Samsung Galaxy A54"
+                                        />
+                                    </div>
+                                    <div className="w-24">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                        <input
+                                            type="number"
+                                            value={item.quantity}
+                                            onChange={(e) => {
+                                                const newItems = [...cellPhones];
+                                                newItems[idx].quantity = Number(e.target.value);
+                                                setCellPhones(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div className="w-32">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo/Mês</label>
+                                        <input
+                                            type="number"
+                                            value={item.monthlyCost}
+                                            onChange={(e) => {
+                                                const newItems = [...cellPhones];
+                                                newItems[idx].monthlyCost = Number(e.target.value);
+                                                setCellPhones(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            step="0.01"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setCellPhones(cellPhones.filter((_, i) => i !== idx))}
+                                        className="text-red-400 hover:text-red-600 self-end pb-2"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => setCellPhones([...cellPhones, { id: `phone-${Date.now()}`, model: '', quantity: 1, monthlyCost: 0 }])}
+                                className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                            >
+                                <Plus size={16} /> Adicionar Celular
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 10. VEÍCULOS */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <Car size={18} /> 10. Veículos
+                        </h2>
+
+                        <div className="space-y-3">
+                            {vehicles.map((item, idx) => (
+                                <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo de Veículo</label>
+                                        <input
+                                            type="text"
+                                            value={item.type}
+                                            onChange={(e) => {
+                                                const newItems = [...vehicles];
+                                                newItems[idx].type = e.target.value;
+                                                setVehicles(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            placeholder="Ex: Sedan, SUV, Utilitário"
+                                        />
+                                    </div>
+                                    <div className="w-24">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                        <input
+                                            type="number"
+                                            value={item.quantity}
+                                            onChange={(e) => {
+                                                const newItems = [...vehicles];
+                                                newItems[idx].quantity = Number(e.target.value);
+                                                setVehicles(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div className="w-40">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo Mensal Total</label>
+                                        <input
+                                            type="number"
+                                            value={item.monthlyCost}
+                                            onChange={(e) => {
+                                                const newItems = [...vehicles];
+                                                newItems[idx].monthlyCost = Number(e.target.value);
+                                                setVehicles(newItems);
+                                            }}
+                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                            step="0.01"
+                                            placeholder="Aluguel + Combustível"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setVehicles(vehicles.filter((_, i) => i !== idx))}
+                                        className="text-red-400 hover:text-red-600 self-end pb-2"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => setVehicles([...vehicles, { id: `vehicle-${Date.now()}`, type: '', quantity: 1, monthlyCost: 0 }])}
+                                className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                            >
+                                <Plus size={16} /> Adicionar Veículo
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Total Operational Cost Summary */}
+                    {result && (
+                        <div className="bg-gray-800 p-6 rounded-[2rem] shadow-sm border border-gray-700 text-white">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-lg font-bold flex items-center gap-2">
+                                        <Briefcase size={18} className="text-yellow-400" /> Total Custo Operacional
+                                    </h2>
+                                    <p className="text-xs text-gray-400 mt-1">Soma de Recrutamento, Adm, Extras, EPI, Notebooks, Celulares e Veículos</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-2xl font-bold text-yellow-400">{fmtCurrency(result.totalOperationalCostValue)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* 11. TRIBUTOS (Separate Box) */}
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                        <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                            <DollarSign size={18} /> 11. Tributos
                         </h2>
 
                         {/* ISS City Selector */}
@@ -1547,23 +1959,73 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                 {/* Botão Gerar PDF */}
                                 <button
-                                    onClick={() => {
-                                        alert('Funcionalidade de Gerar PDF será implementada em breve!');
-                                        // TODO: Integrar com pdfGenerator.ts
-                                    }}
+                                    onClick={() => setShowPdfModal(true)}
                                     className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
                                 >
                                     <FileText size={18} /> Gerar PDF
                                 </button>
+
+                                {/* PDF Modal */}
+                                {showPdfModal && (
+                                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                                        <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-fade-in">
+                                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                                <FileText className="text-metarh-medium" /> Gerar PDF
+                                            </h3>
+                                            <p className="text-gray-600 mb-6">Escolha o tipo de documento que deseja gerar:</p>
+
+                                            <div className="space-y-3">
+                                                <button
+                                                    onClick={() => { generatePDF('internal', result); setShowPdfModal(false); }}
+                                                    className="w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-between group transition-all"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                                                            <Settings size={20} className="text-gray-600" />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <div className="font-bold text-gray-800">Ordem de Serviço</div>
+                                                            <div className="text-xs text-gray-500">Para uso interno (detalhado)</div>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronDown className="-rotate-90 text-gray-400" />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => { generatePDF('client', result, 'Cliente'); setShowPdfModal(false); }}
+                                                    className="w-full p-4 bg-metarh-medium/5 hover:bg-metarh-medium/10 rounded-2xl border border-metarh-medium/20 flex items-center justify-between group transition-all"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                                                            <Briefcase size={20} className="text-metarh-medium" />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <div className="font-bold text-metarh-dark">Proposta Comercial</div>
+                                                            <div className="text-xs text-metarh-medium">Para envio ao cliente</div>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronDown className="-rotate-90 text-metarh-medium" />
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                onClick={() => setShowPdfModal(false)}
+                                                className="w-full mt-6 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
                         )}
                     </div>
                 </div>
 
-            </div >
-        </div >
-
-
-        </div >
+            </div>
+        </div>
     );
 };
+
+

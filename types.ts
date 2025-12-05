@@ -93,6 +93,8 @@ export interface Position {
   roleName: string;
   salary: number;
   vacancies: number;
+  // Optional job level weight (e.g. Diretoria=2.0, Gerência=1.75 etc.)
+  roleWeight?: number;
 }
 
 export interface FixedCostItem {
@@ -145,6 +147,7 @@ export interface PricingResult {
   // Pricing
   adminFee: number; // Taxa Administrativa (Revenue)
   referenceSalaryTotal: number; // Salary * Vacancies
+  weightedSalaryTotal?: number; // Salary * Vacancies * weight (salário do cargo)
 
   // Taxes
   taxIss: number;

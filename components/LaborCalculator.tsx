@@ -221,21 +221,37 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
         let collabDiscount = 0;
 
-        // Regra de Vale Transporte: 6% do salário base
+        // Regra de Vale Transporte: comportamento configurável
         if (item.id === 'transport') {
-            // Assume sempre base salário para VT agora (ou mantém compatibilidade se discountBase existir)
-            // Mas a regra nova diz: "Se esse 6% exceder o Valor Fornecido para VT, nenhum desconto é aplicado ao cliente"
-            // Isso significa collabDiscount = 0 se 6% > providedValue?
-            // "no discount is applied to the client" -> custo cliente = providedValue -> collabDiscount = 0.
-            // Sim.
+            // Base de desconto (padrão: 'salary' — 6% do salário base)
+            const baseType = item.discountBase || 'salary';
+            let computedDiscount = 0;
 
-            if (averageBaseSalary > 0) {
-                const salaryDiscount = averageBaseSalary * 0.06;
-                if (salaryDiscount > providedValue) {
-                    collabDiscount = 0;
-                } else {
-                    collabDiscount = salaryDiscount;
+            if (baseType === 'salary') {
+                // Percentual sobre salário médio
+                const base = averageBaseSalary;
+                if (base > 0) {
+                    if (item.discountType === 'percentage') {
+                        computedDiscount = base * (item.discountValue || 0.06);
+                    } else {
+                        computedDiscount = item.discountValue || 0;
+                    }
                 }
+            } else {
+                // Base sobre o próprio valor fornecido
+                if (item.discountType === 'percentage') {
+                    computedDiscount = providedValue * (item.discountValue || 0.06);
+                } else {
+                    computedDiscount = item.discountValue || 0;
+                }
+            }
+
+            // Regra: se o desconto calculado (independente da base) exceder o valor fornecido
+            // então NÃO há desconto repassado ao cliente (collabDiscount = 0)
+            if (computedDiscount > providedValue) {
+                collabDiscount = 0;
+            } else {
+                collabDiscount = computedDiscount;
             }
         }
         // Regra de VR e VA: Limite de 20% do valor fornecido
@@ -1187,6 +1203,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                             className="w-16 p-1 text-center border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none bg-white"
                                                                             step={item.discountType === 'percentage' ? "0.1" : "0.01"}
                                                                         />
+                                                                        {/* Option to select if VT discount is calculated sobre o salário ou sobre o valor fornecido */}
+                                                                        {item.id === 'transport' && (
+                                                                            <select
+                                                                                value={item.discountBase || 'salary'}
+                                                                                onChange={(e) => updateBenefit(item.id, 'discountBase', e.target.value)}
+                                                                                className="ml-2 p-1 rounded-lg border border-gray-200 text-xs bg-white"
+                                                                            >
+                                                                                <option value="salary">Desconto sobre Salário</option>
+                                                                                <option value="benefit">Desconto sobre Valor Fornecido</option>
+                                                                            </select>
+                                                                        )}
                                                                         <span className="text-xs text-red-500 font-medium flex-1 text-right truncate">
                                                                             -{fmtCurrency(collabDiscount)}
                                                                         </span>

@@ -18,6 +18,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     positions: [{
       id: 'pos-1',
       roleName: '',
+      roleWeight: 1,
       salary: 0,
       vacancies: 1
     }],
@@ -122,12 +123,19 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;
 
     // 3. Pricing - Calculate Reference Salary from all positions
+    // referenceSalaryTotal = sum(salary * vacancies)
     const referenceSalaryTotal = positions.reduce(
       (sum, pos) => sum + (pos.salary * pos.vacancies),
       0
     );
 
-    // Admin Fee: Input is the Target % of Salary.
+    // Apply job-level weights (roleWeight) to compute the "salário do cargo"
+    const weightedSalaryTotal = positions.reduce(
+      (sum, pos) => sum + (pos.salary * pos.vacancies * (pos.roleWeight || 1)),
+      0
+    );
+
+    // Admin Fee: Input is the Target % of Salary reference (100% => equals referenceSalaryTotal)
     const adminFee = referenceSalaryTotal * (marginMultiplier / 100);
 
     // Profit Margin (Legacy calculation, kept for reference if needed, but not used in new logic)
@@ -143,9 +151,10 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     // Usually: Gross = Net / (1 - TaxRate). 
     // But here, let's stick to the previous flow: Base = Admin Fee.
 
-    const totalPreTax = adminFee;
+    // Compose the proposal base as: Salário Referência + Salário do Cargo (peso) + Taxa Administrativa
+    const totalPreTax = referenceSalaryTotal + weightedSalaryTotal + adminFee;
 
-    // 4. Taxes
+    // 4. Taxes - taxes are calculated on the whole proposal composition
     const issRate = 0.05; // São Paulo default
     const taxIss = totalPreTax * issRate;
     const taxPis = totalPreTax * TAX_RATES.pis;
@@ -179,6 +188,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       totalOperationalCost,
       adminFee,
       referenceSalaryTotal,
+      weightedSalaryTotal,
       profitMargin,
       taxIss,
       taxPis,
@@ -325,11 +335,28 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     onClick={() => {
                       const newPosition: Position = {
                         id: `pos-${Date.now()}`,
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nível / Peso</label>
+                        <select
+                          value={position.roleWeight || 1}
+                          onChange={(e) => {
+                            const weight = Number(e.target.value) || 1;
+                            const label = ROLE_OPTIONS.find(r => r.value === weight)?.label || position.roleName;
+                            setInputs(prev => ({
+                              ...prev,
+                              positions: prev.positions.map(p => p.id === position.id ? { ...p, roleWeight: weight, roleName: label } : p)
+                            }));
+                          }}
+                          className="w-full p-3 bg-white rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
+                        >
+                          {ROLE_OPTIONS.map(r => <option key={r.label} value={r.value}>{r.label} — {r.value}</option>)}
+                        </select>
+                      </div>
                         roleName: '',
                         salary: 0,
                         vacancies: 1
                       };
-                      setInputs(prev => ({ ...prev, positions: [...prev.positions, newPosition] }));
+                      roleWeight: 1,
                     }}
                     className="text-xs flex items-center gap-1 text-metarh-medium font-bold hover:underline"
                   >
@@ -628,6 +655,14 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                       <p className="text-[10px] text-gray-400 text-right mt-1">Base para cálculo da taxa</p>
                     </div>
                   </div>
+                    {/* Display weighted salary (salário do cargo) */}
+                    <div className="bg-white/5 border border-white/10 rounded-3xl p-3 my-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-bold text-gray-300 uppercase tracking-wider">Salário do Cargo (peso)</span>
+                        <span className="text-lg font-bold text-white">{fmtCurrency(result.weightedSalaryTotal || 0)}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 text-right mt-1">Soma dos salários × peso por nível</p>
+                    </div>
 
                   {/* Revenue & Costs */}
                   <div className="space-y-2 pb-4 border-b border-white/10">
@@ -652,6 +687,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
                       <p className="text-xs text-gray-300 uppercase font-bold mb-1">Total Bruto (NF)</p>
                       <p className="text-3xl font-bold text-white">{fmtCurrency(result.grossNF)}</p>
+                      <p className="text-[11px] text-gray-300 mt-1">Composição: Salário Referência + Salário do Cargo (peso) + Taxa Administrativa + Tributos</p>
                     </div>
 
                     <div className="flex justify-between text-xs text-red-300 px-2">

@@ -1,4 +1,5 @@
 export const generatePDF = (type: 'internal' | 'client', result: any, clientName: string = 'Cliente') => {
+    console.debug('[pdfGenerator] generatePDF requested', { type, clientName, result });
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         // Popup was blocked — create a downloadable HTML file as a fallback
@@ -178,8 +179,47 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
         </html>
     `;
 
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    try {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        // Try to focus and trigger print dialog automatically (works if not blocked)
+        try {
+            printWindow.focus();
+            // give the new window a moment to render before print
+            setTimeout(() => {
+                try {
+                    printWindow.print();
+                } catch (errPrint) {
+                    console.warn('[pdfGenerator] automatic print failed or blocked', errPrint);
+                }
+            }, 250);
+        } catch (errFocus) {
+            console.warn('[pdfGenerator] could not focus/auto-print', errFocus);
+        }
+
+        return true;
+    } catch (err) {
+        console.error('[pdfGenerator] failed to write/print document', err);
+        // last-resort fallback: create downloadable HTML
+        try {
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${clientName || 'proposta'}.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            alert('Não foi possível abrir a janela de impressão — um arquivo HTML foi gerado para download. Abra-o e salve como PDF no navegador.');
+            return true;
+        } catch (err2) {
+            console.error('[pdfGenerator] fallback download also failed', err2);
+            alert('Erro ao gerar PDF. Verifique console para mais detalhes.');
+            return false;
+        }
+    }
 };
 
 // Backwards-compatible wrapper used by PricingCalculator / TrilhandoPlusCalculator
@@ -290,6 +330,29 @@ export const generateProposalPDF = (inputsOrType: any, maybeResult?: any, maybeN
         </html>
     `;
 
-    printWindow.document.write(html);
-    printWindow.document.close();
+    try {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        try { printWindow.focus(); setTimeout(() => { try { printWindow.print(); } catch (e) { console.warn('auto-print blocked', e); } }, 250); } catch (e) { console.warn('could not focus auto-print', e); }
+        return true;
+    } catch (err) {
+        console.error('generateProposalPDF write/print failed', err);
+        try {
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${clientName || 'proposta'}.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            alert('Popup bloqueado — arquivo HTML gerado para download. Abra-o e salve como PDF no navegador.');
+        } catch (err2) {
+            console.error('generateProposalPDF fallback failed', err2);
+            alert('Erro ao gerar PDF. Verifique console para detalhes.');
+            return false;
+        }
+        return true;
+    }
 };

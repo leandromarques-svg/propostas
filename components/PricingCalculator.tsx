@@ -744,7 +744,13 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   <button
                     onClick={() => {
                       if (!result) return;
-                      generateProposalPDF(inputs, result);
+                      try {
+                        const ok = generateProposalPDF(inputs, result);
+                        if (!ok) alert('Não foi possível gerar o PDF automaticamente. Verifique popups bloqueados.');
+                      } catch (err) {
+                        console.error('Erro gerando pdf (pricing):', err);
+                        alert('Erro ao gerar PDF. Verifique console.');
+                      }
                     }}
                     className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
                   >

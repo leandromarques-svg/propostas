@@ -2091,6 +2091,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         }
                                                         try {
                                                             const ok = generatePDF('internal', result);
+                                                            if (!ok) {
+                                                                alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
+                                                            }
                                                         } catch (err: any) {
                                                             console.error('Erro gerando PDF interno:', err);
                                                             alert('Erro ao gerar PDF. Verifique console para detalhes.');
@@ -2118,7 +2121,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             return;
                                                         }
                                                         try {
-                                                            generatePDF('client', result, clientName || 'Cliente');
+                                                            const ok = generatePDF('client', result, clientName || 'Cliente');
+                                                            if (!ok) {
+                                                                alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
+                                                            }
                                                         } catch (err: any) {
                                                             console.error('Erro gerando PDF cliente:', err);
                                                             alert('Erro ao gerar PDF. Verifique console para detalhes.');

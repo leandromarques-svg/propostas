@@ -175,26 +175,7 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
             ${type === 'internal' ? generateInternalContent(result) : generateClientContent(result, clientName)}
 
             <div class="footer">
-                <p>Gerado por MetaRH Solutions - ${new Date().toLocaleDateString()}</p>
-            </div>
-        </body>
-        </html>
-    `;
-
-    try {
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-
-        // Try to focus and trigger print dialog automatically (works if not blocked)
-        try {
-            printWindow.focus();
-            // give the new window a moment to render before print
-            setTimeout(() => {
-                try {
-                    printWindow.print();
-                } catch (errPrint) {
-                    console.warn('[pdfGenerator] automatic print failed or blocked', errPrint);
-                }
+                if (!printWindow) return false;
             }, 250);
         } catch (errFocus) {
             console.warn('[pdfGenerator] could not focus/auto-print', errFocus);

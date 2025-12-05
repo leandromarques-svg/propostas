@@ -445,9 +445,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             return sum + (item.quantity * item.unitCost * frequencyMultiplier * totalPositions);
         }, 0);
 
-        // 5. Notebooks Cost (custo único dividido por 36 meses de depreciação)
+        // 5. Notebooks Cost (custo mensal)
         const notebooksCostTotal = notebooks.reduce((sum, item) => {
-            return sum + (item.quantity * item.unitCost / 36); // Depreciação de 36 meses
+            return sum + (item.quantity * item.unitCost);
         }, 0);
 
         // 6. Cell Phones Cost (custo mensal do plano)
@@ -519,7 +519,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const lucroOperacional = totalLiquido - projectTotalCost;
 
 
-        setResult({
+        return {
             positionsCalculated,
             totalBaseSalary,
             totalGrossSalary,
@@ -554,7 +554,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             totalBrutoNF,
             totalLiquido,
             lucroOperacional
-        });
+        };
     };
 
     // Auto-calculate and save result for PDF generation
@@ -563,7 +563,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         setResult(calculatedResult);
     }, [positions, benefitsList, epiItems, notebooks, cellPhones, vehicles,
         provisioningMode, recruitmentType, qtySenior, qtyPlena, qtyJunior, demandedDays,
-        teamRates, appSettings]);
+        teamRates, appSettings, adminFeePercent, calculationMode, selectedCity, extraCosts, operationalAdminDays]);
 
     const fmtCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
     const fmtPercent = (val: number) => `${(val * 100).toFixed(2)}%`;
@@ -1111,7 +1111,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     <div className="grid md:grid-cols-12 gap-4 items-center">
 
                                                                         {/* 1. Name & Selection */}
-                                                                        <div className="col-span-12 md:col-span-4">
+                                                                        <div className="col-span-12 md:col-span-3">
                                                                             <div className="flex flex-col">
                                                                                 {item.type === 'custom' ? (
                                                                                     <div className="flex items-center gap-2">
@@ -1180,7 +1180,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                         </div>
 
                                                                         {/* 4. Days (if daily) */}
-                                                                        <div className="col-span-4 md:col-span-1">
+                                                                        <div className="col-span-4 md:col-span-2">
                                                                             <label className="md:hidden block text-[10px] font-bold text-gray-400 uppercase mb-1">Dias</label>
                                                                             {item.type === 'daily' ? (
                                                                                 <input
@@ -1331,54 +1331,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div >
                         </div>
 
-                        {/* 5. FEES */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                <DollarSign size={18} /> 5. Taxas
-                            </h2>
 
-                            <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                {/* Mode Switch */}
-                                <div className="flex gap-2 mb-4 bg-white p-1 rounded-xl border border-gray-200 w-fit">
-                                    <button
-                                        onClick={() => setCalculationMode('5_columns')}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
-                                    >
-                                        5 Colunas (Sobre Custo)
-                                    </button>
-                                    <button
-                                        onClick={() => setCalculationMode('final_rate')}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
-                                    >
-                                        Taxa Final (Markup)
-                                    </button>
-                                </div>
-
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Taxa Administrativa (%)</label>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        value={adminFeePercent * 100}
-                                        onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                        className="w-20 p-2 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-center"
-                                    />
-                                    <span className="text-gray-500 font-bold">%</span>
-                                    <div className="flex-1 text-right">
-                                        <span className="text-sm font-bold text-gray-700">{fmtCurrency(result?.adminFeeValue || 0)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Total Fees Display */}
-                            {result && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                    <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                        <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Taxas:</span>
-                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalFees)}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
 
                         {/* 6. CUSTO OPERACIONAL */}
                         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
@@ -1716,7 +1669,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         ))}
                                         <button
-                                            onClick={() => setNotebooks([...notebooks, { id: `notebook-${Date.now()}`, model: '', quantity: 1, unitCost: 0 }])}
+                                            onClick={() => setNotebooks([...notebooks, { id: `notebook-${Date.now()}`, model: '', quantity: 1, unitCost: 300 }])}
                                             className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                         >
                                             <Plus size={16} /> Adicionar Notebook
@@ -1783,7 +1736,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         ))}
                                         <button
-                                            onClick={() => setCellPhones([...cellPhones, { id: `phone-${Date.now()}`, model: '', quantity: 1, monthlyCost: 0 }])}
+                                            onClick={() => setCellPhones([...cellPhones, { id: `phone-${Date.now()}`, model: '', quantity: 1, monthlyCost: 172.39 }])}
                                             className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                         >
                                             <Plus size={16} /> Adicionar Celular
@@ -1851,7 +1804,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         ))}
                                         <button
-                                            onClick={() => setVehicles([...vehicles, { id: `vehicle-${Date.now()}`, type: '', quantity: 1, monthlyCost: 0 }])}
+                                            onClick={() => setVehicles([...vehicles, { id: `vehicle-${Date.now()}`, type: '', quantity: 1, monthlyCost: 3837.90 }])}
                                             className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                         >
                                             <Plus size={16} /> Adicionar Veículo

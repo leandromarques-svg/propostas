@@ -2066,6 +2066,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 {/* Botão Gerar PDF */}
                                 <button
                                     onClick={() => setShowPdfModal(true)}
+                                    disabled={!result}
+                                    title={!result ? 'Gere os resultados antes de exportar para PDF' : 'Gerar PDF'}
                                     className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
                                 >
                                     <FileText size={18} /> Gerar PDF
@@ -2082,7 +2084,19 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                             <div className="space-y-3">
                                                 <button
-                                                    onClick={() => { generatePDF('internal', result); setShowPdfModal(false); }}
+                                                    onClick={() => {
+                                                        if (!result) {
+                                                            alert('Cálculo não finalizado — gere resultados antes de exportar o PDF.');
+                                                            return;
+                                                        }
+                                                        try {
+                                                            const ok = generatePDF('internal', result);
+                                                        } catch (err: any) {
+                                                            console.error('Erro gerando PDF interno:', err);
+                                                            alert('Erro ao gerar PDF. Verifique console para detalhes.');
+                                                        }
+                                                        setShowPdfModal(false);
+                                                    }}
                                                     className="w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-between group transition-all"
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -2098,7 +2112,19 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 </button>
 
                                                 <button
-                                                    onClick={() => { generatePDF('client', result, clientName || 'Cliente'); setShowPdfModal(false); }}
+                                                    onClick={() => {
+                                                        if (!result) {
+                                                            alert('Cálculo não finalizado — gere resultados antes de exportar o PDF.');
+                                                            return;
+                                                        }
+                                                        try {
+                                                            generatePDF('client', result, clientName || 'Cliente');
+                                                        } catch (err: any) {
+                                                            console.error('Erro gerando PDF cliente:', err);
+                                                            alert('Erro ao gerar PDF. Verifique console para detalhes.');
+                                                        }
+                                                        setShowPdfModal(false);
+                                                    }}
 
                                                     className="w-full p-4 bg-metarh-medium/5 hover:bg-metarh-medium/10 rounded-2xl border border-metarh-medium/20 flex items-center justify-between group transition-all"
                                                 >

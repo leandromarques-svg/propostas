@@ -90,6 +90,8 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
             </div>
 
             <h1>Proposta Comercial</h1>
+            // @ts-ignore
+            import html2pdf from 'html2pdf.js';
             <p>Preparado para: <strong>${clientName}</strong></p>
 
             <div class="section">
@@ -107,7 +109,7 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
                             <td>${pos.roleName}</td>
                             <td>${pos.vacancies}</td>
                             <td>${fmt(pos.baseSalary)}</td>
-                        </tr>
+                        return true;
                     `).join('')}
                 </table>
             </div>
@@ -272,47 +274,30 @@ export const generateProposalPDF = (inputsOrType: any, maybeResult?: any, maybeN
                 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                 th { background-color: #f5f5f5; }
-                .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; }
-                .highlight { background: #f0fff4; padding: 8px; border-radius: 6px; border: 1px solid #d1fae5; }
-                @media print { .no-print { display: none; } body { padding: 0; } }
-            </style>
-        </head>
-        <body>
-            <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-                <button onclick="window.print()" style="padding: 10px 20px; background: #4a1d96; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir / Salvar PDF</button>
-            </div>
-
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://metarh.com.br/wp-content/uploads/2023/08/Logo-MetaRH-1.png" alt="MetaRH Logo" style="height: 60px;"/>
-            </div>
-
-            <h1>${title}</h1>
-            <p>Preparado para: <strong>${clientName}</strong></p>
-
-            <div class="section">
-                <h2>Investimento Mensal</h2>
-                <div class="total">${fmt(result.totalBrutoNF || result.grossNF || 0)}</div>
-                <p style="font-size: 12px; color: #666; margin-top: 5px;">Valor bruto mensal, incluindo encargos, benefícios e taxas.</p>
-            </div>
-
-            <div class="section">
-                <h2>Resumo</h2>
-                <div class="row"><span class="label">Salário Referência Total</span><span class="value">${fmt(result.totalBaseSalary || result.referenceSalaryTotal || 0)}</span></div>
-                <div class="row"><span class="label">Salário do Cargo (peso)</span><span class="value">${fmt(result.weightedSalaryTotal || 0)}</span></div>
-                <div class="row"><span class="label">Taxa Administrativa</span><span class="value">${fmt(result.adminFee || result.totalFees || 0)}</span></div>
-                <div class="row"><span class="label">Total Tributos</span><span class="value">${fmt(result.totalTaxes || 0)}</span></div>
-            </div>
-
-            <div class="section">
-                <h2>Escopo</h2>
-                <table>
-                    <tr><th>Cargo</th><th>Qtd</th><th>Salário Base</th><th>Salário Bruto</th></tr>
-                    ${result.positionsCalculated ? result.positionsCalculated.map((pos: any) => `
-                        <tr>
-                            <td>${pos.roleName}</td>
-                            <td>${pos.vacancies}</td>
-                            <td>${fmt(pos.baseSalary)}</td>
-                            <td>${fmt(pos.gross)}</td>
+                // Gera PDF diretamente usando html2pdf.js
+                const container = document.createElement('div');
+                container.style.position = 'fixed';
+                container.style.left = '-9999px';
+                container.innerHTML = htmlContent;
+                document.body.appendChild(container);
+                html2pdf()
+                  .set({
+                    margin: 0.5,
+                    filename: `${clientName || 'proposta'}.pdf`,
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                  })
+                  .from(container)
+                  .save()
+                  .then(() => {
+                    document.body.removeChild(container);
+                  })
+                  .catch((err: any) => {
+                    document.body.removeChild(container);
+                    alert('Erro ao gerar PDF. Verifique console para detalhes.');
+                    console.error('Erro ao gerar PDF:', err);
+                  });
+                return true;
                         </tr>
                     `).join('') : ''}
                 </table>

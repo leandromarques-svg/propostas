@@ -1,26 +1,5 @@
 export const generatePDF = (type: 'internal' | 'client', result: any, clientName: string = 'Cliente') => {
     console.debug('[pdfGenerator] generatePDF requested', { type, clientName, result });
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        // Popup was blocked — create a downloadable HTML file as a fallback
-        try {
-            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(htmlBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${clientName || 'proposta'}.html`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-            alert('Popup bloqueado — arquivo HTML gerado para download. Abra-o e salve como PDF no navegador.');
-            return;
-        } catch (err) {
-            alert('Por favor, permita popups para gerar o PDF. (Tentativa de fallback falhou)');
-            console.error('Fallback de geração de PDF falhou:', err);
-            return;
-        }
-    }
 
     const fmt = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -54,14 +33,14 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
                 <h2>Benefícios (detalhado)</h2>
                 <table>
                     <tr><th>Benefício</th><th>Vlr. Fornecido</th><th>Desconto (colab.)</th><th>Custo Cliente</th></tr>
-                    ${ (result.benefitsBreakdown || []).map((b: any) => `
+                    ${(result.benefitsBreakdown || []).map((b: any) => `
                         <tr>
-                            <td>${b.name} ${b.discountBase ? '('+ (b.discountBase === 'salary' ? 'desconto sobre salário' : 'desconto sobre fornecido') +')' : ''}</td>
+                            <td>${b.name} ${b.discountBase ? '(' + (b.discountBase === 'salary' ? 'desconto sobre salário' : 'desconto sobre fornecido') + ')' : ''}</td>
                             <td>${fmt(b.providedValue || 0)}</td>
                             <td>${b.collabDiscount ? fmt(b.collabDiscount) : fmt(0)}</td>
                             <td>${fmt(b.clientCost || 0)}</td>
                         </tr>
-                    `).join('') }
+                    `).join('')}
                 </table>
             </div>
 
@@ -90,8 +69,6 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
             </div>
 
             <h1>Proposta Comercial</h1>
-            // @ts-ignore
-            import html2pdf from 'html2pdf.js';
             <p>Preparado para: <strong>${clientName}</strong></p>
 
             <div class="section">
@@ -109,7 +86,7 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
                             <td>${pos.roleName}</td>
                             <td>${pos.vacancies}</td>
                             <td>${fmt(pos.baseSalary)}</td>
-                        return true;
+                        </tr>
                     `).join('')}
                 </table>
             </div>
@@ -118,13 +95,13 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
                 <h2>Benefícios (resumo)</h2>
                 <table>
                     <tr><th>Benefício</th><th>Vlr. Fornecido</th><th>Custo Cliente</th></tr>
-                    ${ (result.benefitsBreakdown || []).map((b: any) => `
+                    ${(result.benefitsBreakdown || []).map((b: any) => `
                         <tr>
                             <td>${b.name}</td>
                             <td>${fmt(b.providedValue || 0)}</td>
                             <td>${fmt(b.clientCost || 0)}</td>
                         </tr>
-                    `).join('') }
+                    `).join('')}
                 </table>
             </div>
 
@@ -175,7 +152,44 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
             ${type === 'internal' ? generateInternalContent(result) : generateClientContent(result, clientName)}
 
             <div class="footer">
-                if (!printWindow) return false;
+                <p>Gerado por MetaRH Solutions - ${new Date().toLocaleDateString()}</p>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        try {
+            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(htmlBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${clientName || 'proposta'}.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            alert('Popup bloqueado — arquivo HTML gerado para download. Abra-o e salve como PDF no navegador.');
+            return true;
+        } catch (err) {
+            alert('Por favor, permita popups para gerar o PDF. (Tentativa de fallback falhou)');
+            console.error('Fallback de geração de PDF falhou:', err);
+            return false;
+        }
+    }
+
+    try {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        try {
+            printWindow.focus();
+            setTimeout(() => {
+                try {
+                    printWindow.print();
+                } catch (errPrint) {
+                    console.warn('[pdfGenerator] auto-print failed', errPrint);
+                }
             }, 250);
         } catch (errFocus) {
             console.warn('[pdfGenerator] could not focus/auto-print', errFocus);
@@ -184,7 +198,6 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
         return true;
     } catch (err) {
         console.error('[pdfGenerator] failed to write/print document', err);
-        // last-resort fallback: create downloadable HTML
         try {
             const blob = new Blob([htmlContent], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
@@ -205,44 +218,33 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
     }
 };
 
-// Backwards-compatible wrapper used by PricingCalculator / TrilhandoPlusCalculator
-export const generateProposalPDF = (inputsOrType: any, maybeResult?: any, maybeName?: string) => {
-    // There are two call shapes in the codebase:
-    //  - generateProposalPDF(inputs, result)
-    //  - generateProposalPDF(result)  (rare)
-    // Normalize to (result, clientName)
+export const generateProposalPDF = (inputsOrType: any, maybeResult?: any) => {
     let result: any;
     let clientName = 'Cliente';
 
     if (maybeResult) {
-        // Called as (inputs, result)
         result = maybeResult;
-        // Try to read a clientName from inputs if present
         if (inputsOrType && typeof inputsOrType === 'object' && (inputsOrType.clientName || inputsOrType.selectedClient)) {
             clientName = inputsOrType.clientName || inputsOrType.selectedClient;
         }
     } else {
-        // Called as (result)
         result = inputsOrType;
     }
 
-    // Fallback: if result missing, just call generatePDF in 'client' mode
     if (!result) return generatePDF('client', {}, clientName);
 
-    // Use existing generate client content by creating a temporary window and writing HTML
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         alert('Por favor, permita popups para gerar o PDF.');
-        return;
+        return false;
     }
 
     const fmt = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-    const title = 'Proposta Comercial';
     const html = `
         <html>
         <head>
-            <title>${title} - ${clientName}</title>
+            <title>Proposta Comercial - ${clientName}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
                 h1 { color: #4a1d96; border-bottom: 2px solid #4a1d96; padding-bottom: 10px; }
@@ -255,33 +257,29 @@ export const generateProposalPDF = (inputsOrType: any, maybeResult?: any, maybeN
                 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                 th { background-color: #f5f5f5; }
-                // Gera PDF diretamente usando html2pdf.js
-                const container = document.createElement('div');
-                container.style.position = 'fixed';
-                container.style.left = '-9999px';
-                container.innerHTML = htmlContent;
-                document.body.appendChild(container);
-                html2pdf()
-                  .set({
-                    margin: 0.5,
-                    filename: `${clientName || 'proposta'}.pdf`,
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                  })
-                  .from(container)
-                  .save()
-                  .then(() => {
-                    document.body.removeChild(container);
-                  })
-                  .catch((err: any) => {
-                    document.body.removeChild(container);
-                    alert('Erro ao gerar PDF. Verifique console para detalhes.');
-                    console.error('Erro ao gerar PDF:', err);
-                  });
-                return true;
-                        </tr>
-                    `).join('') : ''}
-                </table>
+                .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; }
+                @media print {
+                    .no-print { display: none; }
+                    body { padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+                <button onclick="window.print()" style="padding: 10px 20px; background: #4a1d96; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir / Salvar PDF</button>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 40px;">
+                <img src="https://metarh.com.br/wp-content/uploads/2023/08/Logo-MetaRH-1.png" alt="MetaRH Logo" style="height: 60px;">
+            </div>
+
+            <h1>Proposta Comercial</h1>
+            <p>Preparado para: <strong>${clientName}</strong></p>
+
+            <div class="section">
+                <h2>Investimento Total</h2>
+                <div class="total">${fmt(result.grossNF || result.totalBrutoNF || 0)}</div>
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">Valor bruto da proposta.</p>
             </div>
 
             <div class="section">
@@ -299,7 +297,18 @@ export const generateProposalPDF = (inputsOrType: any, maybeResult?: any, maybeN
     try {
         printWindow.document.write(html);
         printWindow.document.close();
-        try { printWindow.focus(); setTimeout(() => { try { printWindow.print(); } catch (e) { console.warn('auto-print blocked', e); } }, 250); } catch (e) { console.warn('could not focus auto-print', e); }
+        try {
+            printWindow.focus();
+            setTimeout(() => {
+                try {
+                    printWindow.print();
+                } catch (e) {
+                    console.warn('auto-print blocked', e);
+                }
+            }, 250);
+        } catch (e) {
+            console.warn('could not focus auto-print', e);
+        }
         return true;
     } catch (err) {
         console.error('generateProposalPDF write/print failed', err);

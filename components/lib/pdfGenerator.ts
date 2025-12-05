@@ -1,8 +1,24 @@
 export const generatePDF = (type: 'internal' | 'client', result: any, clientName: string = 'Cliente') => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-        alert('Por favor, permita popups para gerar o PDF.');
-        return;
+        // Popup was blocked — create a downloadable HTML file as a fallback
+        try {
+            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(htmlBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${clientName || 'proposta'}.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            alert('Popup bloqueado — arquivo HTML gerado para download. Abra-o e salve como PDF no navegador.');
+            return;
+        } catch (err) {
+            alert('Por favor, permita popups para gerar o PDF. (Tentativa de fallback falhou)');
+            console.error('Fallback de geração de PDF falhou:', err);
+            return;
+        }
     }
 
     const fmt = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);

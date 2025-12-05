@@ -1088,7 +1088,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             {/* Inputs Row */}
                                                             <div className="grid grid-cols-3 gap-2 mb-3">
                                                                 <div>
-                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qtd</label>
+                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">TESTE</label>
                                                                     <input
                                                                         type="number"
                                                                         value={item.quantity}

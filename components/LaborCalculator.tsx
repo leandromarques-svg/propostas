@@ -557,6 +557,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         });
     };
 
+    // Auto-calculate and save result for PDF generation
+    useEffect(() => {
+        const calculatedResult = calculateLaborPricing();
+        setResult(calculatedResult);
+    }, [positions, benefitsList, epiItems, notebooks, cellPhones, vehicles,
+        provisioningMode, recruitmentType, qtySenior, qtyPlena, qtyJunior, demandedDays,
+        teamRates, appSettings]);
+
     const fmtCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
     const fmtPercent = (val: number) => `${(val * 100).toFixed(2)}%`;
 

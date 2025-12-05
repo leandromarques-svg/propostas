@@ -1078,7 +1078,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Valor Unit.</label>
+                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Vlr. Fornecido</label>
                                                                     {item.type === 'plan_selection' ? (
                                                                         <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-600 truncate text-[11px]">
                                                                             {fmtCurrency(unitValue)}

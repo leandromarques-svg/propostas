@@ -375,12 +375,27 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Benefits - New Logic
         let totalBenefits = 0;
         let totalExams = 0;
+        const benefitsBreakdown: Array<any> = [];
 
         // Calculate average base salary for VT discount calculation
         const averageBaseSalary = totalPositions > 0 ? totalBaseSalary / totalPositions : 0;
 
         benefitsList.forEach(item => {
-            const { clientCost } = calculateBenefitRow(item, averageBaseSalary);
+            const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item, averageBaseSalary);
+
+            // Collect detailed breakdown per benefit for PDF / UI
+            benefitsBreakdown.push({
+                id: item.id,
+                name: item.name,
+                type: item.type,
+                unitValue,
+                providedValue,
+                collabDiscount,
+                clientCost,
+                discountBase: item.discountBase || 'salary',
+                discountType: item.discountType,
+                discountValue: item.discountValue
+            });
 
             // Check if it's an exam
             if (item.id.startsWith('exam-')) {
@@ -516,6 +531,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             totalCharges,
             totalBenefits,
             totalExams,
+            benefitsBreakdown,
             costBasis,
             adminFeeValue,
             totalFees,

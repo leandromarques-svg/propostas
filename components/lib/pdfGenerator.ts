@@ -34,6 +34,21 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
             </div>
 
             <div class="section">
+                <h2>Benefícios (detalhado)</h2>
+                <table>
+                    <tr><th>Benefício</th><th>Vlr. Fornecido</th><th>Desconto (colab.)</th><th>Custo Cliente</th></tr>
+                    ${ (result.benefitsBreakdown || []).map((b: any) => `
+                        <tr>
+                            <td>${b.name} ${b.discountBase ? '('+ (b.discountBase === 'salary' ? 'desconto sobre salário' : 'desconto sobre fornecido') +')' : ''}</td>
+                            <td>${fmt(b.providedValue || 0)}</td>
+                            <td>${b.collabDiscount ? fmt(b.collabDiscount) : fmt(0)}</td>
+                            <td>${fmt(b.clientCost || 0)}</td>
+                        </tr>
+                    `).join('') }
+                </table>
+            </div>
+
+            <div class="section">
                 <h2>Detalhamento de Cargos</h2>
                 <table>
                     <tr><th>Cargo</th><th>Qtd</th><th>Salário Base</th><th>Salário Bruto</th></tr>
@@ -77,6 +92,20 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
                             <td>${fmt(pos.baseSalary)}</td>
                         </tr>
                     `).join('')}
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Benefícios (resumo)</h2>
+                <table>
+                    <tr><th>Benefício</th><th>Vlr. Fornecido</th><th>Custo Cliente</th></tr>
+                    ${ (result.benefitsBreakdown || []).map((b: any) => `
+                        <tr>
+                            <td>${b.name}</td>
+                            <td>${fmt(b.providedValue || 0)}</td>
+                            <td>${fmt(b.clientCost || 0)}</td>
+                        </tr>
+                    `).join('') }
                 </table>
             </div>
 
@@ -134,5 +163,117 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
     `;
 
     printWindow.document.write(htmlContent);
+    printWindow.document.close();
+};
+
+// Backwards-compatible wrapper used by PricingCalculator / TrilhandoPlusCalculator
+export const generateProposalPDF = (inputsOrType: any, maybeResult?: any, maybeName?: string) => {
+    // There are two call shapes in the codebase:
+    //  - generateProposalPDF(inputs, result)
+    //  - generateProposalPDF(result)  (rare)
+    // Normalize to (result, clientName)
+    let result: any;
+    let clientName = 'Cliente';
+
+    if (maybeResult) {
+        // Called as (inputs, result)
+        result = maybeResult;
+        // Try to read a clientName from inputs if present
+        if (inputsOrType && typeof inputsOrType === 'object' && (inputsOrType.clientName || inputsOrType.selectedClient)) {
+            clientName = inputsOrType.clientName || inputsOrType.selectedClient;
+        }
+    } else {
+        // Called as (result)
+        result = inputsOrType;
+    }
+
+    // Fallback: if result missing, just call generatePDF in 'client' mode
+    if (!result) return generatePDF('client', {}, clientName);
+
+    // Use existing generate client content by creating a temporary window and writing HTML
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Por favor, permita popups para gerar o PDF.');
+        return;
+    }
+
+    const fmt = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+    const title = 'Proposta Comercial';
+    const html = `
+        <html>
+        <head>
+            <title>${title} - ${clientName}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                h1 { color: #4a1d96; border-bottom: 2px solid #4a1d96; padding-bottom: 10px; }
+                h2 { color: #4a1d96; margin-top: 20px; font-size: 18px; }
+                .section { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+                .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                .label { font-weight: bold; color: #666; }
+                .value { font-weight: bold; }
+                .total { font-size: 24px; color: #4a1d96; font-weight: bold; margin-top: 10px; text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f5f5f5; }
+                .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; }
+                .highlight { background: #f0fff4; padding: 8px; border-radius: 6px; border: 1px solid #d1fae5; }
+                @media print { .no-print { display: none; } body { padding: 0; } }
+            </style>
+        </head>
+        <body>
+            <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+                <button onclick="window.print()" style="padding: 10px 20px; background: #4a1d96; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir / Salvar PDF</button>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://metarh.com.br/wp-content/uploads/2023/08/Logo-MetaRH-1.png" alt="MetaRH Logo" style="height: 60px;"/>
+            </div>
+
+            <h1>${title}</h1>
+            <p>Preparado para: <strong>${clientName}</strong></p>
+
+            <div class="section">
+                <h2>Investimento Mensal</h2>
+                <div class="total">${fmt(result.totalBrutoNF || result.grossNF || 0)}</div>
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">Valor bruto mensal, incluindo encargos, benefícios e taxas.</p>
+            </div>
+
+            <div class="section">
+                <h2>Resumo</h2>
+                <div class="row"><span class="label">Salário Referência Total</span><span class="value">${fmt(result.totalBaseSalary || result.referenceSalaryTotal || 0)}</span></div>
+                <div class="row"><span class="label">Salário do Cargo (peso)</span><span class="value">${fmt(result.weightedSalaryTotal || 0)}</span></div>
+                <div class="row"><span class="label">Taxa Administrativa</span><span class="value">${fmt(result.adminFee || result.totalFees || 0)}</span></div>
+                <div class="row"><span class="label">Total Tributos</span><span class="value">${fmt(result.totalTaxes || 0)}</span></div>
+            </div>
+
+            <div class="section">
+                <h2>Escopo</h2>
+                <table>
+                    <tr><th>Cargo</th><th>Qtd</th><th>Salário Base</th><th>Salário Bruto</th></tr>
+                    ${result.positionsCalculated ? result.positionsCalculated.map((pos: any) => `
+                        <tr>
+                            <td>${pos.roleName}</td>
+                            <td>${pos.vacancies}</td>
+                            <td>${fmt(pos.baseSalary)}</td>
+                            <td>${fmt(pos.gross)}</td>
+                        </tr>
+                    `).join('') : ''}
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Benefícios e Observações</h2>
+                <p style="font-size: 12px; color: #666;">Incluir: Vale Transporte (aplicado conforme regras da calculadora), Refeição/Alimentação, Planos de Saúde e demais itens selecionados.</p>
+            </div>
+
+            <div class="footer">
+                <p>Gerado por MetaRH Solutions - ${new Date().toLocaleDateString()}</p>
+            </div>
+        </body>
+        </html>
+    `;
+
+    printWindow.document.write(html);
     printWindow.document.close();
 };

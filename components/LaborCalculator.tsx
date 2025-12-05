@@ -1717,434 +1717,520 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         ))}
                                         <button
                                             onClick={() => setNotebooks([...notebooks, { id: `notebook-${Date.now()}`, model: '', quantity: 1, unitCost: 0 }])}
-                                            value={item.type}
-                                            onChange={(e) => {
-                                                const newItems = [...vehicles];
-                                                newItems[idx].type = e.target.value;
-                                                setVehicles(newItems);
-                                            }}
-                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                            placeholder="Ex: Sedan, SUV, Utilitário"
-                                        />
-                                    </div>
-                                    <div className="w-24">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
-                                        <input
-                                            type="number"
-                                            value={item.quantity}
-                                            onChange={(e) => {
-                                                const newItems = [...vehicles];
-                                                newItems[idx].quantity = Number(e.target.value);
-                                                setVehicles(newItems);
-                                            }}
-                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="w-40">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo Mensal Total</label>
-                                        <input
-                                            type="number"
-                                            value={item.monthlyCost}
-                                            onChange={(e) => {
-                                                const newItems = [...vehicles];
-                                                newItems[idx].monthlyCost = Number(e.target.value);
-                                                setVehicles(newItems);
-                                            }}
-                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                            step="0.01"
-                                            placeholder="Aluguel + Combustível"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={() => setVehicles(vehicles.filter((_, i) => i !== idx))}
-                                        className="text-red-400 hover:text-red-600 self-end pb-2"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                                ))}
-                                <button
-                                    onClick={() => setVehicles([...vehicles, { id: `vehicle-${Date.now()}`, type: '', quantity: 1, monthlyCost: 0 }])}
-                                    className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
-                                >
-                                    <Plus size={16} /> Adicionar Veículo
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Total Operational Cost Summary */}
-                {result && (
-                    <div className="bg-gray-800 p-6 rounded-[2rem] shadow-sm border border-gray-700 text-white">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h2 className="text-lg font-bold flex items-center gap-2">
-                                    <Briefcase size={18} className="text-yellow-400" /> Total Custo Operacional
-                                </h2>
-                                <p className="text-xs text-gray-400 mt-1">Soma de Recrutamento, Adm, Extras, EPI, Notebooks, Celulares e Veículos</p>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-2xl font-bold text-yellow-400">{fmtCurrency(result.totalOperationalCostValue)}</div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-
-                {/* 10. TRIBUTOS */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                        <DollarSign size={18} /> 10. Tributos
-                    </h2>
-
-                    {/* ISS City Selector */}
-                    <div className="mb-4 bg-blue-50 p-4 rounded-3xl border border-blue-100">
-                        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Cidade (Para cálculo do ISS)</label>
-                        <select
-                            value={selectedCity}
-                            onChange={(e) => setSelectedCity(e.target.value)}
-                            className="w-full p-3 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-metarh-dark focus:ring-2 focus:ring-blue-400 outline-none"
-                        >
-                            <option value="São Paulo - SP">São Paulo - SP (5%)</option>
-                            <option value="Barueri - SP">Barueri - SP (2%)</option>
-                            <option value="Rio de Janeiro - RJ">Rio de Janeiro - RJ (5%)</option>
-                            <option value="Belo Horizonte - MG">Belo Horizonte - MG (5%)</option>
-                            <option value="Curitiba - PR">Curitiba - PR (5%)</option>
-                            <option value="Porto Alegre - RS">Porto Alegre - RS (5%)</option>
-                            <option value="Brasília - DF">Brasília - DF (5%)</option>
-                            <option value="Outra Localidade (5%)">Outra Localidade (5%)</option>
-                        </select>
-                        <p className="text-[10px] text-gray-500 mt-2">A alíquota de ISS varia conforme a cidade</p>
-                    </div>
-
-                    {result && (
-                        <div className="space-y-3">
-                            <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>ISS - {selectedCity}</span>
-                                        <span className="font-bold text-gray-800">{fmtCurrency(result.issValue || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>PIS ({fmtPercent(LABOR_TAX_RATES.pis)})</span>
-                                        <span className="font-bold text-gray-800">{fmtCurrency(result.pisValue || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>COFINS ({fmtPercent(LABOR_TAX_RATES.cofins)})</span>
-                                        <span className="font-bold text-gray-800">{fmtCurrency(result.cofinsValue || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>IRRF ({fmtPercent(LABOR_TAX_RATES.irrf)})</span>
-                                        <span className="font-bold text-gray-800">{fmtCurrency(result.irrfValue || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>CSLL ({fmtPercent(LABOR_TAX_RATES.csll)})</span>
-                                        <span className="font-bold text-gray-800">{fmtCurrency(result.csllValue || 0)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Total Tributos */}
-                            <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
-                                <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
-                                <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* TAXAS E MARGENS */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                        <BarChart3 size={18} /> Taxas e Margens
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-6 items-start">
-                        {/* Input Admin Fee */}
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="number"
-                                    value={adminFeePercent * 100}
-                                    onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                    className="w-full p-3 rounded-2xl border border-gray-300 text-lg font-bold text-metarh-dark focus:ring-2 focus:ring-metarh-medium outline-none"
-                                />
-                                <span className="font-bold text-gray-500">%</span>
-                            </div>
-                        </div>
-                        {/* Calculation Mode */}
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modo de Cálculo</label>
-                            <div className="flex gap-2 mt-2">
-                                <button
-                                    onClick={() => setCalculationMode('5_columns')}
-                                    className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                >
-                                    5 Colunas
-                                </button>
-                                <button
-                                    onClick={() => setCalculationMode('final_rate')}
-                                    className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                >
-                                    Taxa Final
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            {/* RESULTS SECTION */}
-            <div className="space-y-6 mt-8">
-                <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                        <BarChart3 size={24} className="text-metarh-lime" /> Resultado
-                    </h2>
-
-                    {result && (
-                        <div className="space-y-4 text-sm">
-
-                            {/* Salaries */}
-                            <div className="pb-4 border-b border-white/10">
-                                <div className="flex justify-between text-gray-300">
-                                    <span>Total Salários Base</span>
-                                    <span>{fmtCurrency(result.totalBaseSalary)}</span>
-                                </div>
-                                <div className="flex justify-between font-bold text-white mt-1">
-                                    <span>Total Salários Bruto</span>
-                                    <span>{fmtCurrency(result.totalGrossSalary)}</span>
-                                </div>
-                            </div>
-
-                            {/* Charges */}
-                            <div className="pb-4 border-b border-white/10">
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-2">Encargos</p>
-                                <div className="flex justify-between text-gray-300 text-xs">
-                                    <span>Grupo A ({fmtPercent(result.groupAPercent)})</span>
-                                    <span>{fmtCurrency(result.groupAValue)}</span>
-                                </div>
-                                <div className="flex justify-between text-gray-300 text-xs">
-                                    <span>Grupo B ({fmtPercent(result.groupBPercent)})</span>
-                                    <span>{fmtCurrency(result.groupBValue)}</span>
-                                </div>
-                                <div className="flex justify-between font-bold text-white mt-1">
-                                    <span>Total Encargos</span>
-                                    <span>{fmtCurrency(result.totalCharges)}</span>
-                                </div>
-                            </div>
-
-                            {/* Benefits & Exams */}
-                            <div className="pb-4 border-b border-white/10">
-                                <div className="flex justify-between text-gray-300">
-                                    <span>Total Benefícios</span>
-                                    <span>{fmtCurrency(result.totalBenefits)}</span>
-                                </div>
-                                <div className="flex justify-between text-gray-300">
-                                    <span>Total Exames</span>
-                                    <span>{fmtCurrency(result.totalExams)}</span>
-                                </div>
-                            </div>
-
-
-                            {/* Fees */}
-                            <div className="pb-4 border-b border-white/10">
-                                <div className="flex justify-between font-bold text-metarh-lime">
-                                    <span>Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
-                                    <span>{fmtCurrency(result.adminFeeValue)}</span>
-                                </div>
-                            </div>
-
-                            {/* Taxes */}
-                            <div className="text-xs text-gray-400 space-y-1 pb-4 border-b border-white/10">
-                                <p className="font-bold uppercase text-gray-500">Impostos ({fmtPercent(result.totalTaxRate)})</p>
-                                <div className="flex justify-between">
-                                    <span>Total Tributos</span>
-                                    <span>{fmtCurrency(result.totalTaxes)}</span>
-                                </div>
-                            </div>
-
-                            {/* Final Gross NF */}
-                            <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
-                                <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
-                                <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
-                                <p className="text-[10px] opacity-70 mt-1">Custo Base + Taxas + Tributos</p>
-                            </div>
-
-                            {/* NEW TOTALS - As requested */}
-                            <div className="mt-4 space-y-3">
-                                {/* Total Líquido - Green background (same style as PricingCalculator) */}
-                                <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
-                                    <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
-                                    <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
-                                    <p className="text-[10px] text-green-300 mt-1">Valor Bruto da NF - Retenção IR (15,5%)</p>
-                                </div>
-
-                                {/* Lucro L. Operacional - Emphasis on % with legend below */}
-                                <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
-                                        <div className="text-center">
-                                            <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full block">
-                                                {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
-                                            </span>
-                                            <p className="text-[9px] text-yellow-300 mt-1">% do Líquido</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
-                                    <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
-                                </div>
-                            </div>
-
-                            {recruitmentType === 'selection' && result.teamCost > 0 && (
-                                <div className="mt-4 space-y-2">
-                                    <div className="p-3 bg-purple-900/30 rounded-3xl border border-purple-500/20">
-                                        <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
-                                        <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
-                                        <p className="text-[10px] text-purple-300">Custo interno estimado</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Dica do Especialista - Same logic as PricingCalculator */}
-                            {(() => {
-                                const netLiquid = result.grossNF * 0.845; // Total Líquido (após retenção IR 15.5%)
-                                const realProfit = netLiquid - result.totalOperationalCost - result.totalTaxes;
-                                const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
-
-                                return (
-                                    <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
-                                        ? 'bg-red-500/10 border-red-400'
-                                        : profitMarginPercentage < 10
-                                            ? 'bg-orange-500/10 border-orange-400'
-                                            : profitMarginPercentage <= 35
-                                                ? 'bg-yellow-500/10 border-yellow-400'
-                                                : 'bg-green-500/10 border-green-400'
-                                        }`}>
-                                        <p className="text-xs font-bold mb-2 flex items-center gap-1">
-                                            {realProfit < 0 ? '🚨' :
-                                                profitMarginPercentage < 10 ? '😅' :
-                                                    profitMarginPercentage <= 35 ? '😉' : '🚀'}
-                                            <span className="text-white">Dica do Especialista</span>
-                                        </p>
-                                        <p className="text-xs text-gray-300 leading-relaxed">
-                                            {realProfit < 0
-                                                ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
-                                                : profitMarginPercentage < 10
-                                                    ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
-                                                    : profitMarginPercentage <= 35
-                                                        ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
-                                                        : 'Aí sim! Margem top (acima de 35%). O comercial tá voando! Pode fechar sem medo. 🚀'
-                                            }
-                                        </p>
-                                    </div>
-                                );
-                            })()}
-
-                            {/* Botão Gerar PDF */}
-                            <button
-                                onClick={() => setShowPdfModal(true)}
-                                disabled={!result}
-                                title={!result ? 'Gere os resultados antes de exportar para PDF' : 'Gerar PDF'}
-                                className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
-                            >
-                                <FileText size={18} /> Gerar PDF
-                            </button>
-
-                            {/* PDF Modal */}
-                            {showPdfModal && (
-                                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                                    <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-fade-in">
-                                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                            <FileText className="text-metarh-medium" /> Gerar PDF
-                                        </h3>
-                                        <p className="text-gray-600 mb-6">Escolha o tipo de documento que deseja gerar:</p>
-
-                                        <div className="space-y-3">
-                                            <button
-                                                onClick={() => {
-                                                    if (!result) {
-                                                        alert('Cálculo não finalizado — gere resultados antes de exportar o PDF.');
-                                                        return;
-                                                    }
-                                                    try {
-                                                        const ok = generatePDF('internal', result);
-                                                        if (!ok) {
-                                                            alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
-                                                        }
-                                                    } catch (err: any) {
-                                                        console.error('Erro gerando PDF interno:', err);
-                                                        alert('Erro ao gerar PDF. Verifique console para detalhes.');
-                                                    }
-                                                    setShowPdfModal(false);
-                                                }}
-                                                className="w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-between group transition-all"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
-                                                        <Settings size={20} className="text-gray-600" />
-                                                    </div>
-                                                    <div className="text-left">
-                                                        <div className="font-bold text-gray-800">Ordem de Serviço</div>
-                                                        <div className="text-xs text-gray-500">Para uso interno (detalhado)</div>
-                                                    </div>
-                                                </div>
-                                                <ChevronDown className="-rotate-90 text-gray-400" />
-                                            </button>
-
-                                            <button
-                                                onClick={() => {
-                                                    if (!result) {
-                                                        alert('Cálculo não finalizado — gere resultados antes de exportar o PDF.');
-                                                        return;
-                                                    }
-                                                    try {
-                                                        const ok = generatePDF('client', result, clientName || 'Cliente');
-                                                        if (!ok) {
-                                                            alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
-                                                        }
-                                                    } catch (err: any) {
-                                                        console.error('Erro gerando PDF cliente:', err);
-                                                        alert('Erro ao gerar PDF. Verifique console para detalhes.');
-                                                    }
-                                                    setShowPdfModal(false);
-                                                }}
-
-                                                className="w-full p-4 bg-metarh-medium/5 hover:bg-metarh-medium/10 rounded-2xl border border-metarh-medium/20 flex items-center justify-between group transition-all"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
-                                                        <Briefcase size={20} className="text-metarh-medium" />
-                                                    </div>
-                                                    <div className="text-left">
-                                                        <div className="font-bold text-metarh-dark">Proposta Comercial</div>
-                                                        <div className="text-xs text-metarh-medium">Para envio ao cliente</div>
-                                                    </div>
-                                                </div>
-                                                <ChevronDown className="-rotate-90 text-metarh-medium" />
-                                            </button>
-                                        </div>
-
-                                        <button
-                                            onClick={() => setShowPdfModal(false)}
-                                            className="w-full mt-6 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl"
+                                            className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                         >
-                                            Cancelar
+                                            <Plus size={16} /> Adicionar Notebook
                                         </button>
                                     </div>
                                 </div>
-                            )}
 
+                                {/* Celulares */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+                                        <Smartphone size={16} className="text-gray-400" /> Celulares
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {cellPhones.map((item, idx) => (
+                                            <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3 items-start">
+                                                <div className="flex-1">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.model}
+                                                        onChange={(e) => {
+                                                            const newItems = [...cellPhones];
+                                                            newItems[idx].model = e.target.value;
+                                                            setCellPhones(newItems);
+                                                        }}
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                        placeholder="Ex: Samsung Galaxy A54"
+                                                    />
+                                                </div>
+                                                <div className="w-24">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                                    <input
+                                                        type="number"
+                                                        value={item.quantity}
+                                                        onChange={(e) => {
+                                                            const newItems = [...cellPhones];
+                                                            newItems[idx].quantity = Number(e.target.value);
+                                                            setCellPhones(newItems);
+                                                        }}
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                                <div className="w-32">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo/Mês</label>
+                                                    <input
+                                                        type="number"
+                                                        value={item.monthlyCost}
+                                                        onChange={(e) => {
+                                                            const newItems = [...cellPhones];
+                                                            newItems[idx].monthlyCost = Number(e.target.value);
+                                                            setCellPhones(newItems);
+                                                        }}
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                        step="0.01"
+                                                    />
+                                                </div>
+                                                <button
+                                                    onClick={() => setCellPhones(cellPhones.filter((_, i) => i !== idx))}
+                                                    className="text-red-400 hover:text-red-600 self-end pb-2"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={() => setCellPhones([...cellPhones, { id: `phone-${Date.now()}`, model: '', quantity: 1, monthlyCost: 0 }])}
+                                            className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                                        >
+                                            <Plus size={16} /> Adicionar Celular
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Veículos */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+                                        <Car size={16} className="text-gray-400" /> Veículos
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {vehicles.map((item, idx) => (
+                                            <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3 items-start">
+                                                <div className="flex-1">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo de Veículo</label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.type}
+                                                        onChange={(e) => {
+                                                            const newItems = [...vehicles];
+                                                            newItems[idx].type = e.target.value;
+                                                            setVehicles(newItems);
+                                                        }}
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                        placeholder="Ex: Sedan, SUV, Utilitário"
+                                                    />
+                                                </div>
+                                                <div className="w-24">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                                    <input
+                                                        type="number"
+                                                        value={item.quantity}
+                                                        onChange={(e) => {
+                                                            const newItems = [...vehicles];
+                                                            newItems[idx].quantity = Number(e.target.value);
+                                                            setVehicles(newItems);
+                                                        }}
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                                <div className="w-40">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo Mensal Total</label>
+                                                    <input
+                                                        type="number"
+                                                        value={item.monthlyCost}
+                                                        onChange={(e) => {
+                                                            const newItems = [...vehicles];
+                                                            newItems[idx].monthlyCost = Number(e.target.value);
+                                                            setVehicles(newItems);
+                                                        }}
+                                                        className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                        step="0.01"
+                                                        placeholder="Aluguel + Combustível"
+                                                    />
+                                                </div>
+                                                <button
+                                                    onClick={() => setVehicles(vehicles.filter((_, i) => i !== idx))}
+                                                    className="text-red-400 hover:text-red-600 self-end pb-2"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={() => setVehicles([...vehicles, { id: `vehicle-${Date.now()}`, type: '', quantity: 1, monthlyCost: 0 }])}
+                                            className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                                        >
+                                            <Plus size={16} /> Adicionar Veículo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    )}
+
+                        {/* Total Operational Cost Summary */}
+                        {result && (
+                            <div className="bg-gray-800 p-6 rounded-[2rem] shadow-sm border border-gray-700 text-white">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h2 className="text-lg font-bold flex items-center gap-2">
+                                            <Briefcase size={18} className="text-yellow-400" /> Total Custo Operacional
+                                        </h2>
+                                        <p className="text-xs text-gray-400 mt-1">Soma de Recrutamento, Adm, Extras, EPI, Notebooks, Celulares e Veículos</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-yellow-400">{fmtCurrency(result.totalOperationalCostValue)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+
+                        {/* 10. TRIBUTOS */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <DollarSign size={18} /> 10. Tributos
+                            </h2>
+
+                            {/* ISS City Selector */}
+                            <div className="mb-4 bg-blue-50 p-4 rounded-3xl border border-blue-100">
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Cidade (Para cálculo do ISS)</label>
+                                <select
+                                    value={selectedCity}
+                                    onChange={(e) => setSelectedCity(e.target.value)}
+                                    className="w-full p-3 bg-white rounded-2xl border border-gray-300 text-sm font-bold text-metarh-dark focus:ring-2 focus:ring-blue-400 outline-none"
+                                >
+                                    <option value="São Paulo - SP">São Paulo - SP (5%)</option>
+                                    <option value="Barueri - SP">Barueri - SP (2%)</option>
+                                    <option value="Rio de Janeiro - RJ">Rio de Janeiro - RJ (5%)</option>
+                                    <option value="Belo Horizonte - MG">Belo Horizonte - MG (5%)</option>
+                                    <option value="Curitiba - PR">Curitiba - PR (5%)</option>
+                                    <option value="Porto Alegre - RS">Porto Alegre - RS (5%)</option>
+                                    <option value="Brasília - DF">Brasília - DF (5%)</option>
+                                    <option value="Outra Localidade (5%)">Outra Localidade (5%)</option>
+                                </select>
+                                <p className="text-[10px] text-gray-500 mt-2">A alíquota de ISS varia conforme a cidade</p>
+                            </div>
+
+                            {result && (
+                                <div className="space-y-3">
+                                    <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>ISS - {selectedCity}</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.issValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>PIS ({fmtPercent(LABOR_TAX_RATES.pis)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.pisValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>COFINS ({fmtPercent(LABOR_TAX_RATES.cofins)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.cofinsValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>IRRF ({fmtPercent(LABOR_TAX_RATES.irrf)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.irrfValue || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>CSLL ({fmtPercent(LABOR_TAX_RATES.csll)})</span>
+                                                <span className="font-bold text-gray-800">{fmtCurrency(result.csllValue || 0)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Total Tributos */}
+                                    <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
+                                        <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
+                                        <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* TAXAS E MARGENS */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <BarChart3 size={18} /> Taxas e Margens
+                            </h2>
+                            <div className="grid md:grid-cols-2 gap-6 items-start">
+                                {/* Input Admin Fee */}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={adminFeePercent * 100}
+                                            onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
+                                            className="w-full p-3 rounded-2xl border border-gray-300 text-lg font-bold text-metarh-dark focus:ring-2 focus:ring-metarh-medium outline-none"
+                                        />
+                                        <span className="font-bold text-gray-500">%</span>
+                                    </div>
+                                </div>
+                                {/* Calculation Mode */}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modo de Cálculo</label>
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            onClick={() => setCalculationMode('5_columns')}
+                                            className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        >
+                                            5 Colunas
+                                        </button>
+                                        <button
+                                            onClick={() => setCalculationMode('final_rate')}
+                                            className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        >
+                                            Taxa Final
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* RESULTS SECTION */}
+                    <div className="space-y-6 mt-8">
+                        <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl">
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                                <BarChart3 size={24} className="text-metarh-lime" /> Resultado
+                            </h2>
+
+                            {result && (
+                                <div className="space-y-4 text-sm">
+
+                                    {/* Salaries */}
+                                    <div className="pb-4 border-b border-white/10">
+                                        <div className="flex justify-between text-gray-300">
+                                            <span>Total Salários Base</span>
+                                            <span>{fmtCurrency(result.totalBaseSalary)}</span>
+                                        </div>
+                                        <div className="flex justify-between font-bold text-white mt-1">
+                                            <span>Total Salários Bruto</span>
+                                            <span>{fmtCurrency(result.totalGrossSalary)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Charges */}
+                                    <div className="pb-4 border-b border-white/10">
+                                        <p className="text-xs font-bold text-gray-400 uppercase mb-2">Encargos</p>
+                                        <div className="flex justify-between text-gray-300 text-xs">
+                                            <span>Grupo A ({fmtPercent(result.groupAPercent)})</span>
+                                            <span>{fmtCurrency(result.groupAValue)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-300 text-xs">
+                                            <span>Grupo B ({fmtPercent(result.groupBPercent)})</span>
+                                            <span>{fmtCurrency(result.groupBValue)}</span>
+                                        </div>
+                                        <div className="flex justify-between font-bold text-white mt-1">
+                                            <span>Total Encargos</span>
+                                            <span>{fmtCurrency(result.totalCharges)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Benefits & Exams */}
+                                    <div className="pb-4 border-b border-white/10">
+                                        <div className="flex justify-between text-gray-300">
+                                            <span>Total Benefícios</span>
+                                            <span>{fmtCurrency(result.totalBenefits)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-300">
+                                            <span>Total Exames</span>
+                                            <span>{fmtCurrency(result.totalExams)}</span>
+                                        </div>
+                                    </div>
+
+
+                                    {/* Fees */}
+                                    <div className="pb-4 border-b border-white/10">
+                                        <div className="flex justify-between font-bold text-metarh-lime">
+                                            <span>Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
+                                            <span>{fmtCurrency(result.adminFeeValue)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Taxes */}
+                                    <div className="text-xs text-gray-400 space-y-1 pb-4 border-b border-white/10">
+                                        <p className="font-bold uppercase text-gray-500">Impostos ({fmtPercent(result.totalTaxRate)})</p>
+                                        <div className="flex justify-between">
+                                            <span>Total Tributos</span>
+                                            <span>{fmtCurrency(result.totalTaxes)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Final Gross NF */}
+                                    <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
+                                        <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
+                                        <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
+                                        <p className="text-[10px] opacity-70 mt-1">Custo Base + Taxas + Tributos</p>
+                                    </div>
+
+                                    {/* NEW TOTALS - As requested */}
+                                    <div className="mt-4 space-y-3">
+                                        {/* Total Líquido - Green background (same style as PricingCalculator) */}
+                                        <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
+                                            <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
+                                            <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
+                                            <p className="text-[10px] text-green-300 mt-1">Valor Bruto da NF - Retenção IR (15,5%)</p>
+                                        </div>
+
+                                        {/* Lucro L. Operacional - Emphasis on % with legend below */}
+                                        <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
+                                                <div className="text-center">
+                                                    <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full block">
+                                                        {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}
+                                                    </span>
+                                                    <p className="text-[9px] text-yellow-300 mt-1">% do Líquido</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-xl font-bold text-white">{fmtCurrency(result.lucroOperacional || 0)}</p>
+                                            <p className="text-[10px] text-yellow-300 mt-1">Líquido Recebido - Recrutamento - Tributos</p>
+                                        </div>
+                                    </div>
+
+                                    {recruitmentType === 'selection' && result.teamCost > 0 && (
+                                        <div className="mt-4 space-y-2">
+                                            <div className="p-3 bg-purple-900/30 rounded-3xl border border-purple-500/20">
+                                                <p className="text-xs text-purple-200 uppercase font-bold">Custo Equipe R&S</p>
+                                                <p className="text-lg font-bold text-white">{fmtCurrency(result.teamCost)}</p>
+                                                <p className="text-[10px] text-purple-300">Custo interno estimado</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Dica do Especialista - Same logic as PricingCalculator */}
+                                    {(() => {
+                                        const netLiquid = result.grossNF * 0.845; // Total Líquido (após retenção IR 15.5%)
+                                        const realProfit = netLiquid - result.totalOperationalCost - result.totalTaxes;
+                                        const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
+
+                                        return (
+                                            <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
+                                                ? 'bg-red-500/10 border-red-400'
+                                                : profitMarginPercentage < 10
+                                                    ? 'bg-orange-500/10 border-orange-400'
+                                                    : profitMarginPercentage <= 35
+                                                        ? 'bg-yellow-500/10 border-yellow-400'
+                                                        : 'bg-green-500/10 border-green-400'
+                                                }`}>
+                                                <p className="text-xs font-bold mb-2 flex items-center gap-1">
+                                                    {realProfit < 0 ? '🚨' :
+                                                        profitMarginPercentage < 10 ? '😅' :
+                                                            profitMarginPercentage <= 35 ? '😉' : '🚀'}
+                                                    <span className="text-white">Dica do Especialista</span>
+                                                </p>
+                                                <p className="text-xs text-gray-300 leading-relaxed">
+                                                    {realProfit < 0
+                                                        ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
+                                                        : profitMarginPercentage < 10
+                                                            ? 'Eita! Margem apertada. Tente aumentar a taxa ou rever os custos fixos. Senão a gente paga pra trabalhar! 😅'
+                                                            : profitMarginPercentage <= 35
+                                                                ? 'Margem ok, mas dá pra melhorar. Que tal um chorinho na taxa? Ou cortar uns custos fixos? 😉'
+                                                                : 'Aí sim! Margem top (acima de 35%). O comercial tá voando! Pode fechar sem medo. 🚀'
+                                                    }
+                                                </p>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Botão Gerar PDF */}
+                                    <button
+                                        onClick={() => setShowPdfModal(true)}
+                                        disabled={!result}
+                                        title={!result ? 'Gere os resultados antes de exportar para PDF' : 'Gerar PDF'}
+                                        className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
+                                    >
+                                        <FileText size={18} /> Gerar PDF
+                                    </button>
+
+                                    {/* PDF Modal */}
+                                    {showPdfModal && (
+                                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                                            <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-fade-in">
+                                                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                                    <FileText className="text-metarh-medium" /> Gerar PDF
+                                                </h3>
+                                                <p className="text-gray-600 mb-6">Escolha o tipo de documento que deseja gerar:</p>
+
+                                                <div className="space-y-3">
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!result) {
+                                                                alert('Cálculo não finalizado — gere resultados antes de exportar o PDF.');
+                                                                return;
+                                                            }
+                                                            try {
+                                                                const ok = generatePDF('internal', result);
+                                                                if (!ok) {
+                                                                    alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
+                                                                }
+                                                            } catch (err: any) {
+                                                                console.error('Erro gerando PDF interno:', err);
+                                                                alert('Erro ao gerar PDF. Verifique console para detalhes.');
+                                                            }
+                                                            setShowPdfModal(false);
+                                                        }}
+                                                        className="w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-between group transition-all"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                                                                <Settings size={20} className="text-gray-600" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <div className="font-bold text-gray-800">Ordem de Serviço</div>
+                                                                <div className="text-xs text-gray-500">Para uso interno (detalhado)</div>
+                                                            </div>
+                                                        </div>
+                                                        <ChevronDown className="-rotate-90 text-gray-400" />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!result) {
+                                                                alert('Cálculo não finalizado — gere resultados antes de exportar o PDF.');
+                                                                return;
+                                                            }
+                                                            try {
+                                                                const ok = generatePDF('client', result, clientName || 'Cliente');
+                                                                if (!ok) {
+                                                                    alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
+                                                                }
+                                                            } catch (err: any) {
+                                                                console.error('Erro gerando PDF cliente:', err);
+                                                                alert('Erro ao gerar PDF. Verifique console para detalhes.');
+                                                            }
+                                                            setShowPdfModal(false);
+                                                        }}
+
+                                                        className="w-full p-4 bg-metarh-medium/5 hover:bg-metarh-medium/10 rounded-2xl border border-metarh-medium/20 flex items-center justify-between group transition-all"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-white p-2 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                                                                <Briefcase size={20} className="text-metarh-medium" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <div className="font-bold text-metarh-dark">Proposta Comercial</div>
+                                                                <div className="text-xs text-metarh-medium">Para envio ao cliente</div>
+                                                            </div>
+                                                        </div>
+                                                        <ChevronDown className="-rotate-90 text-metarh-medium" />
+                                                    </button>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => setShowPdfModal(false)}
+                                                    className="w-full mt-6 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
-
-            </div >
-        </div >
     );
 };
 

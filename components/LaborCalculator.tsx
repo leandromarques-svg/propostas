@@ -120,9 +120,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // New Benefits Structure (Unified)
     const [benefitsList, setBenefitsList] = useState<BenefitItem[]>([
         // Alimentação e Transporte
-        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.06, discountBase: 'benefit' }, // 6% padrão
-        { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 },
-        { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01 },
+        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.06, discountBase: 'salary' }, // 6% do salário base
+        { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05, discountBase: 'benefit' },
+        { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01, discountBase: 'benefit' },
         // Saúde e Bem estar  
         { id: 'medical', name: 'Plano Médico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'percentage', discountValue: 0.02, selectedPlanId: BENEFIT_OPTIONS.medical[2].id },
         { id: 'dental', name: 'Plano Odontológico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.dental[0].id },
@@ -221,13 +221,33 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
         let collabDiscount = 0;
 
-        // Lógica especial para Vale Transporte
+        // Lógica especial para Vale Transporte (VT)
         if (item.id === 'transport' && item.discountBase === 'salary' && averageBaseSalary > 0) {
-            // 6% do salário base, mas não pode exceder o valor fornecido
+            // 6% do salário base
             const salaryDiscount = averageBaseSalary * 0.06;
-            collabDiscount = Math.min(salaryDiscount, providedValue);
-        } else {
-            // Lógica padrão
+
+            // Se o desconto exceder o valor fornecido, o cliente não tem desconto
+            if (salaryDiscount > providedValue) {
+                collabDiscount = 0;
+            } else {
+                collabDiscount = salaryDiscount;
+            }
+        }
+        // Lógica para VR e VA (Vale Refeição e Alimentação)
+        else if (['meal', 'food'].includes(item.id) && item.discountBase === 'benefit') {
+            if (item.discountType === 'percentage') {
+                // Desconto não pode exceder 20% do valor do próprio benefício
+                const maxDiscountPercent = 0.20;
+                const effectiveDiscount = Math.min(item.discountValue, maxDiscountPercent);
+                collabDiscount = providedValue * effectiveDiscount;
+            } else {
+                // Se for valor fixo, não pode exceder 20% do valor fornecido
+                const maxDiscountValue = providedValue * 0.20;
+                collabDiscount = Math.min(item.discountValue, maxDiscountValue);
+            }
+        }
+        // Lógica padrão para outros benefícios
+        else {
             if (item.discountType === 'percentage') {
                 collabDiscount = providedValue * item.discountValue;
             } else {
@@ -1078,7 +1098,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Valor Unit.</label>
+                                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Vlr. Fornecido</label>
                                                                     {item.type === 'plan_selection' ? (
                                                                         <div className="w-full p-1 text-center bg-gray-100 border border-gray-200 rounded text-sm text-gray-600 truncate text-[11px]">
                                                                             {fmtCurrency(unitValue)}
@@ -1091,6 +1111,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                             className="w-full p-1 text-center bg-gray-50 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none"
                                                                             step="0.01"
                                                                         />
+                                                                    )}
+                                                                    {/* Mostrar quantos dias o valor fornecido representa (para benefícios diários) */}
+                                                                    {item.type === 'daily' && item.quantity > 0 && (item.days || 0) > 0 && (
+                                                                        <div className="text-[9px] text-gray-500 mt-0.5 text-center">
+                                                                            {(item.quantity * (item.days || 0)).toFixed(1)} dias
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                                 <div>
@@ -1138,6 +1164,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                     if (['meal', 'food'].includes(item.id) && val > 20) {
                                                                                         val = 20;
                                                                                     }
+                                                                                } else {
+                                                                                    // Para valor fixo em VR/VA, validar que não excede 20% do valor fornecido
+                                                                                    if (['meal', 'food'].includes(item.id)) {
+                                                                                        const calcProvidedValue = item.type === 'daily'
+                                                                                            ? (item.quantity * item.unitValue * (item.days || 0))
+                                                                                            : (item.quantity * item.unitValue);
+                                                                                        const maxFixedDiscount = calcProvidedValue * 0.20;
+                                                                                        if (val > maxFixedDiscount) {
+                                                                                            val = maxFixedDiscount;
+                                                                                        }
+                                                                                    }
                                                                                 }
 
                                                                                 updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
@@ -1152,23 +1189,27 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                 </div>
                                                             )}
 
-                                                            {/* Vale Transporte: Discount Base Selector */}
+                                                            {/* Vale Transporte: Info sobre desconto */}
                                                             {item.id === 'transport' && (
                                                                 <div className="bg-blue-50 p-2 rounded-xl border border-blue-100 mb-2">
-                                                                    <div className="flex justify-between items-center mb-1">
-                                                                        <span className="text-[10px] font-bold text-blue-600 uppercase">Base do Desconto:</span>
+                                                                    <div className="flex items-start gap-1">
+                                                                        <Info size={12} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                                                                        <p className="text-[9px] text-blue-700 leading-tight">
+                                                                            <strong>Desconto padrão:</strong> 6% do salário base. Se o desconto exceder o valor fornecido, o colaborador não terá desconto.
+                                                                        </p>
                                                                     </div>
-                                                                    <select
-                                                                        value={item.discountBase || 'benefit'}
-                                                                        onChange={(e) => updateBenefit(item.id, 'discountBase', e.target.value as 'salary' | 'benefit')}
-                                                                        className="w-full p-1 text-xs border border-blue-200 rounded bg-white text-gray-700 focus:ring-2 focus:ring-blue-300/50 outline-none"
-                                                                    >
-                                                                        <option value="benefit">Valor Fornecido/Mês</option>
-                                                                        <option value="salary">Salário Base</option>
-                                                                    </select>
-                                                                    <p className="text-[9px] text-blue-600 mt-1">
-                                                                        {item.discountBase === 'salary' ? '6% do salário base (limitado ao valor fornecido)' : '6% do valor fornecido'}
-                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* VR e VA: Info sobre desconto */}
+                                                            {['meal', 'food'].includes(item.id) && (
+                                                                <div className="bg-amber-50 p-2 rounded-xl border border-amber-100 mb-2">
+                                                                    <div className="flex items-start gap-1">
+                                                                        <Info size={12} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                                                                        <p className="text-[9px] text-amber-700 leading-tight">
+                                                                            <strong>Limite:</strong> O desconto não pode exceder 20% do valor fornecido.
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             )}
 

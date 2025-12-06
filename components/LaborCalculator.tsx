@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
     FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock, Info,
-    Shield, Laptop, Smartphone, Car
+    Shield, Laptop, Smartphone, Car, CheckCircle2
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
@@ -167,9 +167,26 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // ISS Selection
     const [selectedCity, setSelectedCity] = useState<string>('São Paulo - SP');
 
-    // Results State
     const [result, setResult] = useState<any>(null);
     const [showPdfModal, setShowPdfModal] = useState(false);
+
+    // Section Confirmation State
+    const [confirmedSections, setConfirmedSections] = useState<Record<string, boolean>>({
+        roles: false,
+        charges: false,
+        benefits: false,
+        operational: false,
+        epi: false,
+        materials: false,
+        taxes: false,
+        fees: false
+    });
+
+    const toggleSection = (section: string) => {
+        setConfirmedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
+
+    const allSectionsConfirmed = Object.values(confirmedSections).every(Boolean);
 
 
     // Load team rates and app settings
@@ -757,10 +774,26 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         <div className="lg:col-span-2 space-y-6">
 
                             {/* 1. POSITIONS */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <Users size={18} /> 1. Cargos e Salários
-                                </h2>
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.roles ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <Users size={18} /> 1. Cargos e Salários
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.roles ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.roles ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.roles ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.roles ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input
+                                            type="checkbox"
+                                            checked={confirmedSections.roles}
+                                            onChange={() => toggleSection('roles')}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
 
                                 <div className="space-y-4">
                                     {positions.map((pos, idx) => (
@@ -946,10 +979,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
 
                             {/* 2. CHARGES (ENCARGOS) */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <Settings size={18} /> 2. Encargos
-                                </h2>
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.charges ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <Settings size={18} /> 2. Encargos
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.charges ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.charges ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.charges ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.charges ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.charges} onChange={() => toggleSection('charges')} className="hidden" />
+                                    </label>
+                                </div>
 
                                 <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
                                     {/* Group A */}
@@ -1065,10 +1109,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             {/* 3. BENEFITS (Organized by Category) */}
 
                             {/* 3. BENEFITS (Organized by Category) */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <Sparkles size={18} /> 3. Benefícios
-                                </h2>
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.benefits ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <Sparkles size={18} /> 3. Benefícios
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.benefits ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.benefits ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.benefits ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.benefits ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.benefits} onChange={() => toggleSection('benefits')} className="hidden" />
+                                    </label>
+                                </div>
 
                                 {/* Benefits organized by category */}
                                 <div className="space-y-6">
@@ -1332,11 +1387,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
 
-                            {/* 6. CUSTO OPERACIONAL */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <Briefcase size={18} /> 6. Custo Operacional
-                                </h2>
+                            {/* 4. CUSTO OPERACIONAL */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.operational ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <Briefcase size={18} /> 4. Custo Operacional
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.operational ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
+                                    </label>
+                                </div>
 
                                 <div className="flex gap-4 mb-6">
                                     <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
@@ -1521,11 +1587,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 )}
                             </div>
 
-                            {/* 7. EPI - MATERIAIS */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <Shield size={18} /> 7. EPI - Materiais de Segurança
-                                </h2>
+                            {/* 5. EPI - MATERIAIS */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.epi ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <Shield size={18} /> 5. EPI - Materiais de Segurança
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
+                                    </label>
+                                </div>
 
                                 <div className="space-y-3">
                                     {epiItems.map((item, idx) => (
@@ -1602,11 +1679,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                             </div>
 
-                            {/* 9. MATERIAL DE TRABALHO */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <Laptop size={18} /> 9. Material de Trabalho
-                                </h2>
+                            {/* 6. MATERIAL DE TRABALHO */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.materials ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <Laptop size={18} /> 6. Material de Trabalho
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.materials ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.materials ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.materials ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.materials ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.materials} onChange={() => toggleSection('materials')} className="hidden" />
+                                    </label>
+                                </div>
 
                                 <div className="space-y-8">
                                     {/* Notebooks */}
@@ -1831,11 +1919,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             )}
 
 
-                            {/* 10. TRIBUTOS */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <DollarSign size={18} /> 10. Tributos
-                                </h2>
+                            {/* 7. TRIBUTOS */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.taxes ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <DollarSign size={18} /> 7. Tributos
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.taxes ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.taxes ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.taxes ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.taxes ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.taxes} onChange={() => toggleSection('taxes')} className="hidden" />
+                                    </label>
+                                </div>
 
                                 {/* ISS City Selector */}
                                 <div className="mb-4 bg-blue-50 p-4 rounded-3xl border border-blue-100">
@@ -1893,11 +1992,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 )}
                             </div>
 
-                            {/* TAXAS E MARGENS */}
-                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                                <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <BarChart3 size={18} /> Taxas e Margens
-                                </h2>
+                            {/* 8. TAXAS E MARGENS */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.fees ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <BarChart3 size={18} /> 8. Taxas e Margens
+                                    </h2>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.fees ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.fees ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.fees ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.fees ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.fees} onChange={() => toggleSection('fees')} className="hidden" />
+                                    </label>
+                                </div>
                                 <div className="grid md:grid-cols-2 gap-6 items-start">
                                     {/* Input Admin Fee */}
                                     <div>
@@ -2084,12 +2194,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         {/* Botão Gerar PDF */}
                                         <button
                                             onClick={() => setShowPdfModal(true)}
-                                            disabled={!result}
-                                            title={!result ? 'Gere os resultados antes de exportar para PDF' : 'Gerar PDF'}
-                                            className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
+                                            disabled={!result || !allSectionsConfirmed}
+                                            title={!result ? 'Gere os resultados antes de exportar' : !allSectionsConfirmed ? 'Confirme todas as seções (1-8) acima' : 'Gerar PDF'}
+                                            className={`w-full py-3 font-bold rounded-full transition-all flex items-center justify-center gap-2 mt-4 
+                                                ${allSectionsConfirmed ? 'bg-white text-metarh-dark hover:bg-gray-100' : 'bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600'}
+                                            `}
                                         >
-                                            <FileText size={18} /> Gerar PDF
+                                            <FileText size={18} />
+                                            {allSectionsConfirmed ? 'Gerar PDF' : 'Revise todas as seções'}
                                         </button>
+
+                                        {!allSectionsConfirmed && (
+                                            <p className="text-[10px] text-center text-red-300 mt-2">
+                                                * É necessário marcar todas as seções como "Revisado" para gerar a proposta.
+                                            </p>
+                                        )}
 
                                         {/* PDF Modal */}
                                         {showPdfModal && (

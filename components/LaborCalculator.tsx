@@ -560,6 +560,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             recruitmentTeamCost,
             operationalAdminCost,
             extraCostTotal,
+            epiCostTotal,
+            notebooksCostTotal,
+            cellPhonesCostTotal,
+            vehiclesCostTotal,
             totalOperationalCostValue,
             // Individual taxes
             issValue,
@@ -779,20 +783,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <Users size={18} /> 1. Cargos e Salários
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.roles ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.roles ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.roles ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.roles ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input
-                                            type="checkbox"
-                                            checked={confirmedSections.roles}
-                                            onChange={() => toggleSection('roles')}
-                                            className="hidden"
-                                        />
-                                    </label>
                                 </div>
 
                                 <div className="space-y-4">
@@ -968,7 +958,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                     {/* Total Gross Salary Display */}
                                     {result && (
-                                        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.roles ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.roles ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className={`text-xs font-bold ${confirmedSections.roles ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {confirmedSections.roles ? 'Revisado' : 'Confirmar'}
+                                                </span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={confirmedSections.roles}
+                                                    onChange={() => toggleSection('roles')}
+                                                    className="hidden"
+                                                />
+                                            </label>
                                             <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
                                                 <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Salário Bruto:</span>
                                                 <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalGrossSalary)}</span>
@@ -984,15 +988,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <Settings size={18} /> 2. Encargos
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.charges ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.charges ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.charges ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.charges ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.charges} onChange={() => toggleSection('charges')} className="hidden" />
-                                    </label>
                                 </div>
 
                                 <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
@@ -1092,7 +1087,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                 {/* Highlighted Total Charges */}
                                 <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-3xl p-4 flex justify-between items-center">
-                                    <span className="text-sm font-bold text-metarh-dark uppercase">Total de Encargos (A + B)</span>
+                                    <div className="flex items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer select-none bg-white/50 px-3 py-1.5 rounded-full border border-metarh-medium/20">
+                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.charges ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.charges ? 'translate-x-3' : 'translate-x-0'}`} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${confirmedSections.charges ? 'text-green-600' : 'text-gray-400'}`}>
+                                                {confirmedSections.charges ? 'Revisado' : 'Confirmar'}
+                                            </span>
+                                            <input type="checkbox" checked={confirmedSections.charges} onChange={() => toggleSection('charges')} className="hidden" />
+                                        </label>
+                                        <span className="text-sm font-bold text-metarh-dark uppercase">Total de Encargos (A + B)</span>
+                                    </div>
                                     <div className="text-right">
                                         <span className="text-2xl font-bold text-metarh-medium">
                                             {fmtPercent((result?.groupAPercent || 0) + (result?.groupBPercent || 0))}
@@ -1114,15 +1120,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <Sparkles size={18} /> 3. Benefícios
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.benefits ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.benefits ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.benefits ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.benefits ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.benefits} onChange={() => toggleSection('benefits')} className="hidden" />
-                                    </label>
                                 </div>
 
                                 {/* Benefits organized by category */}
@@ -1156,7 +1153,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         <div className="col-span-2 text-right">Custo</div>
                                                     </div>
 
-                                                    <div className="space-y-3">
+                                                    <div className="space-y-6">
                                                         {categoryItems.map((item) => {
                                                             const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item, averageBaseSalary);
                                                             categorySubtotal += clientCost * (result?.totalPositions || 1);
@@ -1219,16 +1216,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                     {fmtCurrency(unitValue)}
                                                                                 </div>
                                                                             ) : (
-                                                                                <input
-                                                                                    type="number"
-                                                                                    value={item.unitValue}
-                                                                                    onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
-                                                                                    className="w-full p-2 text-center bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none font-bold hover:bg-white transition-colors"
-                                                                                    step="0.01"
-                                                                                />
+                                                                                <div className="relative group/val">
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={item.unitValue}
+                                                                                        onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
+                                                                                        className="w-full p-2 text-center bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-metarh-medium/20 outline-none font-bold hover:bg-white transition-colors"
+                                                                                        step="0.01"
+                                                                                    />
+                                                                                </div>
                                                                             )}
                                                                             {item.type === 'daily' && (item.days || 0) > 0 && (
-                                                                                <div className="text-[9px] text-gray-400 text-center mt-1 hidden md:block">
+                                                                                <div className="absolute top-full left-0 w-full text-[9px] text-gray-400 text-center mt-1 hidden md:block pointer-events-none">
                                                                                     Total: {fmtCurrency(item.quantity * unitValue * (item.days || 0))}
                                                                                 </div>
                                                                             )}
@@ -1253,40 +1252,42 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                         {/* 5. Discount */}
                                                                         <div className="col-span-12 md:col-span-2">
                                                                             {!['wellhub', 'gpsPoint', 'plr'].includes(item.id) ? (
-                                                                                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200 hover:border-metarh-medium/30 transition-colors">
-                                                                                    <input
-                                                                                        type="number"
-                                                                                        value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
-                                                                                        onChange={(e) => {
-                                                                                            let val = Number(e.target.value);
-                                                                                            if (item.discountType === 'percentage') {
-                                                                                                if (item.id === 'transport' && val > 6) val = 6;
-                                                                                                if (['meal', 'food'].includes(item.id) && val > 20) val = 20;
-                                                                                            } else {
-                                                                                                if (['meal', 'food'].includes(item.id)) {
-                                                                                                    const calcProvidedValue = item.type === 'daily' ? (item.quantity * item.unitValue * (item.days || 0)) : (item.quantity * item.unitValue);
-                                                                                                    const maxFixedDiscount = calcProvidedValue * 0.20;
-                                                                                                    if (val > maxFixedDiscount) val = maxFixedDiscount;
+                                                                                <div className="relative group/discount">
+                                                                                    <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200 hover:border-metarh-medium/30 transition-colors">
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
+                                                                                            onChange={(e) => {
+                                                                                                let val = Number(e.target.value);
+                                                                                                if (item.discountType === 'percentage') {
+                                                                                                    if (item.id === 'transport' && val > 6) val = 6;
+                                                                                                    if (['meal', 'food'].includes(item.id) && val > 20) val = 20;
+                                                                                                } else {
+                                                                                                    if (['meal', 'food'].includes(item.id)) {
+                                                                                                        const calcProvidedValue = item.type === 'daily' ? (item.quantity * item.unitValue * (item.days || 0)) : (item.quantity * item.unitValue);
+                                                                                                        const maxFixedDiscount = calcProvidedValue * 0.20;
+                                                                                                        if (val > maxFixedDiscount) val = maxFixedDiscount;
+                                                                                                    }
                                                                                                 }
-                                                                                            }
-                                                                                            updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
-                                                                                        }}
-                                                                                        className="w-full bg-transparent text-center text-sm font-bold outline-none"
-                                                                                    />
-                                                                                    <button
-                                                                                        onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
-                                                                                        className="text-[10px] font-bold text-gray-500 hover:text-metarh-medium px-1"
-                                                                                    >
-                                                                                        {item.discountType === 'percentage' ? '%' : 'R$'}
-                                                                                    </button>
+                                                                                                updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? val / 100 : val);
+                                                                                            }}
+                                                                                            className="w-full bg-transparent text-center text-sm font-bold outline-none"
+                                                                                        />
+                                                                                        <button
+                                                                                            onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
+                                                                                            className="text-[10px] font-bold text-gray-500 hover:text-metarh-medium px-1"
+                                                                                        >
+                                                                                            {item.discountType === 'percentage' ? '%' : 'R$'}
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    {collabDiscount > 0 && (
+                                                                                        <div className="absolute top-full left-0 w-full text-[10px] text-red-400 text-center font-medium mt-1 pointer-events-none">
+                                                                                            -{fmtCurrency(collabDiscount)}
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             ) : (
                                                                                 <div className="text-center text-gray-300 text-xs">Sem desconto</div>
-                                                                            )}
-                                                                            {collabDiscount > 0 && (
-                                                                                <div className="text-[10px] text-red-400 text-center mt-1 font-medium">
-                                                                                    -{fmtCurrency(collabDiscount)}
-                                                                                </div>
                                                                             )}
                                                                         </div>
 
@@ -1374,12 +1375,25 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 {/* Total Benefits Display */}
                                 {
                                     result && (
-                                        <div className="bg-gradient-to-r from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-3xl p-5">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-lg font-bold text-metarh-dark uppercase">✨ Total Benefícios:</span>
-                                                <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
+                                        <div className="bg-gradient-to-r from-metarh-medium/10 to-metarh-dark/10 border-2 border-metarh-medium rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-lg font-bold text-metarh-dark uppercase">✨ Total Benefícios:</span>
+                                                    <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1">Soma dos subtotais de categorias (Custo Cliente)</p>
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-2 text-right">Soma dos subtotais de categorias (Custo Cliente)</p>
+                                            <div className="flex-shrink-0">
+                                                <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                    <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.benefits ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                        <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.benefits ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                    </div>
+                                                    <span className={`text-xs font-bold ${confirmedSections.benefits ? 'text-green-600' : 'text-gray-400'}`}>
+                                                        {confirmedSections.benefits ? 'Revisado' : 'Confirmar'}
+                                                    </span>
+                                                    <input type="checkbox" checked={confirmedSections.benefits} onChange={() => toggleSection('benefits')} className="hidden" />
+                                                </label>
+                                            </div>
                                         </div>
                                     )
                                 }
@@ -1393,15 +1407,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <Briefcase size={18} /> 4. Custo Operacional
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.operational ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
-                                    </label>
                                 </div>
 
                                 <div className="flex gap-4 mb-6">
@@ -1593,15 +1598,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <Shield size={18} /> 5. EPI - Materiais de Segurança
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
-                                    </label>
                                 </div>
 
                                 <div className="space-y-3">
@@ -1677,6 +1673,23 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         <Plus size={16} /> Adicionar EPI
                                     </button>
                                 </div>
+                                {result && (
+                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
+                                                {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
+                                            </span>
+                                            <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
+                                        </label>
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
+                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total EPI:</span>
+                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.epiCostTotal || 0)}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* 6. MATERIAL DE TRABALHO */}
@@ -1685,15 +1698,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <Laptop size={18} /> 6. Material de Trabalho
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.materials ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.materials ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.materials ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.materials ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.materials} onChange={() => toggleSection('materials')} className="hidden" />
-                                    </label>
                                 </div>
 
                                 <div className="space-y-8">
@@ -1899,21 +1903,46 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                     </div>
                                 </div>
+                                {result && (
+                                    <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.materials ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.materials ? 'translate-x-3' : 'translate-x-0'}`} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${confirmedSections.materials ? 'text-green-600' : 'text-gray-400'}`}>
+                                                {confirmedSections.materials ? 'Revisado' : 'Confirmar'}
+                                            </span>
+                                            <input type="checkbox" checked={confirmedSections.materials} onChange={() => toggleSection('materials')} className="hidden" />
+                                        </label>
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
+                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Materiais:</span>
+                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency((result.notebooksCostTotal || 0) + (result.cellPhonesCostTotal || 0) + (result.vehiclesCostTotal || 0))}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Total Operational Cost Summary */}
                             {result && (
-                                <div className="bg-gray-800 p-6 rounded-[2rem] shadow-sm border border-gray-700 text-white">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-lg font-bold flex items-center gap-2">
-                                                <Briefcase size={18} className="text-yellow-400" /> Total Custo Operacional
-                                            </h2>
-                                            <p className="text-xs text-gray-400 mt-1">Soma de Recrutamento, Adm, Extras, EPI, Notebooks, Celulares e Veículos</p>
+                                <div className="bg-gray-800 p-6 rounded-[2rem] shadow-sm border border-gray-700 text-white flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <Briefcase size={18} className="text-yellow-400" />
+                                            <h2 className="text-lg font-bold">Total Custo Operacional</h2>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-2xl font-bold text-yellow-400">{fmtCurrency(result.totalOperationalCostValue)}</div>
-                                        </div>
+                                        <p className="text-xs text-gray-400 mt-1">Soma de Recrutamento, Adm, Extras, EPI, Notebooks, Celulares e Veículos</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-2xl font-bold text-yellow-400 text-right">{fmtCurrency(result.totalOperationalCostValue)}</div>
+                                        <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-700/50 px-4 py-2 rounded-full border border-gray-600">
+                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-500'}`}>
+                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-400' : 'text-gray-400'}`}>
+                                                {confirmedSections.operational ? 'Revisado' : 'Confirmar'}
+                                            </span>
+                                            <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
+                                        </label>
                                     </div>
                                 </div>
                             )}
@@ -1925,15 +1954,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
                                         <DollarSign size={18} /> 7. Tributos
                                     </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.taxes ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.taxes ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.taxes ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.taxes ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.taxes} onChange={() => toggleSection('taxes')} className="hidden" />
-                                    </label>
                                 </div>
 
                                 {/* ISS City Selector */}
@@ -1985,63 +2005,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                         {/* Total Tributos */}
                                         <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
-                                            <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
-                                            <span className="text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
+                                            <div>
+                                                <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
+                                                <span className="block text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
+                                            </div>
+                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-red-100">
+                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.taxes ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.taxes ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className={`text-xs font-bold ${confirmedSections.taxes ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {confirmedSections.taxes ? 'Revisado' : 'Confirmar'}
+                                                </span>
+                                                <input type="checkbox" checked={confirmedSections.taxes} onChange={() => toggleSection('taxes')} className="hidden" />
+                                            </label>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            {/* 8. TAXAS E MARGENS */}
-                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.fees ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
-                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <BarChart3 size={18} /> 8. Taxas e Margens
-                                    </h2>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.fees ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.fees ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.fees ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.fees ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.fees} onChange={() => toggleSection('fees')} className="hidden" />
-                                    </label>
-                                </div>
-                                <div className="grid md:grid-cols-2 gap-6 items-start">
-                                    {/* Input Admin Fee */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={adminFeePercent * 100}
-                                                onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                                className="w-full p-3 rounded-2xl border border-gray-300 text-lg font-bold text-metarh-dark focus:ring-2 focus:ring-metarh-medium outline-none"
-                                            />
-                                            <span className="font-bold text-gray-500">%</span>
-                                        </div>
-                                    </div>
-                                    {/* Calculation Mode */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modo de Cálculo</label>
-                                        <div className="flex gap-2 mt-2">
-                                            <button
-                                                onClick={() => setCalculationMode('5_columns')}
-                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                            >
-                                                5 Colunas
-                                            </button>
-                                            <button
-                                                onClick={() => setCalculationMode('final_rate')}
-                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                            >
-                                                Taxa Final
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
                         </div>
 
@@ -2297,10 +2278,72 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
                                 )}
                             </div>
+
+                            {/* 8. TAXAS E MARGENS - MOVED TO SIDERBAR */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.fees ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <BarChart3 size={18} /> 8. Taxas e Margens
+                                    </h2>
+                                </div>
+                                <div className="space-y-4">
+                                    {/* Input Admin Fee */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                value={adminFeePercent * 100}
+                                                onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
+                                                className="w-full p-3 rounded-2xl border border-gray-300 text-lg font-bold text-metarh-dark focus:ring-2 focus:ring-metarh-medium outline-none"
+                                            />
+                                            <span className="font-bold text-gray-500">%</span>
+                                        </div>
+                                    </div>
+                                    {/* Calculation Mode */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modo de Cálculo</label>
+                                        <div className="flex gap-2 mt-2">
+                                            <button
+                                                onClick={() => setCalculationMode('5_columns')}
+                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            >
+                                                5 Colunas
+                                            </button>
+                                            <button
+                                                onClick={() => setCalculationMode('final_rate')}
+                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            >
+                                                Taxa Final
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.fees ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.fees ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.fees ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.fees ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.fees} onChange={() => toggleSection('fees')} className="hidden" />
+                                    </label>
+                                    {result && (
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20 text-right">
+                                            <span className="text-xs font-bold text-gray-600 uppercase block">Valor da Taxa</span>
+                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.adminFeeValue || 0)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+
+
                         </div>
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
     );

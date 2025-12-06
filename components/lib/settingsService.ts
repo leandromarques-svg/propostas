@@ -17,6 +17,7 @@ export interface AppSettings {
             gpsPoint?: number;
             plr?: number;
         };
+        custom?: { id: string; name: string; value: number; category: string }[];
     };
 }
 

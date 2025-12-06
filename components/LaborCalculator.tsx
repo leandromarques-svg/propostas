@@ -203,9 +203,27 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             if (settings) {
                 setSatRate(settings.sat_rate);
 
-                // Update benefit defaults if not already set (optional, but good for initial load)
-                // For now, we just ensure the options are available for selection
+                // Add custom benefits from settings
+                if (settings.benefit_options.custom && settings.benefit_options.custom.length > 0) {
+                    setBenefitsList(prev => {
+                        const existingIds = new Set(prev.map(p => p.id));
+                        const newItems = settings.benefit_options.custom
+                            ?.filter((c: any) => !existingIds.has(c.id))
+                            .map((c: any) => ({
+                                id: c.id,
+                                name: c.name,
+                                type: 'custom',
+                                quantity: 1,
+                                unitValue: c.value,
+                                discountType: 'fixed',
+                                discountValue: 0,
+                                days: 0,
+                                discountBase: 'benefit'
+                            } as BenefitItem)) || [];
 
+                        return [...prev, ...newItems];
+                    });
+                }
             }
         };
         loadData();
@@ -264,7 +282,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             }
 
             // Regra: se o desconto calculado (independente da base) exceder o valor fornecido
-            // então o desconto é limitado ao valor fornecido (custo zero para o cliente)
+            // então o desconto é limitado ao valor fornecido (custo zero para o cliente).
+            // Isso satisfaz a regra: "Se desconto for maior que 6% do salário base, custo não é repassado para o cliente."
             if (computedDiscount >= providedValue) {
                 collabDiscount = providedValue;
             } else {
@@ -600,9 +619,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     // Benefits categorization helper
     const getCategoryInfo = (id: string) => {
-        if (['transport', 'meal', 'food'].includes(id)) return { name: 'Alimentação e Transporte', icon: '🍽️', color: 'orange' };
-        if (['medical', 'dental', 'pharmacy', 'healthCare', 'wellhub'].includes(id)) return { name: 'Saúde e Bem estar', icon: '🏥', color: 'blue' };
-        if (id.startsWith('exam-')) return { name: 'Exames', icon: '🩺', color: 'purple' };
+        if (['transport', 'meal', 'food'].includes(id) || id.startsWith('transport_custom_')) return { name: 'Alimentação e Transporte', icon: '🍽️', color: 'orange' };
+        if (['medical', 'dental', 'pharmacy', 'healthCare', 'wellhub'].includes(id) || id.startsWith('health_custom_')) return { name: 'Saúde e Bem estar', icon: '🏥', color: 'blue' };
+        if (id.startsWith('exam-') || id.startsWith('exam_custom_')) return { name: 'Exames', icon: '🩺', color: 'purple' };
         return { name: 'Outros', icon: '🔧', color: 'gray' };
     };
 
@@ -1145,10 +1164,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <div className="p-2 md:p-6">
                                                     {/* Table Header - Visible only on larger screens */}
                                                     <div className="hidden md:grid grid-cols-12 gap-4 mb-4 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                                        <div className="col-span-4">Benefício</div>
+                                                        <div className="col-span-3">Benefício</div>
                                                         <div className="col-span-1 text-center">Qtd</div>
                                                         <div className="col-span-2 text-center">Valor Unit.</div>
-                                                        <div className="col-span-1 text-center">Dias</div>
+                                                        <div className="col-span-2 text-center">Dias</div>
                                                         <div className="col-span-2 text-center">Desconto</div>
                                                         <div className="col-span-2 text-right">Custo</div>
                                                     </div>
@@ -1163,7 +1182,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     <div className="grid md:grid-cols-12 gap-4 items-center">
 
                                                                         {/* 1. Name & Selection */}
-                                                                        <div className="col-span-12 md:col-span-4">
+                                                                        <div className="col-span-12 md:col-span-3">
                                                                             <div className="flex flex-col">
                                                                                 {item.type === 'custom' ? (
                                                                                     <div className="flex items-center gap-2">
@@ -1234,7 +1253,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                         </div>
 
                                                                         {/* 4. Days (if daily) */}
-                                                                        <div className="col-span-4 md:col-span-1">
+                                                                        <div className="col-span-4 md:col-span-2">
                                                                             <label className="md:hidden block text-[10px] font-bold text-gray-400 uppercase mb-1">Dias</label>
                                                                             {item.type === 'daily' ? (
                                                                                 <input
@@ -1280,6 +1299,17 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                             {item.discountType === 'percentage' ? '%' : 'R$'}
                                                                                         </button>
                                                                                     </div>
+                                                                                    {item.id === 'transport' && (
+                                                                                        <div className="mt-1 flex justify-center">
+                                                                                            <button
+                                                                                                onClick={() => updateBenefit(item.id, 'discountBase', item.discountBase === 'salary' ? 'benefit' : 'salary')}
+                                                                                                className="text-[9px] font-bold text-gray-400 hover:text-metarh-medium underline decoration-dashed cursor-pointer"
+                                                                                                title="Alternar base de cálculo do desconto"
+                                                                                            >
+                                                                                                {item.discountBase === 'salary' ? 'Sobre Salário' : 'Sobre Benefício'}
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    )}
                                                                                     {collabDiscount > 0 && (
                                                                                         <div className="absolute top-full left-0 w-full text-[10px] text-red-400 text-center font-medium mt-1 pointer-events-none">
                                                                                             -{fmtCurrency(collabDiscount)}
@@ -1344,8 +1374,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <div className="bg-gray-50/50 px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
                                                     <button
                                                         onClick={() => {
+                                                            let prefix = 'other_custom_';
+                                                            if (categoryName === 'Alimentação e Transporte') prefix = 'transport_custom_';
+                                                            if (categoryName === 'Saúde e Bem estar') prefix = 'health_custom_';
+                                                            if (categoryName === 'Exames') prefix = 'exam_custom_';
+
                                                             const newBenefit: BenefitItem = {
-                                                                id: `custom-${Date.now()}`,
+                                                                id: `${prefix}${Date.now()}`,
                                                                 name: `Novo - ${categoryName}`,
                                                                 type: 'custom',
                                                                 quantity: 1,

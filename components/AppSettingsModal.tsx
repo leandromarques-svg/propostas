@@ -23,8 +23,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
     const [generalSettings, setGeneralSettings] = useState<AppSettings>({
         minimum_wage: 0,
         sat_rate: 0,
-        benefit_options: { medical: [], dental: [], wellhub: [] }
+        benefit_options: { medical: [], dental: [], wellhub: [], custom: [] }
     });
+    const [newCustomItem, setNewCustomItem] = useState({ name: '', value: 0, category: 'Outros' });
 
     useEffect(() => {
         if (isOpen) {
@@ -57,7 +58,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                 // Save general settings
                 await updateAppSetting('minimum_wage', generalSettings.minimum_wage);
                 await updateAppSetting('sat_rate', generalSettings.sat_rate);
-                await updateAppSetting('benefit_options', generalSettings.benefit_options);
+                // Ensure custom defaults to empty array if undefined
+                const optionsToSave = {
+                    ...generalSettings.benefit_options,
+                    custom: generalSettings.benefit_options.custom || []
+                };
+                await updateAppSetting('benefit_options', optionsToSave);
             }
             alert('Configurações salvas com sucesso!');
             onClose();
@@ -435,6 +441,121 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                                         className="w-full pl-10 p-2 border border-gray-300 rounded font-bold text-right"
                                                     />
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Custom Benefits */}
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Itens Personalizados</h3>
+                                        <div className="grid gap-4">
+                                            {generalSettings.benefit_options.custom?.map((item, idx) => (
+                                                <div key={idx} className="flex gap-4 items-center bg-gray-50 p-3 rounded-lg">
+                                                    <div className="w-32">
+                                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">Categoria</span>
+                                                        <span className="text-xs font-bold text-metarh-medium bg-white px-2 py-1 rounded border border-gray-200 block truncate">
+                                                            {item.category}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">Nome</span>
+                                                        <input
+                                                            type="text"
+                                                            value={item.name}
+                                                            onChange={(e) => {
+                                                                const newCustom = [...(generalSettings.benefit_options.custom || [])];
+                                                                newCustom[idx].name = e.target.value;
+                                                                setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, custom: newCustom } });
+                                                            }}
+                                                            className="w-full p-2 border border-gray-300 rounded text-sm font-medium"
+                                                        />
+                                                    </div>
+                                                    <div className="relative w-32">
+                                                        <span className="text-xs font-bold text-gray-500 uppercase block mb-1">Valor Padrão</span>
+                                                        <span className="absolute left-2 bottom-2 text-gray-500 text-xs">R$</span>
+                                                        <input
+                                                            type="number"
+                                                            value={item.value}
+                                                            onChange={(e) => {
+                                                                const newCustom = [...(generalSettings.benefit_options.custom || [])];
+                                                                newCustom[idx].value = Number(e.target.value);
+                                                                setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, custom: newCustom } });
+                                                            }}
+                                                            className="w-full pl-6 p-2 border border-gray-300 rounded text-sm font-bold text-right"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const newCustom = [...(generalSettings.benefit_options.custom || [])].filter((_, i) => i !== idx);
+                                                            setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, custom: newCustom } });
+                                                        }}
+                                                        className="mt-5 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    >
+                                                        <X size={20} />
+                                                    </button>
+                                                </div>
+                                            ))}
+
+                                            {/* Add New Custom Item */}
+                                            <div className="flex gap-4 items-end bg-metarh-medium/5 p-4 rounded-xl border border-metarh-medium/20 border-dashed">
+                                                <div className="w-1/4">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Categoria</label>
+                                                    <select
+                                                        value={newCustomItem.category}
+                                                        onChange={(e) => setNewCustomItem({ ...newCustomItem, category: e.target.value })}
+                                                        className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                    >
+                                                        <option value="Alimentação e Transporte">Alimentação e Transporte</option>
+                                                        <option value="Saúde e Bem estar">Saúde e Bem estar</option>
+                                                        <option value="Exames">Exames</option>
+                                                        <option value="Outros">Outros</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nome do Item</label>
+                                                    <input
+                                                        type="text"
+                                                        value={newCustomItem.name}
+                                                        onChange={(e) => setNewCustomItem({ ...newCustomItem, name: e.target.value })}
+                                                        className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                        placeholder="Ex: Auxílio Creche"
+                                                    />
+                                                </div>
+                                                <div className="w-32">
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Valor (R$)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={newCustomItem.value}
+                                                        onChange={(e) => setNewCustomItem({ ...newCustomItem, value: Number(e.target.value) })}
+                                                        className="w-full p-2 rounded-lg border border-gray-300 text-sm font-bold text-right"
+                                                    />
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        if (!newCustomItem.name) return;
+                                                        // Use consistent prefix based on category
+                                                        let prefix = 'other_custom_';
+                                                        if (newCustomItem.category === 'Alimentação e Transporte') prefix = 'transport_custom_';
+                                                        if (newCustomItem.category === 'Saúde e Bem estar') prefix = 'health_custom_';
+                                                        if (newCustomItem.category === 'Exames') prefix = 'exam_custom_';
+
+                                                        const newItem = {
+                                                            id: `${prefix}cfg_${Date.now()}`,
+                                                            ...newCustomItem
+                                                        };
+                                                        setGeneralSettings({
+                                                            ...generalSettings,
+                                                            benefit_options: {
+                                                                ...generalSettings.benefit_options,
+                                                                custom: [...(generalSettings.benefit_options.custom || []), newItem]
+                                                            }
+                                                        });
+                                                        setNewCustomItem({ name: '', value: 0, category: 'Outros' });
+                                                    }}
+                                                    className="px-4 py-2 bg-metarh-medium text-white rounded-lg font-bold text-sm hover:bg-metarh-dark transition-colors h-[38px]"
+                                                >
+                                                    Adicionar
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

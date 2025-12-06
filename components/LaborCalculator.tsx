@@ -2028,6 +2028,65 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                         {/* RESULTS SECTION */}
                         <div className="space-y-6">
+                            {/* 8. TAXAS E MARGENS - MOVED TO SIDERBAR */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.fees ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        <BarChart3 size={18} /> 8. Taxas e Margens
+                                    </h2>
+                                </div>
+                                <div className="space-y-4">
+                                    {/* Input Admin Fee */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                value={adminFeePercent * 100}
+                                                onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
+                                                className="w-full p-3 rounded-2xl border border-gray-300 text-lg font-bold text-metarh-dark focus:ring-2 focus:ring-metarh-medium outline-none"
+                                            />
+                                            <span className="font-bold text-gray-500">%</span>
+                                        </div>
+                                    </div>
+                                    {/* Calculation Mode */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modo de Cálculo</label>
+                                        <div className="flex gap-2 mt-2">
+                                            <button
+                                                onClick={() => setCalculationMode('5_columns')}
+                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            >
+                                                5 Colunas
+                                            </button>
+                                            <button
+                                                onClick={() => setCalculationMode('final_rate')}
+                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            >
+                                                Taxa Final
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.fees ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.fees ? 'translate-x-3' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className={`text-xs font-bold ${confirmedSections.fees ? 'text-green-600' : 'text-gray-400'}`}>
+                                            {confirmedSections.fees ? 'Revisado' : 'Confirmar'}
+                                        </span>
+                                        <input type="checkbox" checked={confirmedSections.fees} onChange={() => toggleSection('fees')} className="hidden" />
+                                    </label>
+                                    {result && (
+                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20 text-right">
+                                            <span className="text-xs font-bold text-gray-600 uppercase block">Valor da Taxa</span>
+                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.adminFeeValue || 0)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                                     <BarChart3 size={24} className="text-metarh-lime" /> Resultado
@@ -2077,6 +2136,14 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         </div>
 
+
+                                        {/* Operational Costs */}
+                                        <div className="pb-4 border-b border-white/10">
+                                            <div className="flex justify-between text-gray-300">
+                                                <span>Total Custos Operacionais</span>
+                                                <span>{fmtCurrency(result.totalOperationalCostValue)}</span>
+                                            </div>
+                                        </div>
 
                                         {/* Fees */}
                                         <div className="pb-4 border-b border-white/10">
@@ -2280,63 +2347,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             </div>
 
                             {/* 8. TAXAS E MARGENS - MOVED TO SIDERBAR */}
-                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.fees ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
-                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <BarChart3 size={18} /> 8. Taxas e Margens
-                                    </h2>
-                                </div>
-                                <div className="space-y-4">
-                                    {/* Input Admin Fee */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Taxa Administrativa (%)</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={adminFeePercent * 100}
-                                                onChange={(e) => setAdminFeePercent(Number(e.target.value) / 100)}
-                                                className="w-full p-3 rounded-2xl border border-gray-300 text-lg font-bold text-metarh-dark focus:ring-2 focus:ring-metarh-medium outline-none"
-                                            />
-                                            <span className="font-bold text-gray-500">%</span>
-                                        </div>
-                                    </div>
-                                    {/* Calculation Mode */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modo de Cálculo</label>
-                                        <div className="flex gap-2 mt-2">
-                                            <button
-                                                onClick={() => setCalculationMode('5_columns')}
-                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === '5_columns' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                            >
-                                                5 Colunas
-                                            </button>
-                                            <button
-                                                onClick={() => setCalculationMode('final_rate')}
-                                                className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold transition-colors ${calculationMode === 'final_rate' ? 'bg-metarh-medium text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                            >
-                                                Taxa Final
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.fees ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.fees ? 'translate-x-3' : 'translate-x-0'}`} />
-                                        </div>
-                                        <span className={`text-xs font-bold ${confirmedSections.fees ? 'text-green-600' : 'text-gray-400'}`}>
-                                            {confirmedSections.fees ? 'Revisado' : 'Confirmar'}
-                                        </span>
-                                        <input type="checkbox" checked={confirmedSections.fees} onChange={() => toggleSection('fees')} className="hidden" />
-                                    </label>
-                                    {result && (
-                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20 text-right">
-                                            <span className="text-xs font-bold text-gray-600 uppercase block">Valor da Taxa</span>
-                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.adminFeeValue || 0)}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+
 
 
 

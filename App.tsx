@@ -351,7 +351,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
           {renderHeader()}
           <PricingCalculator onCancel={() => setActiveCalculator(null)} />
-          <Footer />
+          <Footer className="" />
         </div>
       );
     }
@@ -360,7 +360,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
           {renderHeader()}
           <LaborCalculator onCancel={() => setActiveCalculator(null)} />
-          <Footer />
+          <Footer className="" />
         </div>
       );
     }
@@ -369,7 +369,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
           {renderHeader()}
           <TrilhandoPlusCalculator onCancel={() => setActiveCalculator(null)} />
-          <Footer />
+          <Footer className="" />
         </div>
       );
     }
@@ -464,7 +464,7 @@ const App: React.FC = () => {
           history={proposalHistory}
           onRemove={removeFromCart}
         />
-        <Footer />
+        <Footer className="" />
       </div>
     );
   }
@@ -494,8 +494,8 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col overflow-hidden">
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-7xl mx-auto pb-24">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-8 custom-scrollbar">
+          <div className="max-w-7xl mx-auto">
 
             {/* Hero Banner - Purple with Search */}
             <div className="bg-gradient-to-br from-purple-700 via-purple-600 to-purple-800 rounded-[3rem] p-12 mb-8 shadow-2xl relative overflow-hidden">

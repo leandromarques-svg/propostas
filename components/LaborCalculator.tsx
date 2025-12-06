@@ -1111,7 +1111,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     <div className="grid md:grid-cols-12 gap-4 items-center">
 
                                                                         {/* 1. Name & Selection */}
-                                                                        <div className="col-span-12 md:col-span-3">
+                                                                        <div className="col-span-12 md:col-span-4">
                                                                             <div className="flex flex-col">
                                                                                 {item.type === 'custom' ? (
                                                                                     <div className="flex items-center gap-2">
@@ -1180,7 +1180,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                         </div>
 
                                                                         {/* 4. Days (if daily) */}
-                                                                        <div className="col-span-4 md:col-span-2">
+                                                                        <div className="col-span-4 md:col-span-1">
                                                                             <label className="md:hidden block text-[10px] font-bold text-gray-400 uppercase mb-1">Dias</label>
                                                                             {item.type === 'daily' ? (
                                                                                 <input

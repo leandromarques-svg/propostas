@@ -2066,6 +2066,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 Taxa Final
                                             </button>
                                         </div>
+                                        <div className="mt-2 text-[10px] text-gray-400 leading-relaxed bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                            <p><strong className="text-gray-600">5 Colunas:</strong> Taxa aplicada sobre o <span className="font-semibold">Custo Total</span> (Labor + Ops).</p>
+                                            <p className="mt-1"><strong className="text-gray-600">Taxa Final:</strong> Taxa aplicada sobre o <span className="font-semibold">Valor Bruto</span> (Markup).</p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">

@@ -175,6 +175,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         roles: false,
         charges: false,
         benefits: false,
+        exams: false,
         operational: false,
         epi: false,
         materials: false,
@@ -1143,7 +1144,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                 {/* Benefits organized by category */}
                                 <div className="space-y-6">
-                                    {['Alimentação e Transporte', 'Saúde e Bem estar', 'Outros', 'Exames'].map(categoryName => {
+                                    {['Alimentação e Transporte', 'Saúde e Bem estar', 'Outros'].map(categoryName => {
                                         const categoryItems = benefitsList.filter(item => getCategoryInfo(item.id).name === categoryName);
                                         if (categoryItems.length === 0) return null;
 
@@ -1414,7 +1415,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             <div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-lg font-bold text-metarh-dark uppercase">✨ Total Benefícios:</span>
-                                                    <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits + result.totalExams)}</span>
+                                                    <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalBenefits)}</span>
                                                 </div>
                                                 <p className="text-xs text-gray-500 mt-1">Soma dos subtotais de categorias (Custo Cliente)</p>
                                             </div>
@@ -1434,13 +1435,200 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 }
                             </div >
 
+                            {/* 4. EXAMES */}
+                            <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.exams ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
+                                <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
+                                        {/* Use the stethoscope icon for the section header */}
+                                        <span className="text-xl">🩺</span> 4. Exames
+                                    </h2>
+                                </div>
 
+                                {/* Items for Exames */}
+                                <div className="space-y-6">
+                                    {['Exames'].map(categoryName => {
+                                        const categoryItems = benefitsList.filter(item => getCategoryInfo(item.id).name === categoryName);
+                                        if (categoryItems.length === 0) return (
+                                            <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-2xl border-dashed border-2 border-gray-200">
+                                                Nenhum exame selecionado
+                                            </div>
+                                        );
 
-                            {/* 4. CUSTO OPERACIONAL */}
+                                        const categoryInfo = getCategoryInfo(categoryItems[0].id);
+                                        let categorySubtotal = 0;
+
+                                        return (
+                                            <div key={categoryName} className="bg-white rounded-[2rem] border border-gray-200 overflow-hidden shadow-sm mb-4">
+                                                {/* Category Header */}
+                                                <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-200 flex items-center gap-3 backdrop-blur-sm">
+                                                    <span className="text-2xl bg-white p-2 rounded-xl shadow-sm border border-gray-100">{categoryInfo.icon}</span>
+                                                    <h3 className="text-lg font-bold text-gray-800">{categoryName}</h3>
+                                                    <div className="ml-auto bg-white px-3 py-1 rounded-full border border-gray-200 text-xs font-bold text-gray-500 shadow-sm">
+                                                        {categoryItems.length} itens
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-2 md:p-6">
+                                                    {/* Table Header */}
+                                                    <div className="hidden md:grid grid-cols-12 gap-4 mb-4 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                                        <div className="col-span-3">Item</div>
+                                                        <div className="col-span-1 text-center">Qtd</div>
+                                                        <div className="col-span-2 text-center">Valor Unit.</div>
+                                                        <div className="col-span-2 text-center">Dias</div>
+                                                        <div className="col-span-2 text-center">Desconto</div>
+                                                        <div className="col-span-2 text-right">Custo</div>
+                                                    </div>
+
+                                                    <div className="space-y-6">
+                                                        {categoryItems.map((item) => {
+                                                            const { unitValue, clientCost, collabDiscount } = calculateBenefitRow(item, result?.totalBaseSalary / (result?.totalPositions || 1));
+                                                            categorySubtotal += clientCost * (result?.totalPositions || 1);
+
+                                                            return (
+                                                                <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-3 hover:border-metarh-medium/30 hover:shadow-md transition-all group">
+                                                                    <div className="grid md:grid-cols-12 gap-4 items-center">
+                                                                        {/* Name */}
+                                                                        <div className="col-span-12 md:col-span-3">
+                                                                            <div className="flex flex-col">
+                                                                                {item.type === 'custom' ? (
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={item.name}
+                                                                                            onChange={(e) => updateBenefit(item.id, 'name', e.target.value)}
+                                                                                            className="w-full p-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 outline-none"
+                                                                                            placeholder="Nome"
+                                                                                        />
+                                                                                        <button onClick={() => setBenefitsList(prev => prev.filter(i => i.id !== item.id))} className="text-gray-400 hover:text-red-500 p-2">
+                                                                                            <Trash2 size={16} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <span className="text-sm font-bold text-gray-700 pl-1">{item.name}</span>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Quantity */}
+                                                                        <div className="col-span-4 md:col-span-1">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={item.quantity}
+                                                                                onChange={(e) => updateBenefit(item.id, 'quantity', Number(e.target.value))}
+                                                                                className="w-full p-2 text-center bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold"
+                                                                                min="0"
+                                                                            />
+                                                                        </div>
+
+                                                                        {/* Value */}
+                                                                        <div className="col-span-4 md:col-span-2">
+                                                                            <div className="relative group/val">
+                                                                                <input
+                                                                                    type="number"
+                                                                                    value={item.unitValue}
+                                                                                    onChange={(e) => updateBenefit(item.id, 'unitValue', Number(e.target.value))}
+                                                                                    className="w-full p-2 text-center bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold"
+                                                                                    step="0.01"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Days */}
+                                                                        <div className="col-span-4 md:col-span-2">
+                                                                            <div className="text-center text-gray-300">-</div>
+                                                                        </div>
+
+                                                                        {/* Discount */}
+                                                                        <div className="col-span-12 md:col-span-2">
+                                                                            <div className="relative group/discount">
+                                                                                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={item.discountType === 'percentage' ? Number((item.discountValue * 100).toFixed(2)) : item.discountValue}
+                                                                                        onChange={(e) => updateBenefit(item.id, 'discountValue', item.discountType === 'percentage' ? Number(e.target.value) / 100 : Number(e.target.value))}
+                                                                                        className="w-full bg-transparent text-center text-sm font-bold outline-none"
+                                                                                    />
+                                                                                    <button
+                                                                                        onClick={() => updateBenefit(item.id, 'discountType', item.discountType === 'percentage' ? 'fixed' : 'percentage')}
+                                                                                        className="text-[10px] font-bold text-gray-500 hover:text-metarh-medium px-1"
+                                                                                    >
+                                                                                        {item.discountType === 'percentage' ? '%' : 'R$'}
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Cost */}
+                                                                        <div className="col-span-12 md:col-span-2 text-right">
+                                                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(clientCost)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                {/* Category Footer - Add Custom Exam */}
+                                                <div className="bg-gray-50/50 px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newBenefit: BenefitItem = {
+                                                                id: `exam_custom_${Date.now()}`,
+                                                                name: `Novo - Exame`,
+                                                                type: 'custom',
+                                                                quantity: 1,
+                                                                unitValue: 0,
+                                                                discountType: 'percentage',
+                                                                discountValue: 0,
+                                                                days: 0,
+                                                                discountBase: 'benefit'
+                                                            };
+                                                            setBenefitsList(prev => [...prev, newBenefit]);
+                                                        }}
+                                                        className="text-xs font-bold text-metarh-medium hover:text-metarh-dark flex items-center gap-1 px-3 py-2 rounded-xl hover:bg-metarh-medium/10 transition-colors"
+                                                    >
+                                                        <Plus size={14} /> Adicionar Exame
+                                                    </button>
+                                                    <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                                                        <span className="text-xs font-bold text-gray-500 uppercase">Subtotal</span>
+                                                        <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(categorySubtotal)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Total Exams Confirmation */}
+                                {result && (
+                                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg font-bold text-metarh-dark uppercase">💊 Total Exames:</span>
+                                                <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalExams)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.exams ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.exams ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className={`text-xs font-bold ${confirmedSections.exams ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {confirmedSections.exams ? 'Revisado' : 'Confirmar'}
+                                                </span>
+                                                <input type="checkbox" checked={confirmedSections.exams} onChange={() => toggleSection('exams')} className="hidden" />
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 5. CUSTO OPERACIONAL */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.operational ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <Briefcase size={18} /> 4. Custo Operacional
+                                        <Briefcase size={18} /> 5. Custo Operacional
                                     </h2>
                                 </div>
 
@@ -1627,11 +1815,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 )}
                             </div>
 
-                            {/* 5. EPI - MATERIAIS */}
+                            {/* 6. EPI - MATERIAIS */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.epi ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <Shield size={18} /> 5. EPI - Materiais de Segurança
+                                        <Shield size={18} /> 6. EPI - Materiais de Segurança
                                     </h2>
                                 </div>
 
@@ -1727,11 +1915,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 )}
                             </div>
 
-                            {/* 6. MATERIAL DE TRABALHO */}
+                            {/* 7. MATERIAL DE TRABALHO */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.materials ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <Laptop size={18} /> 6. Material de Trabalho
+                                        <Laptop size={18} /> 7. Material de Trabalho
                                     </h2>
                                 </div>
 
@@ -1983,11 +2171,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             )}
 
 
-                            {/* 7. TRIBUTOS */}
+                            {/* 8. TRIBUTOS */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.taxes ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <DollarSign size={18} /> 7. Tributos
+                                        <DollarSign size={18} /> 8. Tributos
                                     </h2>
                                 </div>
 
@@ -2063,11 +2251,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                         {/* RESULTS SECTION */}
                         <div className="space-y-6">
-                            {/* 8. TAXAS E MARGENS - MOVED TO SIDERBAR */}
+                            {/* 9. TAXAS E MARGENS - MOVED TO SIDERBAR */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.fees ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <BarChart3 size={18} /> 8. Taxas e Margens
+                                        <BarChart3 size={18} /> 9. Taxas e Margens
                                     </h2>
                                 </div>
                                 <div className="space-y-4">
@@ -2395,7 +2583,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

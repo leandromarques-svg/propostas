@@ -1349,7 +1349,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                                 <option value="salary">Sobre Salário</option>
                                                                                                 <option value="benefit">Sobre Benefício</option>
                                                                                             </select>
-                                                                                            Se desconto {'>'} valor, custo zero para colab.
+                                                                                            Se desconto {'>'} valor, custo zero para o cliente.
                                                                                         </p>
                                                                                     </div>
                                                                                 )}

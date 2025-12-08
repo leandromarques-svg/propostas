@@ -669,6 +669,7 @@ const App: React.FC = () => {
                 })
               )}
             </div>
+            <div className="mb-16" />
             <Footer className="-mx-8 -mb-8" />
           </div>
         </div>

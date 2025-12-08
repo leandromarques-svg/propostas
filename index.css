@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* index.css básico para garantir que a aplicação não fique branca */
 body {
   margin: 0;

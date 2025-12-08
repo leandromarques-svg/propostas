@@ -1349,7 +1349,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                                 <option value="salary">Sobre Salário</option>
                                                                                                 <option value="benefit">Sobre Benefício</option>
                                                                                             </select>
-                                                                                            Se desconto {'>'} valor, custo zero para colab.
+                                                                                            Se desconto {'>'} valor, custo zero para o cliente.
                                                                                         </p>
                                                                                     </div>
                                                                                 )}
@@ -1804,13 +1804,21 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
                                 )}
 
-                                {/* Total Custo Operacional Display */}
+                                {/* Total Custo Operacional Display - Novo padrão */}
                                 {result && recruitmentType === 'selection' && (
-                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                                        <div className="bg-gradient-to-r from-purple-50 to-orange-50 px-6 py-3 rounded-2xl border-2 border-purple-200">
-                                            <span className="text-xs font-bold text-purple-900 uppercase mr-2">Total Custo Operacional:</span>
-                                            <span className="text-xl font-bold text-purple-700">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
+                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <Briefcase size={18} className="text-purple-500" />
+                                            <span className="text-xs font-bold text-purple-900 uppercase">TOTAL CUSTO OPERACIONAL:</span>
+                                            <span className="text-xl font-bold text-purple-700 ml-2">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
                                         </div>
+                                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-200'}`}> 
+                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-600' : 'text-gray-400'}`}>{confirmedSections.operational ? 'Revisado' : 'Confirmar'}</span>
+                                            <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
+                                        </label>
                                     </div>
                                 )}
                             </div>
@@ -1907,9 +1915,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </span>
                                             <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
                                         </label>
-                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total EPI:</span>
-                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.epiCostTotal || 0)}</span>
+                                        <div className="flex items-center gap-2">
+                                            <Shield size={18} className="text-blue-500" />
+                                            <span className="text-xs font-bold text-blue-900 uppercase">TOTAL EPI:</span>
+                                            <span className="text-lg font-bold text-blue-700 ml-2">{fmtCurrency(result.epiCostTotal || 0)}</span>
                                         </div>
                                     </div>
                                 )}
@@ -2137,9 +2146,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </span>
                                             <input type="checkbox" checked={confirmedSections.materials} onChange={() => toggleSection('materials')} className="hidden" />
                                         </label>
-                                        <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                            <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Materiais:</span>
-                                            <span className="text-lg font-bold text-metarh-dark">{fmtCurrency((result.notebooksCostTotal || 0) + (result.cellPhonesCostTotal || 0) + (result.vehiclesCostTotal || 0))}</span>
+                                        <div className="flex items-center gap-2">
+                                            <Laptop size={18} className="text-pink-500" />
+                                            <span className="text-xs font-bold text-pink-900 uppercase">TOTAL MATERIAL DE TRABALHO:</span>
+                                            <span className="text-lg font-bold text-pink-700 ml-2">{fmtCurrency((result.notebooksCostTotal || 0) + (result.cellPhonesCostTotal || 0) + (result.vehiclesCostTotal || 0))}</span>
                                         </div>
                                     </div>
                                 )}

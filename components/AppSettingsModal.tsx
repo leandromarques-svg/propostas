@@ -1,7 +1,12 @@
+import { getBenefitPlans, addBenefitPlan, updateBenefitPlan, deleteBenefitPlan, BenefitPlan } from './lib/benefitsService';
+    const [benefitPlans, setBenefitPlans] = useState<BenefitPlan[]>([]);
+    const [newBenefitPlan, setNewBenefitPlan] = useState<{ name: string; value: number; category: string }>({ name: '', value: 0, category: 'medical' });
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Save, Loader2, Settings, Users, Briefcase, Heart } from 'lucide-react';
 import { getTeamRates, updateAllTeamRates, TeamRates } from './lib/teamRatesService';
+import { getTeamRateItems, addTeamRateItem, updateTeamRateItem, deleteTeamRateItem, TeamRateItem } from './lib/teamRatesCrudService';
 import { getAppSettings, updateAppSetting, AppSettings } from './lib/settingsService';
+import { getGeneralSettings, addGeneralSetting, updateGeneralSetting, deleteGeneralSetting, GeneralSetting } from './lib/generalSettingsService';
 import { supabase } from '../lib/supabase';
 
 interface AppSettingsModalProps {
@@ -18,6 +23,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
 
     // Team Rates State
     const [teamRates, setTeamRates] = useState<TeamRates>({ senior: 0, plena: 0, junior: 0 });
+    const [teamRateItems, setTeamRateItems] = useState<TeamRateItem[]>([]);
+    const [newTeamRate, setNewTeamRate] = useState<{ rate_type: string; hourly_rate: number }>({ rate_type: '', hourly_rate: 0 });
 
     // General Settings State
     const [generalSettings, setGeneralSettings] = useState<AppSettings>({
@@ -25,6 +32,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
         sat_rate: 0,
         benefit_options: { medical: [], dental: [], wellhub: [], custom: [] }
     });
+    const [generalSettingsList, setGeneralSettingsList] = useState<GeneralSetting[]>([]);
+    const [newGeneralSetting, setNewGeneralSetting] = useState<{ key: string; value: number }>({ key: '', value: 0 });
     const [newCustomItem, setNewCustomItem] = useState({ name: '', value: 0, category: 'Outros' });
 
     useEffect(() => {
@@ -36,12 +45,18 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
     const loadAllSettings = async () => {
         setIsLoading(true);
         try {
-            const [rates, settings] = await Promise.all([
+            const [rates, settings, rateItems, generalList, benefitList] = await Promise.all([
                 getTeamRates(),
-                getAppSettings()
+                getAppSettings(),
+                getTeamRateItems(),
+                getGeneralSettings(),
+                getBenefitPlans('all')
             ]);
             setTeamRates(rates);
             setGeneralSettings(settings);
+            setTeamRateItems(rateItems);
+            setGeneralSettingsList(generalList);
+            setBenefitPlans(benefitList);
         } catch (error) {
             console.error('Error loading settings:', error);
         } finally {
@@ -128,32 +143,59 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                 <div className="space-y-6 animate-fade-in">
                                     <p className="text-gray-600">Valores por hora para cálculo de equipe de recrutamento.</p>
                                     <div className="grid md:grid-cols-3 gap-6">
-                                        <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Sênior</label>
+                                        {teamRateItems.map((item, idx) => (
+                                            <div key={item.id} className="bg-gray-50 p-4 rounded-xl border flex flex-col gap-2 relative">
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{item.rate_type}</label>
+                                                <input
+                                                    type="number"
+                                                    value={item.hourly_rate}
+                                                    onChange={async (e) => {
+                                                        const updated = { ...item, hourly_rate: Number(e.target.value) };
+                                                        await updateTeamRateItem(updated);
+                                                        setTeamRateItems(prev => prev.map(r => r.id === item.id ? updated : r));
+                                                    }}
+                                                    className="w-full p-2 rounded-lg border font-bold"
+                                                />
+                                                <button
+                                                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500"
+                                                    onClick={async () => {
+                                                        if (window.confirm('Deseja remover este cargo?')) {
+                                                            await deleteTeamRateItem(item.id);
+                                                            setTeamRateItems(prev => prev.filter(r => r.id !== item.id));
+                                                        }
+                                                    }}
+                                                    title="Remover"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {/* Adicionar novo cargo */}
+                                        <div className="bg-metarh-medium/5 p-4 rounded-xl border border-metarh-medium/20 border-dashed flex flex-col gap-2">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Novo Cargo</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Tipo (ex: Sênior)"
+                                                value={newTeamRate.rate_type}
+                                                onChange={e => setNewTeamRate({ ...newTeamRate, rate_type: e.target.value })}
+                                                className="w-full p-2 rounded-lg border text-sm"
+                                            />
                                             <input
                                                 type="number"
-                                                value={teamRates.senior}
-                                                onChange={(e) => setTeamRates({ ...teamRates, senior: Number(e.target.value) })}
-                                                className="w-full p-2 rounded-lg border border-purple-200 font-bold"
+                                                placeholder="Valor por hora"
+                                                value={newTeamRate.hourly_rate}
+                                                onChange={e => setNewTeamRate({ ...newTeamRate, hourly_rate: Number(e.target.value) })}
+                                                className="w-full p-2 rounded-lg border text-sm"
                                             />
-                                        </div>
-                                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Pleno</label>
-                                            <input
-                                                type="number"
-                                                value={teamRates.plena}
-                                                onChange={(e) => setTeamRates({ ...teamRates, plena: Number(e.target.value) })}
-                                                className="w-full p-2 rounded-lg border border-blue-200 font-bold"
-                                            />
-                                        </div>
-                                        <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Júnior</label>
-                                            <input
-                                                type="number"
-                                                value={teamRates.junior}
-                                                onChange={(e) => setTeamRates({ ...teamRates, junior: Number(e.target.value) })}
-                                                className="w-full p-2 rounded-lg border border-green-200 font-bold"
-                                            />
+                                            <button
+                                                className="mt-2 px-4 py-2 bg-metarh-medium text-white rounded-lg font-bold text-sm hover:bg-metarh-dark transition-colors"
+                                                onClick={async () => {
+                                                    if (!newTeamRate.rate_type || !newTeamRate.hourly_rate) return;
+                                                    const added = await addTeamRateItem(newTeamRate);
+                                                    setTeamRateItems(prev => [...prev, added]);
+                                                    setNewTeamRate({ rate_type: '', hourly_rate: 0 });
+                                                }}
+                                            >Adicionar</button>
                                         </div>
                                     </div>
                                 </div>
@@ -163,32 +205,59 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                             {activeTab === 'general' && (
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid md:grid-cols-2 gap-6">
-                                        <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Salário Mínimo Nacional</label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
+                                        {generalSettingsList.map((item, idx) => (
+                                            <div key={item.id} className="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col gap-2 relative">
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">{item.key}</label>
                                                 <input
                                                     type="number"
-                                                    value={generalSettings.minimum_wage}
-                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, minimum_wage: Number(e.target.value) })}
-                                                    className="w-full pl-10 p-3 rounded-lg border border-gray-300 font-bold text-lg"
+                                                    value={item.value}
+                                                    onChange={async (e) => {
+                                                        const updated = { ...item, value: Number(e.target.value) };
+                                                        await updateGeneralSetting(updated);
+                                                        setGeneralSettingsList(prev => prev.map(g => g.id === item.id ? updated : g));
+                                                    }}
+                                                    className="w-full p-3 rounded-lg border border-gray-300 font-bold text-lg"
                                                 />
+                                                <button
+                                                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500"
+                                                    onClick={async () => {
+                                                        if (window.confirm('Deseja remover este valor?')) {
+                                                            await deleteGeneralSetting(item.id);
+                                                            setGeneralSettingsList(prev => prev.filter(g => g.id !== item.id));
+                                                        }
+                                                    }}
+                                                    title="Remover"
+                                                >
+                                                    <X size={16} />
+                                                </button>
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-2">Usado para cálculo de insalubridade.</p>
-                                        </div>
-
-                                        <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Taxa SAT (Seguro Acidente Trabalho)</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    value={(generalSettings.sat_rate * 100).toFixed(2)}
-                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, sat_rate: Number(e.target.value) / 100 })}
-                                                    className="w-full p-3 rounded-lg border border-gray-300 font-bold text-lg pr-10"
-                                                />
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">%</span>
-                                            </div>
-                                            <p className="text-xs text-gray-500 mt-2">Taxa padrão aplicada aos encargos (Grupo A).</p>
+                                        ))}
+                                        {/* Adicionar novo valor geral */}
+                                        <div className="bg-metarh-medium/5 p-6 rounded-xl border border-metarh-medium/20 border-dashed flex flex-col gap-2">
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">Novo Valor</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Chave (ex: Salário Mínimo Nacional)"
+                                                value={newGeneralSetting.key}
+                                                onChange={e => setNewGeneralSetting({ ...newGeneralSetting, key: e.target.value })}
+                                                className="w-full p-2 rounded-lg border text-sm"
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="Valor"
+                                                value={newGeneralSetting.value}
+                                                onChange={e => setNewGeneralSetting({ ...newGeneralSetting, value: Number(e.target.value) })}
+                                                className="w-full p-2 rounded-lg border text-sm"
+                                            />
+                                            <button
+                                                className="mt-2 px-4 py-2 bg-metarh-medium text-white rounded-lg font-bold text-sm hover:bg-metarh-dark transition-colors"
+                                                onClick={async () => {
+                                                    if (!newGeneralSetting.key || !newGeneralSetting.value) return;
+                                                    const added = await addGeneralSetting(newGeneralSetting);
+                                                    setGeneralSettingsList(prev => [...prev, added]);
+                                                    setNewGeneralSetting({ key: '', value: 0 });
+                                                }}
+                                            >Adicionar</button>
                                         </div>
                                     </div>
                                 </div>
@@ -197,7 +266,97 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                             {/* BENEFITS TAB */}
                             {activeTab === 'benefits' && (
                                 <div className="space-y-8 animate-fade-in">
-                                    {/* Medical */}
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Planos de Benefícios</h3>
+                                        <div className="grid gap-4">
+                                            {benefitPlans.map((plan, idx) => (
+                                                <div key={plan.id} className="flex gap-4 items-center bg-gray-50 p-3 rounded-lg relative">
+                                                    <input
+                                                        type="text"
+                                                        value={plan.name}
+                                                        onChange={async (e) => {
+                                                            const updated = { ...plan, name: e.target.value };
+                                                            await updateBenefitPlan(updated);
+                                                            setBenefitPlans(prev => prev.map(p => p.id === plan.id ? updated : p));
+                                                        }}
+                                                        className="flex-1 p-2 border border-gray-300 rounded text-sm font-medium"
+                                                    />
+                                                    <div className="relative w-32">
+                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                                        <input
+                                                            type="number"
+                                                            value={plan.value}
+                                                            onChange={async (e) => {
+                                                                const updated = { ...plan, value: Number(e.target.value) };
+                                                                await updateBenefitPlan(updated);
+                                                                setBenefitPlans(prev => prev.map(p => p.id === plan.id ? updated : p));
+                                                            }}
+                                                            className="w-full pl-6 p-2 border border-gray-300 rounded text-sm font-bold text-right"
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-gray-500 uppercase block mb-1">{plan.category}</span>
+                                                    <button
+                                                        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500"
+                                                        onClick={async () => {
+                                                            if (window.confirm('Deseja remover este benefício?')) {
+                                                                await deleteBenefitPlan(plan.id);
+                                                                setBenefitPlans(prev => prev.filter(p => p.id !== plan.id));
+                                                            }
+                                                        }}
+                                                        title="Remover"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {/* Adicionar novo benefício */}
+                                    <div className="flex gap-4 items-end bg-metarh-medium/5 p-4 rounded-xl border border-metarh-medium/20 border-dashed mt-4">
+                                        <div className="w-1/4">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Categoria</label>
+                                            <select
+                                                value={newBenefitPlan.category}
+                                                onChange={e => setNewBenefitPlan({ ...newBenefitPlan, category: e.target.value })}
+                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                            >
+                                                <option value="medical">Médico</option>
+                                                <option value="dental">Odontológico</option>
+                                                <option value="wellhub">Wellhub</option>
+                                                <option value="outro">Outro</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nome do Plano</label>
+                                            <input
+                                                type="text"
+                                                value={newBenefitPlan.name}
+                                                onChange={e => setNewBenefitPlan({ ...newBenefitPlan, name: e.target.value })}
+                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm"
+                                                placeholder="Ex: Sulamérica Especial"
+                                            />
+                                        </div>
+                                        <div className="w-32">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Valor (R$)</label>
+                                            <input
+                                                type="number"
+                                                value={newBenefitPlan.value}
+                                                onChange={e => setNewBenefitPlan({ ...newBenefitPlan, value: Number(e.target.value) })}
+                                                className="w-full p-2 rounded-lg border border-gray-300 text-sm font-bold text-right"
+                                            />
+                                        </div>
+                                        <button
+                                            className="px-4 py-2 bg-metarh-medium text-white rounded-lg font-bold text-sm hover:bg-metarh-dark transition-colors h-[38px]"
+                                            onClick={async () => {
+                                                if (!newBenefitPlan.name || !newBenefitPlan.value) return;
+                                                const added = await addBenefitPlan(newBenefitPlan);
+                                                setBenefitPlans(prev => [...prev, added]);
+                                                setNewBenefitPlan({ name: '', value: 0, category: 'medical' });
+                                            }}
+                                        >Adicionar</button>
+                                    </div>
+                                </div>
+                            )}
                                     <div>
                                         <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Planos Médicos</h3>
                                         <div className="grid gap-4">

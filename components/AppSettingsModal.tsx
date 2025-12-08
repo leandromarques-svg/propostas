@@ -94,40 +94,33 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar flex flex-col">
-
-                {/* Header */}
-                            {activeTab === 'benefits' && (
-                                <div className="space-y-8 animate-fade-in">
-                                    {/* Novo CRUD de benefícios já implementado */}
-                                </div>
-                            )}
-                                </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="pt-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white p-4 -mx-8 -mb-8 rounded-b-3xl">
-                                <button
-                                    onClick={onClose}
-                                    className="px-6 py-3 rounded-xl border border-gray-300 font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                                    disabled={isSaving}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleSave}
-                                    className="px-8 py-3 rounded-xl bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg transition-all flex items-center gap-2"
-                                    disabled={isSaving}
-                                >
-                                    {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                                    {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+	<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
+		<div className="bg-white w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar flex flex-col">
+			{/* Header */}
+			{activeTab === 'benefits' && (
+				<div className="space-y-8 animate-fade-in">
+					{/* Novo CRUD de benefícios já implementado */}
+				</div>
+			)}
+			{/* Actions */}
+			<div className="pt-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white p-4 -mx-8 -mb-8 rounded-b-3xl">
+				<button
+					onClick={onClose}
+					className="px-6 py-3 rounded-xl border border-gray-300 font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+					disabled={isSaving}
+				>
+					Cancelar
+				</button>
+				<button
+					onClick={handleSave}
+					className="px-8 py-3 rounded-xl bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg transition-all flex items-center gap-2"
+					disabled={isSaving}
+				>
+					{isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+					{isSaving ? 'Salvando...' : 'Salvar Alterações'}
+				</button>
+			</div>
+		</div>
+	</div>
+);
 };

@@ -585,11 +585,20 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               </div>
             </div>
 
+
             {/* 3. TAXA ADMINISTRATIVA */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                 <DollarSign size={18} /> 3. Taxa Administrativa
               </h2>
+
+              {/* Explicação dos Modos de Cálculo */}
+              <div className="mb-4">
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-[12px] text-gray-700 leading-relaxed">
+                  <p className="mb-1"><strong>5 Colunas:</strong> A taxa (margem) é aplicada <strong>sobre os valores antes dos impostos</strong> (Salário Referência, Salário do Cargo e Custos Operacionais). Ou seja, sua margem é calculada sobre o custo do projeto, antes de adicionar tributos.</p>
+                  <p><strong>Taxa Final:</strong> A taxa é aplicada <strong>sobre o valor da NF Bruta</strong> (faturamento total, já incluindo impostos). Aqui, sua margem é calculada sobre o valor final que o cliente paga, já com tributos embutidos.</p>
+                </div>
+              </div>
 
               {/* Admin Fee */}
               <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">

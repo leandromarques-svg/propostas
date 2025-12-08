@@ -1,5 +1,5 @@
 import React, { ReactNode, Component } from 'react';
-import './index.css';
+import './src/index.css';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 

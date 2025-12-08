@@ -183,7 +183,6 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
       weightPercentage: (complexityScale / 5) * 100,
       suggestedMargin: 0, // Not used
       suggestedTeam,
-      workingHours: projectHours,
       teamCostTotal,
       fixedItemsCostTotal,
       totalOperationalCost,
@@ -336,15 +335,28 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     onClick={() => {
                       const newPosition: Position = {
                         id: `pos-${Date.now()}`,
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nível / Peso</label>
+                        <select
+                          value={position.roleWeight || 1}
+                          onChange={(e) => {
+                            const weight = Number(e.target.value) || 1;
+                            const label = ROLE_OPTIONS.find(r => r.value === weight)?.label || position.roleName;
+                            setInputs(prev => ({
+                              ...prev,
+                              positions: prev.positions.map(p => p.id === position.id ? { ...p, roleWeight: weight, roleName: label } : p)
+                            }));
+                          }}
+                          className="w-full p-3 bg-white rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
+                        >
+                          {ROLE_OPTIONS.map(r => <option key={r.label} value={r.value}>{r.label} — {r.value}</option>)}
+                        </select>
+                      </div>
                         roleName: '',
-                        roleWeight: 1,
                         salary: 0,
                         vacancies: 1
                       };
-                      setInputs(prev => ({
-                        ...prev,
-                        positions: [...prev.positions, newPosition]
-                      }));
+                      roleWeight: 1,
                     }}
                     className="text-xs flex items-center gap-1 text-metarh-medium font-bold hover:underline"
                   >
@@ -585,20 +597,11 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               </div>
             </div>
 
-
             {/* 3. TAXA ADMINISTRATIVA */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                 <DollarSign size={18} /> 3. Taxa Administrativa
               </h2>
-
-              {/* Explicação dos Modos de Cálculo */}
-              <div className="mb-4">
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-[12px] text-gray-700 leading-relaxed">
-                  <p className="mb-1"><strong>5 Colunas:</strong> A taxa (margem) é aplicada <strong>sobre os valores antes dos impostos</strong> (Salário Referência, Salário do Cargo e Custos Operacionais). Ou seja, sua margem é calculada sobre o custo do projeto, antes de adicionar tributos.</p>
-                  <p><strong>Taxa Final:</strong> A taxa é aplicada <strong>sobre o valor da NF Bruta</strong> (faturamento total, já incluindo impostos). Aqui, sua margem é calculada sobre o valor final que o cliente paga, já com tributos embutidos.</p>
-                </div>
-              </div>
 
               {/* Admin Fee */}
               <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">
@@ -652,14 +655,14 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                       <p className="text-[10px] text-gray-400 text-right mt-1">Base para cálculo da taxa</p>
                     </div>
                   </div>
-                  {/* Display weighted salary (salário do cargo) */}
-                  <div className="bg-white/5 border border-white/10 rounded-3xl p-3 my-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-bold text-gray-300 uppercase tracking-wider">Salário do Cargo (peso)</span>
-                      <span className="text-lg font-bold text-white">{fmtCurrency(result.weightedSalaryTotal || 0)}</span>
+                    {/* Display weighted salary (salário do cargo) */}
+                    <div className="bg-white/5 border border-white/10 rounded-3xl p-3 my-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-bold text-gray-300 uppercase tracking-wider">Salário do Cargo (peso)</span>
+                        <span className="text-lg font-bold text-white">{fmtCurrency(result.weightedSalaryTotal || 0)}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 text-right mt-1">Soma dos salários × peso por nível</p>
                     </div>
-                    <p className="text-[10px] text-gray-400 text-right mt-1">Soma dos salários × peso por nível</p>
-                  </div>
 
                   {/* Revenue & Costs */}
                   <div className="space-y-2 pb-4 border-b border-white/10">

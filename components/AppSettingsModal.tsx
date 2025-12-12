@@ -1,12 +1,7 @@
-import { getBenefitPlans, addBenefitPlan, updateBenefitPlan, deleteBenefitPlan, BenefitPlan } from './lib/benefitsService';
-    const [benefitPlans, setBenefitPlans] = useState<BenefitPlan[]>([]);
-    const [newBenefitPlan, setNewBenefitPlan] = useState<{ name: string; value: number; category: string }>({ name: '', value: 0, category: 'medical' });
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Save, Loader2, Settings, Users, Briefcase, Heart } from 'lucide-react';
 import { getTeamRates, updateAllTeamRates, TeamRates } from './lib/teamRatesService';
-import { getTeamRateItems, addTeamRateItem, updateTeamRateItem, deleteTeamRateItem, TeamRateItem } from './lib/teamRatesCrudService';
 import { getAppSettings, updateAppSetting, AppSettings } from './lib/settingsService';
-import { getGeneralSettings, addGeneralSetting, updateGeneralSetting, deleteGeneralSetting, GeneralSetting } from './lib/generalSettingsService';
 import { supabase } from '../lib/supabase';
 
 interface AppSettingsModalProps {
@@ -14,7 +9,7 @@ interface AppSettingsModalProps {
     onClose: () => void;
 }
 
-type Tab = 'team' | 'general' | 'benefits';
+type Tab = 'team' | 'general';
 
 export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState<Tab>('team');
@@ -23,8 +18,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
 
     // Team Rates State
     const [teamRates, setTeamRates] = useState<TeamRates>({ senior: 0, plena: 0, junior: 0 });
-    const [teamRateItems, setTeamRateItems] = useState<TeamRateItem[]>([]);
-    const [newTeamRate, setNewTeamRate] = useState<{ rate_type: string; hourly_rate: number }>({ rate_type: '', hourly_rate: 0 });
 
     // General Settings State
     const [generalSettings, setGeneralSettings] = useState<AppSettings>({
@@ -32,9 +25,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
         sat_rate: 0,
         benefit_options: { medical: [], dental: [], wellhub: [], custom: [] }
     });
-    const [generalSettingsList, setGeneralSettingsList] = useState<GeneralSetting[]>([]);
-    const [newGeneralSetting, setNewGeneralSetting] = useState<{ key: string; value: number }>({ key: '', value: 0 });
-    const [newCustomItem, setNewCustomItem] = useState({ name: '', value: 0, category: 'Outros' });
 
     useEffect(() => {
         if (isOpen) {
@@ -45,18 +35,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
     const loadAllSettings = async () => {
         setIsLoading(true);
         try {
-            const [rates, settings, rateItems, generalList, benefitList] = await Promise.all([
+            const [rates, settings] = await Promise.all([
                 getTeamRates(),
-                getAppSettings(),
-                getTeamRateItems(),
-                getGeneralSettings(),
-                getBenefitPlans('all')
+                getAppSettings()
             ]);
             setTeamRates(rates);
             setGeneralSettings(settings);
-            setTeamRateItems(rateItems);
-            setGeneralSettingsList(generalList);
-            setBenefitPlans(benefitList);
         } catch (error) {
             console.error('Error loading settings:', error);
         } finally {
@@ -94,33 +78,50 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
     if (!isOpen) return null;
 
     return (
-	<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
-		<div className="bg-white w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar flex flex-col">
-			{/* Header */}
-			{activeTab === 'benefits' && (
-				<div className="space-y-8 animate-fade-in">
-					{/* Novo CRUD de benefícios já implementado */}
-				</div>
-			)}
-			{/* Actions */}
-			<div className="pt-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white p-4 -mx-8 -mb-8 rounded-b-3xl">
-				<button
-					onClick={onClose}
-					className="px-6 py-3 rounded-xl border border-gray-300 font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-					disabled={isSaving}
-				>
-					Cancelar
-				</button>
-				<button
-					onClick={handleSave}
-					className="px-8 py-3 rounded-xl bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg transition-all flex items-center gap-2"
-					disabled={isSaving}
-				>
-					{isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-					{isSaving ? 'Salvando...' : 'Salvar Alterações'}
-				</button>
-			</div>
-		</div>
-	</div>
-);
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar flex flex-col">
+                {/* Header */}
+                <div className="p-8 border-b border-gray-100">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-metarh-dark">Configurações do Sistema</h2>
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                            <X size={24} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-8">
+                    {isLoading ? (
+                        <div className="flex justify-center items-center py-12">
+                            <Loader2 className="animate-spin text-metarh-medium" size={48} />
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <p className="text-gray-600">Configurações disponíveis em breve.</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Actions */}
+                <div className="pt-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white p-4 -mx-8 -mb-8 rounded-b-3xl">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-3 rounded-xl border border-gray-300 font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                        disabled={isSaving}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="px-8 py-3 rounded-xl bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg transition-all flex items-center gap-2"
+                        disabled={isSaving}
+                    >
+                        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };

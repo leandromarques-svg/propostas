@@ -1806,19 +1806,24 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                 {/* Total Custo Operacional Display - Novo padrão */}
                                 {result && recruitmentType === 'selection' && (
-                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <Briefcase size={18} className="text-purple-500" />
-                                            <span className="text-xs font-bold text-purple-900 uppercase">TOTAL CUSTO OPERACIONAL:</span>
-                                            <span className="text-xl font-bold text-purple-700 ml-2">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
-                                        </div>
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-200'}`}> 
-                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
+                                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg font-bold text-metarh-dark uppercase">💼 Total Custo Operacional:</span>
+                                                <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalOperationalCostValue || 0)}</span>
                                             </div>
-                                            <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-600' : 'text-gray-400'}`}>{confirmedSections.operational ? 'Revisado' : 'Confirmar'}</span>
-                                            <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
-                                        </label>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {confirmedSections.operational ? 'Revisado' : 'Confirmar'}
+                                                </span>
+                                                <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
+                                            </label>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -1905,20 +1910,23 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </button>
                                 </div>
                                 {result && (
-                                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
+                                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg font-bold text-metarh-dark uppercase">🛡️ Total EPI:</span>
+                                                <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.epiCostTotal || 0)}</span>
                                             </div>
-                                            <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
-                                                {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
-                                            </span>
-                                            <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
-                                        </label>
-                                        <div className="flex items-center gap-2">
-                                            <Shield size={18} className="text-blue-500" />
-                                            <span className="text-xs font-bold text-blue-900 uppercase">TOTAL EPI:</span>
-                                            <span className="text-lg font-bold text-blue-700 ml-2">{fmtCurrency(result.epiCostTotal || 0)}</span>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
+                                                </span>
+                                                <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
+                                            </label>
                                         </div>
                                     </div>
                                 )}
@@ -2136,49 +2144,29 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
                                 </div>
                                 {result && (
-                                    <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.materials ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.materials ? 'translate-x-3' : 'translate-x-0'}`} />
+                                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 border-2 border-pink-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-6">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg font-bold text-metarh-dark uppercase">💻 Total Material de Trabalho:</span>
+                                                <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency((result.notebooksCostTotal || 0) + (result.cellPhonesCostTotal || 0) + (result.vehiclesCostTotal || 0))}</span>
                                             </div>
-                                            <span className={`text-xs font-bold ${confirmedSections.materials ? 'text-green-600' : 'text-gray-400'}`}>
-                                                {confirmedSections.materials ? 'Revisado' : 'Confirmar'}
-                                            </span>
-                                            <input type="checkbox" checked={confirmedSections.materials} onChange={() => toggleSection('materials')} className="hidden" />
-                                        </label>
-                                        <div className="flex items-center gap-2">
-                                            <Laptop size={18} className="text-pink-500" />
-                                            <span className="text-xs font-bold text-pink-900 uppercase">TOTAL MATERIAL DE TRABALHO:</span>
-                                            <span className="text-lg font-bold text-pink-700 ml-2">{fmtCurrency((result.notebooksCostTotal || 0) + (result.cellPhonesCostTotal || 0) + (result.vehiclesCostTotal || 0))}</span>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.materials ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.materials ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className={`text-xs font-bold ${confirmedSections.materials ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {confirmedSections.materials ? 'Revisado' : 'Confirmar'}
+                                                </span>
+                                                <input type="checkbox" checked={confirmedSections.materials} onChange={() => toggleSection('materials')} className="hidden" />
+                                            </label>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Total Operational Cost Summary */}
-                            {result && (
-                                <div className="bg-gray-800 p-6 rounded-[2rem] shadow-sm border border-gray-700 text-white flex flex-col md:flex-row justify-between items-center gap-4">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <Briefcase size={18} className="text-yellow-400" />
-                                            <h2 className="text-lg font-bold">Total Custo Operacional</h2>
-                                        </div>
-                                        <p className="text-xs text-gray-400 mt-1">Soma de Recrutamento, Adm, Extras, EPI, Notebooks, Celulares e Veículos</p>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-2xl font-bold text-yellow-400 text-right">{fmtCurrency(result.totalOperationalCostValue)}</div>
-                                        <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-700/50 px-4 py-2 rounded-full border border-gray-600">
-                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.operational ? 'bg-green-500' : 'bg-gray-500'}`}>
-                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.operational ? 'translate-x-3' : 'translate-x-0'}`} />
-                                            </div>
-                                            <span className={`text-xs font-bold ${confirmedSections.operational ? 'text-green-400' : 'text-gray-400'}`}>
-                                                {confirmedSections.operational ? 'Revisado' : 'Confirmar'}
-                                            </span>
-                                            <input type="checkbox" checked={confirmedSections.operational} onChange={() => toggleSection('operational')} className="hidden" />
-                                        </label>
-                                    </div>
-                                </div>
-                            )}
+
 
 
                             {/* 8. TRIBUTOS */}
@@ -2237,20 +2225,25 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
 
                                         {/* Total Tributos */}
-                                        <div className="bg-red-50 border border-red-100 rounded-3xl p-4 flex justify-between items-center">
+                                        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
                                             <div>
-                                                <span className="text-sm font-bold text-red-900 uppercase">Total Tributos ({fmtPercent(result.totalTaxRate)})</span>
-                                                <span className="block text-2xl font-bold text-red-700">{fmtCurrency(result.totalTaxes)}</span>
-                                            </div>
-                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-red-100">
-                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.taxes ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.taxes ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-lg font-bold text-metarh-dark uppercase">💰 Total Tributos:</span>
+                                                    <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.totalTaxes)}</span>
                                                 </div>
-                                                <span className={`text-xs font-bold ${confirmedSections.taxes ? 'text-green-600' : 'text-gray-400'}`}>
-                                                    {confirmedSections.taxes ? 'Revisado' : 'Confirmar'}
-                                                </span>
-                                                <input type="checkbox" checked={confirmedSections.taxes} onChange={() => toggleSection('taxes')} className="hidden" />
-                                            </label>
+                                                <p className="text-xs text-gray-500 mt-1">Alíquota total: {fmtPercent(result.totalTaxRate)}</p>
+                                            </div>
+                                            <div className="flex-shrink-0">
+                                                <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                    <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.taxes ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                        <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.taxes ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                    </div>
+                                                    <span className={`text-xs font-bold ${confirmedSections.taxes ? 'text-green-600' : 'text-gray-400'}`}>
+                                                        {confirmedSections.taxes ? 'Revisado' : 'Confirmar'}
+                                                    </span>
+                                                    <input type="checkbox" checked={confirmedSections.taxes} onChange={() => toggleSection('taxes')} className="hidden" />
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

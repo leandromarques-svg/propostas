@@ -763,19 +763,19 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     </div>
 
                     {/* Fun Tips Section */}
-                    <div className={`p-4 rounded-2xl border-2 ${result.realProfit < 0
-                      ? 'bg-red-500/10 border-red-400'
+                    <div className={`p-4 rounded-2xl border-l-8 shadow-lg ${result.realProfit < 0
+                      ? 'bg-red-500/20 border-red-500'
                       : result.profitMarginPercentage < 10
-                        ? 'bg-orange-500/10 border-orange-400'
+                        ? 'bg-orange-500/20 border-orange-500'
                         : result.profitMarginPercentage <= 35
-                          ? 'bg-yellow-500/10 border-yellow-400'
-                          : 'bg-green-500/10 border-green-400'
+                          ? 'bg-yellow-500/20 border-yellow-500'
+                          : 'bg-green-500/20 border-green-500'
                       }`}>
-                      <p className="text-xs font-bold mb-2 flex items-center gap-1">
+                      <p className="text-sm font-bold mb-2 flex items-center gap-2 text-white">
                         {result.realProfit < 0 ? '🚨' : result.profitMarginPercentage < 10 ? '😅' : result.profitMarginPercentage <= 35 ? '😉' : '🚀'}
-                        <span className="text-white">Dica do Especialista</span>
+                        <span className="uppercase tracking-wider">Dica do Especialista</span>
                       </p>
-                      <p className="text-xs text-gray-300 leading-relaxed">
+                      <p className="text-xs text-gray-200 leading-relaxed font-medium">
                         {result.realProfit < 0
                           ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
                           : result.profitMarginPercentage < 10

@@ -191,6 +191,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         benefits: false,
         exams: false,
         operational: false,
+        op_recruitment: false,
+        op_admin: false,
+        op_extras: false,
         epi: false,
         materials: false,
         taxes: false,
@@ -201,7 +204,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         setConfirmedSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const allSectionsConfirmed = Object.values(confirmedSections).every(Boolean);
+    const allSectionsConfirmed = Object.entries(confirmedSections).every(([key, value]) => {
+        // Skip operational subsections if recruitmentType is 'indication'
+        if (recruitmentType === 'indication' && ['op_recruitment', 'op_admin', 'op_extras', 'operational'].includes(key)) return true;
+        return value;
+    });
 
 
     // Load team rates and app settings
@@ -559,7 +566,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
         // NEW TOTALS
         // Total Bruto (NF)
-        const totalBrutoNF = grossNF;
+        // Regra: Se "Taxa Final" (Item 9) for o modo selecionado, o valor da taxa não entra na soma exibida.
+        const totalBrutoNF = calculationMode === 'final_rate' ? (grossNF - adminFeeValue) : grossNF;
 
         // Total Líquido (Recebido) = Valor Bruto da NF - Retenção IR (15,5%)
         const retentionIR = 0.155;
@@ -1745,7 +1753,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             {result && (
                                                 <div className="mt-3 bg-white p-2 rounded-2xl border border-purple-200">
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                                <div className={`w-6 h-4 rounded-full p-0.5 transition-colors ${confirmedSections.op_recruitment ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.op_recruitment ? 'translate-x-2' : 'translate-x-0'}`} />
+                                                                </div>
+                                                                <input type="checkbox" checked={confirmedSections.op_recruitment} onChange={() => toggleSection('op_recruitment')} className="hidden" />
+                                                            </label>
+                                                            <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                        </div>
                                                         <span className="text-sm font-bold text-purple-700">{fmtCurrency(result.recruitmentTeamCost || 0)}</span>
                                                     </div>
                                                 </div>
@@ -1778,7 +1794,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             {result && (
                                                 <div className="mt-3 bg-white p-2 rounded-2xl border border-blue-200">
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                                <div className={`w-6 h-4 rounded-full p-0.5 transition-colors ${confirmedSections.op_admin ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.op_admin ? 'translate-x-2' : 'translate-x-0'}`} />
+                                                                </div>
+                                                                <input type="checkbox" checked={confirmedSections.op_admin} onChange={() => toggleSection('op_admin')} className="hidden" />
+                                                            </label>
+                                                            <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                        </div>
                                                         <span className="text-sm font-bold text-blue-700">{fmtCurrency(result.operationalAdminCost || 0)}</span>
                                                     </div>
                                                 </div>
@@ -1829,7 +1853,15 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             {result && extraCosts.length > 0 && (
                                                 <div className="mt-3 bg-white p-2 rounded-2xl border border-orange-200">
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                                <div className={`w-6 h-4 rounded-full p-0.5 transition-colors ${confirmedSections.op_extras ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.op_extras ? 'translate-x-2' : 'translate-x-0'}`} />
+                                                                </div>
+                                                                <input type="checkbox" checked={confirmedSections.op_extras} onChange={() => toggleSection('op_extras')} className="hidden" />
+                                                            </label>
+                                                            <span className="text-xs font-bold text-gray-600">Subtotal:</span>
+                                                        </div>
                                                         <span className="text-sm font-bold text-orange-700">{fmtCurrency(result.extraCostTotal || 0)}</span>
                                                     </div>
                                                 </div>
@@ -2328,7 +2360,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         </div>
                                         <div className="mt-2 text-[10px] text-gray-400 leading-relaxed bg-gray-50 p-2 rounded-lg border border-gray-100">
                                             <p><strong className="text-gray-600">5 Colunas:</strong> Taxa aplicada sobre o <span className="font-semibold">Custo Total</span> (Labor + Ops).</p>
-                                            <p className="mt-1"><strong className="text-gray-600">Taxa Final:</strong> Taxa aplicada sobre o <span className="font-semibold">Valor Bruto</span> (Markup).</p>
+                                            <p className="mt-1"><strong className="text-gray-600">Taxa Final:</strong> Taxa aplicada sobre o <span className="font-semibold">Valor Bruto</span> (Markup). *Item não soma no Total NF.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -2429,8 +2461,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                         {/* Final Gross NF */}
                                         <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
                                             <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
-                                            <p className="text-3xl font-bold">{fmtCurrency(result.grossNF)}</p>
-                                            <p className="text-[10px] opacity-70 mt-1">Custo Base + Taxas + Tributos</p>
+                                            <p className="text-3xl font-bold">{fmtCurrency(result.totalBrutoNF)}</p>
+                                            <p className="text-[10px] opacity-70 mt-1">
+                                                {calculationMode === 'final_rate'
+                                                    ? 'Custo Base + Tributos (Taxa Final não inclusa na soma)'
+                                                    : 'Custo Base + Taxas + Tributos'}
+                                            </p>
                                         </div>
 
                                         {/* NEW TOTALS - As requested */}
@@ -2475,21 +2511,22 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             const profitMarginPercentage = netLiquid > 0 ? (realProfit / netLiquid) * 100 : 0;
 
                                             return (
-                                                <div className={`mt-6 p-4 rounded-2xl border-2 ${realProfit < 0
-                                                    ? 'bg-red-500/10 border-red-400'
+
+                                                <div className={`mt-6 p-4 rounded-2xl border-l-8 shadow-lg ${realProfit < 0
+                                                    ? 'bg-red-500/20 border-red-500'
                                                     : profitMarginPercentage < 10
-                                                        ? 'bg-orange-500/10 border-orange-400'
+                                                        ? 'bg-orange-500/20 border-orange-500'
                                                         : profitMarginPercentage <= 35
-                                                            ? 'bg-yellow-500/10 border-yellow-400'
-                                                            : 'bg-green-500/10 border-green-400'
+                                                            ? 'bg-yellow-500/20 border-yellow-500'
+                                                            : 'bg-green-500/20 border-green-500'
                                                     }`}>
-                                                    <p className="text-xs font-bold mb-2 flex items-center gap-1">
+                                                    <p className="text-sm font-bold mb-2 flex items-center gap-2 text-white">
                                                         {realProfit < 0 ? '🚨' :
                                                             profitMarginPercentage < 10 ? '😅' :
                                                                 profitMarginPercentage <= 35 ? '😉' : '🚀'}
-                                                        <span className="text-white">Dica do Especialista</span>
+                                                        <span className="uppercase tracking-wider">Dica do Especialista</span>
                                                     </p>
-                                                    <p className="text-xs text-gray-300 leading-relaxed">
+                                                    <p className="text-xs text-gray-200 leading-relaxed font-medium">
                                                         {realProfit < 0
                                                             ? 'Prejuízo à vista! Abortar missão ou renegociar urgente! A gente não trabalha de graça não, né? 🚨'
                                                             : profitMarginPercentage < 10

@@ -10,9 +10,11 @@ export default {
         extend: {
             colors: {
                 metarh: {
-                    dark: '#0F172A',   // Slate 900 - Dark professional background
-                    medium: '#4F46E5', // Indigo 600 - Primary action color
-                    lime: '#84CC16',   // Lime 500 - Highlight/Accent
+                    dark: '#470082',
+                    medium: '#aa3ffe',
+                    pink: '#ff27f9',
+                    lime: '#c9f545',
+                    yellow: '#fff24d',
                 }
             },
             fontFamily: {

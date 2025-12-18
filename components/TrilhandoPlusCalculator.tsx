@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 // Force update check
 import { ProjectPricingInputs, PricingResult, FixedCostItem, Position } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
-import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, FileText, Loader2, Sparkles } from 'lucide-react';
+import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, FileText, Loader2, Sparkles, Briefcase } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import { generateProposalPDF } from './lib/pdfGenerator';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
@@ -28,7 +28,9 @@ export const TrilhandoPlusCalculator: React.FC<TrilhandoPlusCalculatorProps> = (
     qtyAssistant: 0,
     fixedItems: DEFAULT_FIXED_ITEMS,
     marginMultiplier: 100,
-    selectedCity: 'São Paulo - SP'
+    selectedCity: 'São Paulo - SP',
+    clientName: '',
+    clientCnpj: ''
   });
 
   // New coefficient categories (max 10 points)
@@ -174,6 +176,7 @@ export const TrilhandoPlusCalculator: React.FC<TrilhandoPlusCalculatorProps> = (
       weightPercentage: (complexityScale / 5) * 100,
       suggestedMargin: 0, // Not used
       suggestedTeam,
+      workingHours: projectHours,
       teamCostTotal,
       fixedItemsCostTotal,
       totalOperationalCost,
@@ -201,6 +204,19 @@ export const TrilhandoPlusCalculator: React.FC<TrilhandoPlusCalculatorProps> = (
 
   const handleSelectChange = (name: keyof ProjectPricingInputs, val: string | number) => {
     setInputs(prev => ({ ...prev, [name]: val }));
+  };
+
+  const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 14) value = value.slice(0, 14);
+
+    // Mask: XX.XXX.XXX/XXXX-XX
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+
+    setInputs(prev => ({ ...prev, clientCnpj: value }));
   };
 
   // Fixed Items Handlers
@@ -310,6 +326,40 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
         <div className="grid lg:grid-cols-3 gap-8">
 
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Client Info */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Briefcase size={16} /> Dados do Cliente
+              </h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                    Nome do Cliente / Projeto
+                  </label>
+                  <input
+                    type="text"
+                    value={inputs.clientName}
+                    onChange={(e) => setInputs(prev => ({ ...prev, clientName: e.target.value }))}
+                    placeholder="Digite o nome..."
+                    className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                    CNPJ
+                  </label>
+                  <input
+                    type="text"
+                    value={inputs.clientCnpj}
+                    onChange={handleCnpjChange}
+                    placeholder="XX.XXX.XXX/0001-XX"
+                    maxLength={18}
+                    className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent font-mono"
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* 1. SCOPE & COMPLEXITY */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">

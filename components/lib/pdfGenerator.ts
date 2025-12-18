@@ -1,4 +1,4 @@
-export const generatePDF = (type: 'internal' | 'client', result: any, clientName: string = 'Cliente') => {
+export const generatePDF = (type: 'internal' | 'client', result: any, clientName: string = 'Cliente', clientCnpj: string = '') => {
     console.debug('[pdfGenerator] generatePDF requested', { type, clientName, result });
 
     const fmt = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -6,6 +6,7 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
     const generateInternalContent = (result: any) => {
         return `
             <h1>Ordem de Serviço (Interno)</h1>
+            <p><strong>Cliente:</strong> ${clientName} ${clientCnpj ? `CNPJ: ${clientCnpj}` : ''}</p>
             
             <div class="section">
                 <h2>Resumo Financeiro</h2>
@@ -69,7 +70,7 @@ export const generatePDF = (type: 'internal' | 'client', result: any, clientName
             </div>
 
             <h1>Proposta Comercial</h1>
-            <p>Preparado para: <strong>${clientName}</strong></p>
+            <p>Preparado para: <strong>${clientName}</strong> ${clientCnpj ? `<br><small>CNPJ: ${clientCnpj}</small>` : ''}</p>
 
             <div class="section">
                 <h2>Investimento Mensal</h2>
@@ -231,7 +232,9 @@ export const generateProposalPDF = (inputsOrType: any, maybeResult?: any) => {
         result = inputsOrType;
     }
 
-    if (!result) return generatePDF('client', {}, clientName);
+    const clientCnpj = (maybeResult && inputsOrType?.clientCnpj) || (inputsOrType?.clientCnpj) || '';
+
+    if (!result) return generatePDF('client', {}, clientName, clientCnpj);
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
@@ -274,7 +277,7 @@ export const generateProposalPDF = (inputsOrType: any, maybeResult?: any) => {
             </div>
 
             <h1>Proposta Comercial</h1>
-            <p>Preparado para: <strong>${clientName}</strong></p>
+            <p>Preparado para: <strong>${clientName}</strong> ${clientCnpj ? `<br><small>CNPJ: ${clientCnpj}</small>` : ''}</p>
 
             <div class="section">
                 <h2>Investimento Total</h2>

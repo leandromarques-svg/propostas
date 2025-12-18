@@ -130,6 +130,8 @@ export interface ProjectPricingInputs {
 
   // FIX: Added selectedCity to the interface to match its usage in the component state.
   selectedCity: string;
+  clientName?: string;
+  clientCnpj?: string;
 }
 
 export interface PricingResult {

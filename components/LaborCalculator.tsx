@@ -104,6 +104,20 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
     const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
     const [clientName, setClientName] = useState('');
+    const [clientCnpj, setClientCnpj] = useState('');
+
+    const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 14) value = value.slice(0, 14);
+
+        // Mask: XX.XXX.XXX/XXXX-XX
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+
+        setClientCnpj(value);
+    };
 
     // Removed recruitmentCostPercent
 
@@ -660,18 +674,38 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                 <div className="space-y-8">
 
-                    {/* Client Name Input */}
+                    {/* Client Name & CNPJ Input */}
                     <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-6">
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
-                            <Briefcase size={16} /> Cliente / Projeto
-                        </label>
-                        <input
-                            type="text"
-                            value={clientName}
-                            onChange={(e) => setClientName(e.target.value)}
-                            placeholder="Digite o nome do cliente..."
-                            className="w-full text-xl font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent"
-                        />
+                        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <Briefcase size={16} /> Dados do Cliente
+                        </h2>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                                    Nome do Cliente / Projeto
+                                </label>
+                                <input
+                                    type="text"
+                                    value={clientName}
+                                    onChange={(e) => setClientName(e.target.value)}
+                                    placeholder="Digite o nome..."
+                                    className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                                    CNPJ
+                                </label>
+                                <input
+                                    type="text"
+                                    value={clientCnpj}
+                                    onChange={handleCnpjChange}
+                                    placeholder="XX.XXX.XXX/0001-XX"
+                                    maxLength={18}
+                                    className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent font-mono"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Provisioning Mode Selection */}
@@ -2505,7 +2539,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     return;
                                                                 }
                                                                 try {
-                                                                    const ok = generatePDF('internal', result);
+                                                                    const ok = generatePDF('internal', result, clientName || 'Cliente', clientCnpj);
                                                                     if (!ok) {
                                                                         alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
                                                                     }
@@ -2536,7 +2570,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                     return;
                                                                 }
                                                                 try {
-                                                                    const ok = generatePDF('client', result, clientName || 'Cliente');
+                                                                    const ok = generatePDF('client', result, clientName || 'Cliente', clientCnpj);
                                                                     if (!ok) {
                                                                         alert('Não foi possível gerar o PDF automaticamente. Verifique se o navegador bloqueou popups e permita popups para este site.');
                                                                     }

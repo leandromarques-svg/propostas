@@ -1,3 +1,6 @@
+/**
+ * Modal for application settings (Team Rates, Benefits, Strings)
+ */
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Save, Loader2, Settings, Users, Briefcase, Heart } from 'lucide-react';
 import { getTeamRates, updateAllTeamRates, TeamRates } from './lib/teamRatesService';

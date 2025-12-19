@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, (process as any).cwd(), '');
 
   return {
+    base: './',
     plugins: [react()],
     define: {
       // This ensures that 'process.env.API_KEY' in your code is replaced

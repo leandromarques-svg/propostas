@@ -14,8 +14,6 @@ interface LoginScreenProps {
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users = [], isExiting = false }) => {
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loginUser, setLoginUser] = useState<User | null>(null);
@@ -25,20 +23,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
     setError('');
     setIsLoading(true);
 
-    // Autenticação apenas com usuários locais (constants.ts)
+    // Autenticação apenas pelo nome de usuário ou email
     const uniqueUsers = Array.from(new Map((users || []).map(item => [item.username, item])).values());
     const foundUser = uniqueUsers.find(u =>
-      (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) &&
-      u.password === password
+      u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()
     );
 
     if (foundUser) {
       setLoginUser(foundUser);
       setTimeout(() => {
         onLoginSuccess(foundUser);
-      }, 1000);
+      }, 500);
     } else {
-      setError('Usuário ou senha incorretos');
+      setError('Usuário não encontrado');
       setIsLoading(false);
     }
   };
@@ -94,6 +91,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Usuário</label>
               <input
@@ -101,28 +99,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
-                placeholder="Digite seu usuário"
+                placeholder="Digite seu usuário ou email"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Senha</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
-                  placeholder="Digite sua senha"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-2"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
             </div>
 
             {error && (

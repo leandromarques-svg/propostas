@@ -180,6 +180,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     // Operational Costs (ex-Recruitment)
     // Valor digitável para Operação Administrativa
     const [operationalAdminCost, setOperationalAdminCost] = useState<number>(0);
+    const [operationalAdminDays, setOperationalAdminDays] = useState<number>(0); // Dias de operação administrativa
     const [extraCosts, setExtraCosts] = useState<{ id: string, name: string, value: number }[]>([]); // Custos Extras
 
     // ISS Selection

@@ -79,7 +79,7 @@ interface LaborCalculatorProps {
     onCancel: () => void;
 }
 
-type ProvisioningMode = 'full' | 'semi' | 'none';
+type ProvisioningMode = 'full' | 'semi' | 'none' | 'temporary';
 
 export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) => {
     // --- STATE ---
@@ -101,6 +101,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     }]);
 
     const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
+    // Contrato Temporário: tempo mínimo 90 dias, máximo 120 dias, sem Sistema S
+    const [temporaryContractDays, setTemporaryContractDays] = useState<number>(90);
 
     const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
     const [clientName, setClientName] = useState('');
@@ -141,28 +143,29 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         { id: 'medical', name: 'Plano Médico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'percentage', discountValue: 0.02, selectedPlanId: BENEFIT_OPTIONS.medical[2].id },
         { id: 'dental', name: 'Plano Odontológico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.dental[0].id },
         { id: 'pharmacy', name: 'Auxílio Farmácia | Omni', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.pharmacy.defaultValue, discountType: 'fixed', discountValue: 0 },
-        { id: 'healthCare', name: 'Saúde da Gente', type: 'monthly', quantity: 0, unitValue: BENEFIT_OPTIONS.others.healthCare?.defaultValue || 40, discountType: 'fixed', discountValue: 0 }, // Novo benefício semelhante
-        { id: 'wellhub', name: 'Bem estar', type: 'plan_selection', quantity: 0, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.wellhub[0].id }, // Sem desconto
+        { id: 'healthCare', name: 'Saúde da Gente', type: 'monthly', quantity: 0, unitValue: BENEFIT_OPTIONS.others.healthCare?.defaultValue || 40, discountType: 'fixed', discountValue: 0 },
+        { id: 'wellhub', name: 'Wellhub Bem estar', type: 'monthly', quantity: 1, unitValue: 29.90, discountType: 'fixed', discountValue: 29.90 }, // Wellhub fixo, desconto integral colaborador
         // Outros
         { id: 'lifeInsurance', name: 'Seguro de Vida', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.lifeInsurance.defaultValue, discountType: 'fixed', discountValue: 0 },
         { id: 'gpsPoint', name: 'Controle de Ponto GPS', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.gpsPoint.defaultValue, discountType: 'fixed', discountValue: 0 },
         { id: 'plr', name: 'PLR', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.plr.defaultValue, discountType: 'fixed', discountValue: 0 },
-        // Exames
-        { id: 'exam-aso', name: 'Exames Clínicos - ASO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-aso')?.value || 0, discountType: 'percentage', discountValue: 0.05 },
-        { id: 'exam-comp', name: 'Exames Médicos Complementares', type: 'monthly', quantity: 0, unitValue: 0, discountType: 'percentage', discountValue: 0.05 },
-        { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'percentage', discountValue: 0.01 },
+        // Exames (sem desconto, custo integral do cliente)
+        { id: 'exam-aso', name: 'Exames Clínicos - ASO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-aso')?.value || 0, discountType: 'fixed', discountValue: 0 },
+        { id: 'exam-comp', name: 'Exames Médicos Complementares', type: 'monthly', quantity: 0, unitValue: 0, discountType: 'fixed', discountValue: 0 },
+        { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'fixed', discountValue: 0 },
     ]);
 
-    // Estados para novas seções de custo
-    const [epiItems, setEpiItems] = useState<EpiItem[]>([
-        { id: 'epi-1', name: 'Capacete', quantity: 0, unitCost: 50, frequency: 'annually' },
-        { id: 'epi-2', name: 'Luvas', quantity: 0, unitCost: 15, frequency: 'quarterly' },
-        { id: 'epi-3', name: 'Óculos de Proteção', quantity: 0, unitCost: 30, frequency: 'annually' },
+    // Custos Operacionais: EPI, Materiais de Trabalho, Notebooks, Celulares, Veículos
+    const [operationalItems, setOperationalItems] = useState<(
+        EpiItem & { type?: 'epi' | 'material' | 'notebook' | 'cellphone' | 'vehicle' }
+    )[]>([
+        { id: 'epi-1', name: 'Capacete', quantity: 0, unitCost: 50, frequency: 'annually', type: 'epi' },
+        { id: 'epi-2', name: 'Luvas', quantity: 0, unitCost: 15, frequency: 'quarterly', type: 'epi' },
+        { id: 'epi-3', name: 'Óculos de Proteção', quantity: 0, unitCost: 30, frequency: 'annually', type: 'epi' },
+        // Adicione materiais de trabalho, notebooks, celulares, veículos conforme necessário
     ]);
-
-    const [notebooks, setNotebooks] = useState<NotebookItem[]>([]);
-    const [cellPhones, setCellPhones] = useState<CellPhoneItem[]>([]);
-    const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
+    // Outras despesas
+    const [otherExpenses, setOtherExpenses] = useState<number>(0);
 
 
     // Charges Config (Detailed)
@@ -175,7 +178,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
     // Operational Costs (ex-Recruitment)
-    const [operationalAdminDays, setOperationalAdminDays] = useState<number>(0); // Dias para Operação Administrativa
+    // Valor digitável para Operação Administrativa
+    const [operationalAdminCost, setOperationalAdminCost] = useState<number>(0);
     const [extraCosts, setExtraCosts] = useState<{ id: string, name: string, value: number }[]>([]); // Custos Extras
 
     // ISS Selection
@@ -403,31 +407,36 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             LABOR_CHARGES.groupA.sebrae +
             LABOR_CHARGES.groupA.fgts;
 
-        // Group B Logic based on Provisioning Mode
-        let groupBPercent = 0;
-        let groupBItems = { ...LABOR_CHARGES.groupB }; // Copy to modify if needed
 
-        if (provisioningMode === 'none') {
+        // Contrato Temporário: encargos proporcionais ao período, sem Sistema S
+        let groupBPercent = 0;
+        let groupBItems = { ...LABOR_CHARGES.groupB };
+        let months = 12;
+        if (provisioningMode === 'temporary') {
+            months = Math.max(3, Math.min(4, Math.round(temporaryContractDays / 30)));
+            // Remove Sistema S (já não está em groupA)
+            // Proporcionalizar encargos
+            Object.keys(groupBItems).forEach(k => {
+                groupBItems[k as keyof typeof groupBItems] = groupBItems[k as keyof typeof groupBItems] * (months / 12);
+            });
+            groupBPercent = Object.values(groupBItems).reduce((a, b) => a + b, 0);
+        } else if (provisioningMode === 'none') {
             groupBPercent = 0;
-            // Zero out items for display
             Object.keys(groupBItems).forEach(k => groupBItems[k as keyof typeof groupBItems] = 0);
         } else if (provisioningMode === 'semi') {
-            // Remove: Aviso Prévio, Depósito Rescisão, Auxílio Doença
-            // Note: User said "Aviso Prévio Indenizado + FGTS + INSS".
-            // Usually 'aviso_previo' covers the cost.
-            // We will zero out specific keys.
             groupBItems.aviso_previo = 0;
             groupBItems.deposito_rescisao = 0;
             groupBItems.auxilio_doenca = 0;
-            // Recalculate sum
             groupBPercent = Object.values(groupBItems).reduce((a, b) => a + b, 0);
         } else {
-            // Full
             groupBPercent = Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0);
         }
 
-        const groupAValue = totalGrossSalary * groupAPercent;
-        const groupBValue = totalGrossSalary * groupBPercent;
+        // Proporcionalizar salários, benefícios e encargos para temporário
+        const proportional = (value: number) => provisioningMode === 'temporary' ? value * (months / 12) : value;
+
+        const groupAValue = proportional(totalGrossSalary * groupAPercent);
+        const groupBValue = proportional(totalGrossSalary * groupBPercent);
         const totalCharges = groupAValue + groupBValue;
 
         // Benefits - New Logic
@@ -441,7 +450,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         benefitsList.forEach(item => {
             const { unitValue, providedValue, collabDiscount, clientCost } = calculateBenefitRow(item, averageBaseSalary);
 
-            // Collect detailed breakdown per benefit for PDF / UI
             benefitsBreakdown.push({
                 id: item.id,
                 name: item.name,
@@ -455,11 +463,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                 discountValue: item.discountValue
             });
 
-            // Check if it's an exam
+            // Proporcionalizar benefícios para temporário
+            const benefitValue = proportional(clientCost * totalPositions);
             if (item.id.startsWith('exam-')) {
-                totalExams += clientCost * totalPositions;
+                totalExams += benefitValue;
             } else {
-                totalBenefits += clientCost * totalPositions;
+                totalBenefits += benefitValue;
             }
         });
 
@@ -468,7 +477,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
         // Subtotal for Fees (Salaries + Charges + Benefits + Exams)
-        const costBasis = totalGrossSalary + totalCharges + totalBenefits + totalExams;
+        const costBasis = proportional(totalGrossSalary) + totalCharges + totalBenefits + totalExams;
 
         // Fees (Removed Backup Fee)
         // Fees calculation moved to end
@@ -524,32 +533,42 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
 
-        // Taxes (Tributos) - ISS now varies by city
+        // Taxes (Tributos) - ISS tabela ampliada
         const issRateOptions = [
             { city: 'São Paulo - SP', rate: 0.05 },
             { city: 'Barueri - SP', rate: 0.02 },
+            { city: 'Campinas - SP', rate: 0.02 },
+            { city: 'Rio de Janeiro - RJ', rate: 0.05 },
+            { city: 'Belo Horizonte - MG', rate: 0.05 },
+            { city: 'Curitiba - PR', rate: 0.05 },
+            { city: 'Porto Alegre - RS', rate: 0.05 },
+            { city: 'Salvador - BA', rate: 0.05 },
             { city: 'Outra Localidade (5%)', rate: 0.05 },
         ];
         const selectedIssRate = issRateOptions.find(opt => opt.city === selectedCity)?.rate || 0.05;
 
+        // IRRF agora 1,5%
+        const irrfRate = 0.015;
         const totalTaxRate =
             selectedIssRate +
             LABOR_TAX_RATES.pis +
             LABOR_TAX_RATES.cofins +
-            LABOR_TAX_RATES.irrf +
+            irrfRate +
             LABOR_TAX_RATES.csll;
 
         // --- PRICING LOGIC (5 Colunas vs Taxa Final) ---
         let adminFeeValue = 0;
         let grossNF = 0;
 
+        // Adiciona outras despesas ao custo operacional
+        const totalOperationalCostValueWithOther = totalOperationalCostValue + otherExpenses;
         if (calculationMode === '5_columns') {
             // 5 Colunas: Fee is % of Cost Basis (Labor)
             adminFeeValue = costBasis * adminFeePercent;
-            grossNF = (costBasis + totalOperationalCostValue + adminFeeValue) / (1 - totalTaxRate);
+            grossNF = (costBasis + totalOperationalCostValueWithOther + adminFeeValue) / (1 - totalTaxRate);
         } else {
             // Taxa Final: Fee is % of Gross Revenue (Markup)
-            grossNF = (costBasis + totalOperationalCostValue) / (1 - totalTaxRate - adminFeePercent);
+            grossNF = (costBasis + totalOperationalCostValueWithOther) / (1 - totalTaxRate - adminFeePercent);
             adminFeeValue = grossNF * adminFeePercent;
         }
 
@@ -561,7 +580,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const issValue = grossNF * selectedIssRate;
         const pisValue = grossNF * LABOR_TAX_RATES.pis;
         const cofinsValue = grossNF * LABOR_TAX_RATES.cofins;
-        const irrfValue = grossNF * LABOR_TAX_RATES.irrf;
+        const irrfValue = grossNF * irrfRate;
         const csllValue = grossNF * LABOR_TAX_RATES.csll;
 
         // NEW TOTALS
@@ -569,13 +588,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Regra: Se "Taxa Final" (Item 9) for o modo selecionado, o valor da taxa não entra na soma exibida.
         const totalBrutoNF = calculationMode === 'final_rate' ? (grossNF - adminFeeValue) : grossNF;
 
-        // Total Líquido (Recebido) = Valor Bruto da NF - Retenção IR (15,5%)
-        const retentionIR = 0.155;
+        // Total Líquido (Recebido) = Valor Bruto da NF - Retenção IR (1,5%)
+        const retentionIR = irrfRate;
         const totalLiquido = grossNF - (grossNF * retentionIR);
 
-        // Lucro L. Operacional = Líquido Recebido - Custo Total do Projeto (Labor + Ops + Taxes)
-        const projectTotalCost = costBasis + totalOperationalCostValue + totalTaxes;
-        const lucroOperacional = totalLiquido - projectTotalCost;
+        // Lucro Líquido = Líquido Recebido - Tributos - Custo Operacional (inclui outras despesas)
+        const lucroLiquido = totalLiquido - totalTaxes - totalOperationalCostValueWithOther;
 
 
         return {
@@ -714,11 +732,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 />
                             </div>
                         </div>
-                    </div>
 
                     {/* Provisioning Mode Selection */}
                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-wrap gap-4 justify-center">
-
                         <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border transition-all ${provisioningMode === 'full' ? 'bg-metarh-medium text-white border-metarh-medium' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
                             <input
                                 type="radio"
@@ -752,6 +768,31 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                             />
                             <span className="font-bold text-sm">Não Provisionado</span>
                         </label>
+                        <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border transition-all ${provisioningMode === 'temporary' ? 'bg-metarh-medium text-white border-metarh-medium' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                            <input
+                                type="radio"
+                                name="provisioningMode"
+                                value="temporary"
+                                checked={provisioningMode === 'temporary'}
+                                onChange={() => setProvisioningMode('temporary')}
+                                className="hidden"
+                            />
+                            <span className="font-bold text-sm">Contrato Temporário</span>
+                        </label>
+                        {provisioningMode === 'temporary' && (
+                            <div className="flex items-center gap-2 ml-4">
+                                <span className="text-xs font-medium">Duração:</span>
+                                <input
+                                    type="number"
+                                    min={90}
+                                    max={120}
+                                    value={temporaryContractDays}
+                                    onChange={e => setTemporaryContractDays(Math.max(90, Math.min(120, Number(e.target.value))))}
+                                    className="w-16 px-2 py-1 rounded border border-gray-300 text-center"
+                                />
+                                <span className="text-xs">dias</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Contract Types Explanation */}
@@ -2383,84 +2424,76 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                             </div>
 
+
                             <div className="bg-metarh-dark text-white p-8 rounded-[2.5rem] shadow-xl">
                                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                                     <BarChart3 size={24} className="text-metarh-lime" /> Resultado
                                 </h2>
-
                                 {result && (
                                     <div className="space-y-4 text-sm">
-
-                                        {/* Salaries */}
+                                        {/* 1. Salários */}
                                         <div className="pb-4 border-b border-white/10">
                                             <div className="flex justify-between text-gray-300">
-                                                <span>Total Salários Base</span>
+                                                <span>1. Salários Base</span>
                                                 <span>{fmtCurrency(result.totalBaseSalary)}</span>
                                             </div>
                                             <div className="flex justify-between font-bold text-white mt-1">
-                                                <span>Total Salários Bruto</span>
+                                                <span>1.1 Salários Bruto</span>
                                                 <span>{fmtCurrency(result.totalGrossSalary)}</span>
                                             </div>
                                         </div>
-
-                                        {/* Charges */}
+                                        {/* 2. Encargos */}
                                         <div className="pb-4 border-b border-white/10">
-                                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">Encargos</p>
+                                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">2. Encargos</p>
                                             <div className="flex justify-between text-gray-300 text-xs">
-                                                <span>Grupo A ({fmtPercent(result.groupAPercent)})</span>
+                                                <span>2.1 Grupo A ({fmtPercent(result.groupAPercent)})</span>
                                                 <span>{fmtCurrency(result.groupAValue)}</span>
                                             </div>
                                             <div className="flex justify-between text-gray-300 text-xs">
-                                                <span>Grupo B ({fmtPercent(result.groupBPercent)})</span>
+                                                <span>2.2 Grupo B ({fmtPercent(result.groupBPercent)})</span>
                                                 <span>{fmtCurrency(result.groupBValue)}</span>
                                             </div>
                                             <div className="flex justify-between font-bold text-white mt-1">
-                                                <span>Total Encargos</span>
+                                                <span>2.3 Total Encargos</span>
                                                 <span>{fmtCurrency(result.totalCharges)}</span>
                                             </div>
                                         </div>
-
-                                        {/* Benefits & Exams */}
+                                        {/* 3. Benefícios */}
                                         <div className="pb-4 border-b border-white/10">
                                             <div className="flex justify-between text-gray-300">
-                                                <span>Total Benefícios</span>
+                                                <span>3.1 Total Benefícios</span>
                                                 <span>{fmtCurrency(result.totalBenefits)}</span>
                                             </div>
                                             <div className="flex justify-between text-gray-300">
-                                                <span>Total Exames</span>
+                                                <span>3.2 Total Exames</span>
                                                 <span>{fmtCurrency(result.totalExams)}</span>
                                             </div>
                                         </div>
-
-
-                                        {/* Operational Costs */}
+                                        {/* 4. Custos Operacionais */}
                                         <div className="pb-4 border-b border-white/10">
                                             <div className="flex justify-between text-gray-300">
-                                                <span>Total Custos Operacionais</span>
+                                                <span>4. Total Custos Operacionais</span>
                                                 <span>{fmtCurrency(result.totalOperationalCostValue)}</span>
                                             </div>
                                         </div>
-
-                                        {/* Fees */}
+                                        {/* 5. Taxa Administrativa */}
                                         <div className="pb-4 border-b border-white/10">
                                             <div className="flex justify-between font-bold text-metarh-lime">
-                                                <span>Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
+                                                <span>5. Taxa Administrativa ({fmtPercent(adminFeePercent)})</span>
                                                 <span>{fmtCurrency(result.adminFeeValue)}</span>
                                             </div>
                                         </div>
-
-                                        {/* Taxes */}
+                                        {/* 6. Impostos */}
                                         <div className="text-xs text-gray-400 space-y-1 pb-4 border-b border-white/10">
-                                            <p className="font-bold uppercase text-gray-500">Impostos ({fmtPercent(result.totalTaxRate)})</p>
+                                            <p className="font-bold uppercase text-gray-500">6. Impostos ({fmtPercent(result.totalTaxRate)})</p>
                                             <div className="flex justify-between">
-                                                <span>Total Tributos</span>
+                                                <span>6.1 Total Tributos</span>
                                                 <span>{fmtCurrency(result.totalTaxes)}</span>
                                             </div>
                                         </div>
-
-                                        {/* Final Gross NF */}
+                                        {/* 7. Valor Bruto da NF */}
                                         <div className="bg-metarh-lime p-4 rounded-2xl text-metarh-dark shadow-lg mt-4">
-                                            <p className="text-xs uppercase font-bold mb-1 opacity-80">Valor Bruto da NF</p>
+                                            <p className="text-xs uppercase font-bold mb-1 opacity-80">7. Valor Bruto da NF</p>
                                             <p className="text-3xl font-bold">{fmtCurrency(result.totalBrutoNF)}</p>
                                             <p className="text-[10px] opacity-70 mt-1">
                                                 {calculationMode === 'final_rate'
@@ -2468,20 +2501,16 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                     : 'Custo Base + Taxas + Tributos'}
                                             </p>
                                         </div>
-
-                                        {/* NEW TOTALS - As requested */}
+                                        {/* 8. Total Líquido e Lucro */}
                                         <div className="mt-4 space-y-3">
-                                            {/* Total Líquido - Green background (same style as PricingCalculator) */}
                                             <div className="bg-green-900/30 p-4 rounded-3xl border border-green-500/20">
-                                                <p className="text-xs text-green-200 uppercase font-bold mb-1">Total Líquido (Recebido)</p>
+                                                <p className="text-xs text-green-200 uppercase font-bold mb-1">8.1 Total Líquido (Recebido)</p>
                                                 <p className="text-3xl font-bold text-white">{fmtCurrency(result.totalLiquido || 0)}</p>
                                                 <p className="text-[10px] text-green-300 mt-1">Valor Bruto da NF - Retenção IR (15,5%)</p>
                                             </div>
-
-                                            {/* Lucro L. Operacional - Emphasis on % with legend below */}
                                             <div className="bg-yellow-900/30 p-4 rounded-3xl border border-yellow-500/20">
                                                 <div className="flex justify-between items-start mb-2">
-                                                    <p className="text-xs text-yellow-200 uppercase font-bold">Lucro L. Operacional</p>
+                                                    <p className="text-xs text-yellow-200 uppercase font-bold">8.2 Lucro L. Operacional</p>
                                                     <div className="text-center">
                                                         <span className="text-2xl font-bold bg-yellow-500/30 text-yellow-100 px-3 py-1 rounded-full block">
                                                             {fmtPercent(result.totalLiquido > 0 ? result.lucroOperacional / result.totalLiquido : 0)}

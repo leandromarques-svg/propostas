@@ -584,7 +584,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
         return {
-                                                                                            <p className="mt-0.5"><strong>Regra VT:</strong> 6% do salário base.</p>
             groupAValue,
             groupAPercent,
             groupBValue,

@@ -696,8 +696,8 @@ const App: React.FC = () => {
         onClose={() => setIsUserManagementOpen(false)}
         users={[]}
         // onUpdateUser removido (login removido)
-        onDeleteUser={handleDeleteUser}
-        onCreateUser={handleCreateUser}
+        // onDeleteUser removido (login removido)
+        // onCreateUser removido (login removido)
         currentUser={currentUser}
       />
 

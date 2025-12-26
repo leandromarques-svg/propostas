@@ -584,9 +584,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
         return {
-            positionsCalculated,
-            totalBaseSalary,
-            totalGrossSalary,
+                                                                                            <p className="mt-0.5"><strong>Regra VT:</strong> 6% do salário base.</p>
             groupAValue,
             groupAPercent,
             groupBValue,
@@ -1370,17 +1368,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                                 {item.discountType === 'percentage' ? '%' : 'R$'}
                                                                                             </button>
                                                                                         </div>
-                                                                                        {item.id === 'transport' && (
-                                                                                            <div className="mt-1 flex justify-center">
-                                                                                                <button
-                                                                                                    onClick={() => updateBenefit(item.id, 'discountBase', item.discountBase === 'salary' ? 'benefit' : 'salary')}
-                                                                                                    className="text-[9px] font-bold text-gray-400 hover:text-metarh-medium underline decoration-dashed cursor-pointer"
-                                                                                                    title="Alternar base de cálculo do desconto"
-                                                                                                >
-                                                                                                    {item.discountBase === 'salary' ? 'Sobre Salário' : 'Sobre Benefício'}
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        )}
+                                                                                        {/* Alinhamento removido: botão de alternância não é mais necessário */}
                                                                                         {collabDiscount > 0 && (
                                                                                             <div className="absolute top-full left-0 w-full text-[10px] text-red-400 text-center font-medium mt-1 pointer-events-none">
                                                                                                 -{fmtCurrency(collabDiscount)}
@@ -1403,7 +1391,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                                                                         {/* Info Boxes (VT/VR) - Full Width inside row */}
                                                                         {(item.id === 'transport' || ['meal', 'food'].includes(item.id)) && (
-                                                                            <div className="mt-3 pt-2 border-t border-gray-100 grid md:grid-cols-12 gap-4">
+                                                                            <div className="mt-3 pt-2 border-t border-gray-100 grid md:grid-cols-12 gap-4 items-start">
                                                                                 <div className="md:col-span-4"></div>
                                                                                 <div className="md:col-span-8">
                                                                                     {item.id === 'transport' && (

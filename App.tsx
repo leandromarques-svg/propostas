@@ -688,14 +688,14 @@ const App: React.FC = () => {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         user={currentUser}
-        onSave={handleUpdateUser}
+        // onSave removido (login removido)
       />
 
       <UserManagementModal
         isOpen={isUserManagementOpen}
         onClose={() => setIsUserManagementOpen(false)}
         users={[]}
-        onUpdateUser={handleUpdateUser}
+        // onUpdateUser removido (login removido)
         onDeleteUser={handleDeleteUser}
         onCreateUser={handleCreateUser}
         currentUser={currentUser}

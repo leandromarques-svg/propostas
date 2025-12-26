@@ -2686,8 +2686,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                 </div>
             </div>
-        </div >
+        </div>
     );
-};
+}
+
 
 

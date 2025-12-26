@@ -169,29 +169,14 @@ const App: React.FC = () => {
     setView('catalog');
   };
 
-  const handleCreateUser = async (newUser: Omit<User, 'id'>) => {
-    const createdUser = await saveUser(newUser);
-    if (createdUser) {
-      setAllUsers([...allUsers, createdUser]);
-    }
-  };
 
-  const handleUpdateUser = async (updatedUser: User) => {
-    const savedUser = await saveUser(updatedUser);
-    if (savedUser) {
-      setAllUsers(allUsers.map(u => u.id === savedUser.id ? savedUser : u));
-      if (currentUser?.id === savedUser.id) {
-        setCurrentUser(savedUser);
-      }
-    }
-  };
+  // Função de criar usuário desativada (login removido)
 
-  const handleDeleteUser = async (userId: string) => {
-    const success = await deleteUser(userId);
-    if (success) {
-      setAllUsers(allUsers.filter(u => u.id !== userId));
-    }
-  };
+
+  // Função de atualizar usuário desativada (login removido)
+
+
+  // Função de deletar usuário desativada (login removido)
 
 
   // Sempre renderiza o app, sem tela de login
@@ -709,7 +694,7 @@ const App: React.FC = () => {
       <UserManagementModal
         isOpen={isUserManagementOpen}
         onClose={() => setIsUserManagementOpen(false)}
-        users={allUsers}
+        users={[]}
         onUpdateUser={handleUpdateUser}
         onDeleteUser={handleDeleteUser}
         onCreateUser={handleCreateUser}

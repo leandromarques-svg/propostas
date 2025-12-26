@@ -100,6 +100,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         daysQuantity: 0
     }]);
 
+    // Estados para notebooks, cellPhones e vehicles
+    const [notebooks, setNotebooks] = useState<NotebookItem[]>([]);
+    const [cellPhones, setCellPhones] = useState<CellPhoneItem[]>([]);
+    const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
+
     const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
     // Contrato Temporário: tempo mínimo 90 dias, máximo 120 dias, sem Sistema S
     const [temporaryContractDays, setTemporaryContractDays] = useState<number>(90);

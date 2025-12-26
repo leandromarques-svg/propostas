@@ -787,7 +787,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 <Info size={20} className="text-blue-600" />
                                 Entenda os Tipos de Contratos
                             </h3>
-                            <div className="grid md:grid-cols-3 gap-4">
+                            <div className="grid md:grid-cols-4 gap-4">
                                 {/* Provisionado */}
                                 <div className={`bg-white p-4 rounded-3xl border-2 transition-all ${provisioningMode === 'full' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
                                     <h4 className="font-bold text-gray-800 mb-2">Provisionado</h4>
@@ -854,6 +854,31 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                 <li>• Alto risco trabalhista</li>
                                                 <li>• Custos imprevistos</li>
                                                 <li>• Requer reserva financeira</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Contrato Temporário */}
+                                <div className={`bg-white p-4 rounded-3xl border-2 transition-all ${provisioningMode === 'temporary' ? 'border-metarh-medium shadow-md' : 'border-gray-200'}`}>
+                                    <h4 className="font-bold text-gray-800 mb-2">Contrato Temporário</h4>
+                                    <p className="text-xs text-gray-600 mb-3">Duração limitada (90 a 120 dias), sem Sistema S.</p>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <p className="text-xs font-bold text-green-700 mb-1">✓ Pontos Positivos:</p>
+                                            <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                                <li>• Atende demandas sazonais ou emergenciais</li>
+                                                <li>• Reduz vínculo e obrigações de longo prazo</li>
+                                                <li>• Processo de contratação mais ágil</li>
+                                                <li>• Possibilidade de extensão do contrato</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-red-700 mb-1">✗ Pontos Negativos:</p>
+                                            <ul className="text-xs text-gray-600 space-y-1 ml-3">
+                                                <li>• Não inclui todos os benefícios do CLT</li>
+                                                <li>• Menor engajamento do colaborador</li>
+                                                <li>• Limitação de tempo para retenção de talentos</li>
                                             </ul>
                                         </div>
                                     </div>

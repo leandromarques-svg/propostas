@@ -640,7 +640,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             // New totals
             totalBrutoNF,
             totalLiquido,
-            lucroOperacional
+            lucroOperacional: lucroLiquido
         };
     };
 

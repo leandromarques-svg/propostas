@@ -4,7 +4,7 @@ import React from 'react';
 interface LogoProps {
   variant?: 'white' | 'purple';
   orientation?: 'horizontal' | 'vertical' | 'icon';
-  className?: string;
+  className?: string; 
 }
 
 export const Logo: React.FC<LogoProps> = ({

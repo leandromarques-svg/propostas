@@ -2681,7 +2681,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default LaborCalculator;
+export default LaborCalculator;

@@ -1410,16 +1410,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                                                         <div className="flex items-start gap-2 text-[10px] text-blue-600 bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
                                                                                             <Info size={12} className="mt-0.5 flex-shrink-0" />
                                                                                             <p>
-                                                                                                <strong>Regra VT:</strong> 6% do salário base.
-                                                                                                <select
-                                                                                                    value={item.discountBase || 'salary'}
-                                                                                                    onChange={(e) => updateBenefit(item.id, 'discountBase', e.target.value)}
-                                                                                                    className="mx-1 p-0.5 rounded border border-blue-200 text-[10px] bg-white text-blue-800 outline-none cursor-pointer"
-                                                                                                >
-                                                                                                    <option value="salary">Sobre Salário</option>
-                                                                                                    <option value="benefit">Sobre Benefício</option>
-                                                                                                </select>
-                                                                                                Se desconto {'>'} valor, custo zero para o cliente.
+                                                                                                <strong>Regra VT:</strong> 6% do salário base. Se desconto {'>'} valor, custo zero para o cliente.
                                                                                             </p>
                                                                                         </div>
                                                                                     )}

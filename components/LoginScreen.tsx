@@ -20,39 +20,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
   const [isLoading, setIsLoading] = useState(false);
   const [loginUser, setLoginUser] = useState<User | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    try {
-      // Fetch users from Supabase
-      const remoteUsers = await getUsers();
-      // Combine with local users if needed, or just use remote
-      const allUsers = [...(users || []), ...remoteUsers];
+    // Autenticação apenas com usuários locais (constants.ts)
+    const uniqueUsers = Array.from(new Map((users || []).map(item => [item.username, item])).values());
+    const foundUser = uniqueUsers.find(u =>
+      (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) &&
+      u.password === password
+    );
 
-      // Remove duplicates if any (by username)
-      const uniqueUsers = Array.from(new Map(allUsers.map(item => [item.username, item])).values());
-
-      // Local Authentication Logic
-      const foundUser = uniqueUsers.find(u =>
-        (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) &&
-        u.password === password
-      );
-
-      if (foundUser) {
-        setLoginUser(foundUser);
-        // Simulate loading delay for better UX before switching screens
-        setTimeout(() => {
-          onLoginSuccess(foundUser);
-        }, 1500);
-      } else {
-        setError('Usuário ou senha incorretos');
-        setIsLoading(false);
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao conectar ao servidor: ' + JSON.stringify(err));
+    if (foundUser) {
+      setLoginUser(foundUser);
+      setTimeout(() => {
+        onLoginSuccess(foundUser);
+      }, 1000);
+    } else {
+      setError('Usuário ou senha incorretos');
       setIsLoading(false);
     }
   };

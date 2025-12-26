@@ -503,7 +503,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const extraCostTotal = extraCosts.reduce((sum, item) => sum + item.value, 0);
 
         // 4. EPI Costs (materiais de segurança)
-        const epiCostTotal = epiItems.reduce((sum, item) => {
+        const epiCostTotal = operationalItems.filter(item => item.type === 'epi').reduce((sum, item) => {
             const frequencyMultiplier = {
                 'monthly': 1,
                 'quarterly': 1 / 3,
@@ -643,7 +643,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     useEffect(() => {
         const calculatedResult = calculateLaborPricing();
         setResult(calculatedResult);
-    }, [positions, benefitsList, epiItems, notebooks, cellPhones, vehicles,
+    }, [positions, benefitsList, operationalItems, notebooks, cellPhones, vehicles,
         provisioningMode, recruitmentType, qtySenior, qtyPlena, qtyJunior, demandedDays,
         teamRates, appSettings, adminFeePercent, calculationMode, selectedCity, extraCosts, operationalAdminDays]);
 

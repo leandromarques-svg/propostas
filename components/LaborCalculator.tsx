@@ -290,32 +290,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
         // Regra de Vale Transporte: comportamento configurável
         if (item.id === 'transport') {
-            // Base de desconto (padrão: 'salary' — 6% do salário base)
-            const baseType = item.discountBase || 'salary';
+            // Sempre 6% do salário base
+            const base = averageBaseSalary;
             let computedDiscount = 0;
-
-            if (baseType === 'salary') {
-                // Percentual sobre salário médio
-                const base = averageBaseSalary;
-                if (base > 0) {
-                    if (item.discountType === 'percentage') {
-                        computedDiscount = base * (item.discountValue || 0.06);
-                    } else {
-                        computedDiscount = item.discountValue || 0;
-                    }
-                }
-            } else {
-                // Base sobre o próprio valor fornecido
-                if (item.discountType === 'percentage') {
-                    computedDiscount = providedValue * (item.discountValue || 0.06);
-                } else {
-                    computedDiscount = item.discountValue || 0;
-                }
+            if (base > 0) {
+                computedDiscount = base * 0.06;
             }
-
-            // Regra: se o desconto calculado (independente da base) exceder o valor fornecido
-            // então o desconto é limitado ao valor fornecido (custo zero para o cliente).
-            // Isso satisfaz a regra: "Se desconto for maior que 6% do salário base, custo não é repassado para o cliente."
+            // Limita desconto ao valor fornecido
             if (computedDiscount >= providedValue) {
                 collabDiscount = providedValue;
             } else {

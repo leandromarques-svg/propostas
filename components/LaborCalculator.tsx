@@ -288,8 +288,12 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
         let collabDiscount = 0;
 
+        // Regra Wellhub: sempre sem desconto, cliente paga valor integral
+        if (item.id === 'wellhub') {
+            collabDiscount = 0;
+        }
         // Regra de Vale Transporte: comportamento configurável
-        if (item.id === 'transport') {
+        else if (item.id === 'transport') {
             // Sempre 6% do salário base
             const base = averageBaseSalary;
             let computedDiscount = 0;

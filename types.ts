@@ -39,19 +39,7 @@ export interface SavedProposal {
   consultantName: string;
 }
 
-export interface User {
-  id: string;
-  username?: string; // Mantido para compatibilidade, mas usaremos email no login
-  password?: string; // Não usado no frontend com Supabase (segurança)
-  name: string;
-  role: string;
-  bio: string;
-  email: string;
-  phone: string;
-  linkedin: string;
-  avatarUrl?: string;
-  isAdmin?: boolean; // Master user flag
-}
+// interface User removida
 
 // --- PROPOSAL LAYOUT TYPES ---
 

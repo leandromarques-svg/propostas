@@ -13,7 +13,7 @@ import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayou
 import { PricingCalculator } from './components/PricingCalculator';
 import { LaborCalculator } from './components/LaborCalculator';
 import { TrilhandoPlusCalculator } from './components/TrilhandoPlusCalculator';
-import { getUsers, saveUser, deleteUser } from './components/lib/userService';
+// importações de userService removidas
 import { SupabaseStatus } from './components/SupabaseStatus';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight, Sparkles } from 'lucide-react';

@@ -1904,268 +1904,270 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     )}
                                 </div>
 
-                                {/* 6. EPI - MATERIAIS */}
-                                <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.epi ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
-                                    <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                                        <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                            <Shield size={18} /> 6. EPI - Materiais de Segurança
-                                        </h2>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {operationalItems.filter(item => item.type === 'epi').map((item, idx) => (
-                                            <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                                                <div className="grid grid-cols-5 gap-3">
-                                                    <div className="col-span-2">
-                                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item</label>
-                                                        <input
-                                                            type="text"
-                                                            value={item.name}
-                                                            onChange={(e) => {
-                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
-                                                                const newEpiList = [...epiList];
-                                                                newEpiList[idx].name = e.target.value;
-                                                                setOperationalItems([
-                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
-                                                                    ...newEpiList
-                                                                ]);
-                                                            }}
-                                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                            placeholder="Nome do EPI"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
-                                                        <input
-                                                            type="number"
-                                                            value={item.quantity}
-                                                            onChange={(e) => {
-                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
-                                                                const newEpiList = [...epiList];
-                                                                newEpiList[idx].quantity = Number(e.target.value);
-                                                                setOperationalItems([
-                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
-                                                                    ...newEpiList
-                                                                ]);
-                                                            }}
-                                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                            min="0"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo Unit.</label>
-                                                        <input
-                                                            type="number"
-                                                            value={item.unitCost}
-                                                            onChange={(e) => {
-                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
-                                                                const newEpiList = [...epiList];
-                                                                newEpiList[idx].unitCost = Number(e.target.value);
-                                                                setOperationalItems([
-                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
-                                                                    ...newEpiList
-                                                                ]);
-                                                            }}
-                                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                            step="0.01"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Frequência</label>
-                                                        <select
-                                                            value={item.frequency}
-                                                            onChange={(e) => {
-                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
-                                                                const newEpiList = [...epiList];
-                                                                newEpiList[idx].frequency = e.target.value as any;
-                                                                setOperationalItems([
-                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
-                                                                    ...newEpiList
-                                                                ]);
-                                                            }}
-                                                            className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                        >
-                                                            <option value="monthly">Mensal</option>
-                                                            <option value="quarterly">Trimestral</option>
-                                                            <option value="annually">Anual</option>
-                                                            <option value="one-time">Única vez</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <button
-                                            onClick={() => setOperationalItems([...operationalItems, { id: `epi-${Date.now()}`, name: '', quantity: 0, unitCost: 0, frequency: 'monthly', type: 'epi' }])}
-                                            className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
-                                        >
-                                            <Plus size={16} /> Adicionar EPI
-                                        </button>
-                                    </div>
-                                    {result && (
-                                        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-lg font-bold text-metarh-dark uppercase">🛡️ Total EPI:</span>
-                                                    <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.epiCostTotal || 0)}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-shrink-0">
-                                                <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-                                                    <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                                        <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
-                                                    </div>
-                                                    <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
-                                                        {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
-                                                    </span>
-                                                    <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
-                                                </label>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* 7. MATERIAL DE TRABALHO */}
-                                <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.materials ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
-                                    <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-2">
-                                        <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                            <Laptop size={18} /> 7. Material de Trabalho
-                                        </h2>
-                                    </div>
-
+                                {/* CUSTO OPERACIONAL */}
+                                <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-200 mt-8">
+                                    <h2 className="text-2xl font-bold text-metarh-dark mb-6 flex items-center gap-2">
+                                        <Briefcase size={22} /> Custo Operacional
+                                    </h2>
+                                    {/* Subitens: EPI, Material de Trabalho, Notebooks, Celulares, etc. */}
                                     <div className="space-y-8">
-                                        {/* Notebooks */}
+                                        {/* EPI - Materiais de Segurança */}
                                         <div>
-                                            <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
-                                                <Laptop size={16} className="text-gray-400" /> Notebooks
+                                            <h3 className="text-lg font-bold text-metarh-dark flex items-center gap-2 mb-2">
+                                                <Shield size={18} /> EPI - Materiais de Segurança
                                             </h3>
                                             <div className="space-y-3">
-                                                {notebooks.map((item, idx) => (
-                                                    <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3 items-start">
-                                                        <div className="flex-1">
-                                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
-                                                            <input
-                                                                type="text"
-                                                                value={item.model}
-                                                                onChange={(e) => {
-                                                                    const newItems = [...notebooks];
-                                                                    newItems[idx].model = e.target.value;
-                                                                    setNotebooks(newItems);
-                                                                }}
-                                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                                placeholder="Ex: Dell Latitude 5420"
-                                                            />
+                                                {operationalItems.filter(item => item.type === 'epi').map((item, idx) => (
+                                                    <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                                                        <div className="grid grid-cols-5 gap-3">
+                                                            <div className="col-span-2">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.name}
+                                                                    onChange={(e) => {
+                                                                        const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                        const newEpiList = [...epiList];
+                                                                        newEpiList[idx].name = e.target.value;
+                                                                        setOperationalItems([
+                                                                            ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                            ...newEpiList
+                                                                        ]);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    placeholder="Nome do EPI"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.quantity}
+                                                                    onChange={(e) => {
+                                                                        const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                        const newEpiList = [...epiList];
+                                                                        newEpiList[idx].quantity = Number(e.target.value);
+                                                                        setOperationalItems([
+                                                                            ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                            ...newEpiList
+                                                                        ]);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    min="0"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo Unit.</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.unitCost}
+                                                                    onChange={(e) => {
+                                                                        const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                        const newEpiList = [...epiList];
+                                                                        newEpiList[idx].unitCost = Number(e.target.value);
+                                                                        setOperationalItems([
+                                                                            ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                            ...newEpiList
+                                                                        ]);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    step="0.01"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Frequência</label>
+                                                                <select
+                                                                    value={item.frequency}
+                                                                    onChange={(e) => {
+                                                                        const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                        const newEpiList = [...epiList];
+                                                                        newEpiList[idx].frequency = e.target.value as any;
+                                                                        setOperationalItems([
+                                                                            ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                            ...newEpiList
+                                                                        ]);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                >
+                                                                    <option value="monthly">Mensal</option>
+                                                                    <option value="quarterly">Trimestral</option>
+                                                                    <option value="annually">Anual</option>
+                                                                    <option value="one-time">Única vez</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
-                                                        <div className="w-24">
-                                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
-                                                            <input
-                                                                type="number"
-                                                                value={item.quantity}
-                                                                onChange={(e) => {
-                                                                    const newItems = [...notebooks];
-                                                                    newItems[idx].quantity = Number(e.target.value);
-                                                                    setNotebooks(newItems);
-                                                                }}
-                                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                                min="0"
-                                                            />
-                                                        </div>
-                                                        <div className="w-32">
-                                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo</label>
-                                                            <input
-                                                                type="number"
-                                                                value={item.unitCost}
-                                                                onChange={(e) => {
-                                                                    const newItems = [...notebooks];
-                                                                    newItems[idx].unitCost = Number(e.target.value);
-                                                                    setNotebooks(newItems);
-                                                                }}
-                                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                                step="0.01"
-                                                            />
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setNotebooks(notebooks.filter((_, i) => i !== idx))}
-                                                            className="text-red-400 hover:text-red-600 self-end pb-2"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
                                                     </div>
                                                 ))}
                                                 <button
-                                                    onClick={() => setNotebooks([...notebooks, { id: `notebook-${Date.now()}`, model: '', quantity: 1, unitCost: 300 }])}
+                                                    onClick={() => setOperationalItems([...operationalItems, { id: `epi-${Date.now()}`, name: '', quantity: 0, unitCost: 0, frequency: 'monthly', type: 'epi' }])}
                                                     className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                                 >
-                                                    <Plus size={16} /> Adicionar Notebook
+                                                    <Plus size={16} /> Adicionar EPI
                                                 </button>
                                             </div>
+                                            {result && (
+                                                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-100 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-lg font-bold text-metarh-dark uppercase">🛡️ Total EPI:</span>
+                                                            <span className="text-3xl font-bold text-metarh-dark">{fmtCurrency(result.epiCostTotal || 0)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-shrink-0">
+                                                        <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                                                            <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.epi ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                                                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.epi ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                            </div>
+                                                            <span className={`text-xs font-bold ${confirmedSections.epi ? 'text-green-600' : 'text-gray-400'}`}>
+                                                                {confirmedSections.epi ? 'Revisado' : 'Confirmar'}
+                                                            </span>
+                                                            <input type="checkbox" checked={confirmedSections.epi} onChange={() => toggleSection('epi')} className="hidden" />
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        {/* Celulares */}
+                                        {/* Material de Trabalho (Notebooks, Celulares, etc.) */}
                                         <div>
-                                            <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
-                                                <Smartphone size={16} className="text-gray-400" /> Celulares
+                                            <h3 className="text-lg font-bold text-metarh-dark flex items-center gap-2 mb-2">
+                                                <Laptop size={18} /> Material de Trabalho
                                             </h3>
-                                            <div className="space-y-3">
-                                                {cellPhones.map((item, idx) => (
-                                                    <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3 items-start">
-                                                        <div className="flex-1">
-                                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
-                                                            <input
-                                                                type="text"
-                                                                value={item.model}
-                                                                onChange={(e) => {
-                                                                    const newItems = [...cellPhones];
-                                                                    newItems[idx].model = e.target.value;
-                                                                    setCellPhones(newItems);
-                                                                }}
-                                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                                placeholder="Ex: Samsung Galaxy A54"
-                                                            />
+                                            {/* Notebooks */}
+                                            <div className="mb-6">
+                                                <h4 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+                                                    <Laptop size={16} className="text-gray-400" /> Notebooks
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    {notebooks.map((item, idx) => (
+                                                        <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3 items-start">
+                                                            <div className="flex-1">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.model}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...notebooks];
+                                                                        newItems[idx].model = e.target.value;
+                                                                        setNotebooks(newItems);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    placeholder="Ex: Dell Latitude 5420"
+                                                                />
+                                                            </div>
+                                                            <div className="w-24">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.quantity}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...notebooks];
+                                                                        newItems[idx].quantity = Number(e.target.value);
+                                                                        setNotebooks(newItems);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    min="0"
+                                                                />
+                                                            </div>
+                                                            <div className="w-32">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.unitCost}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...notebooks];
+                                                                        newItems[idx].unitCost = Number(e.target.value);
+                                                                        setNotebooks(newItems);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    step="0.01"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setNotebooks(notebooks.filter((_, i) => i !== idx))}
+                                                                className="text-red-400 hover:text-red-600 self-end pb-2"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
                                                         </div>
-                                                        <div className="w-24">
-                                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
-                                                            <input
-                                                                type="number"
-                                                                value={item.quantity}
-                                                                onChange={(e) => {
-                                                                    const newItems = [...cellPhones];
-                                                                    newItems[idx].quantity = Number(e.target.value);
-                                                                    setCellPhones(newItems);
-                                                                }}
-                                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                                min="0"
-                                                            />
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setNotebooks([...notebooks, { id: `notebook-${Date.now()}`, model: '', quantity: 1, unitCost: 300 }])}
+                                                        className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                                                    >
+                                                        <Plus size={16} /> Adicionar Notebook
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {/* Celulares */}
+                                            <div>
+                                                <h4 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+                                                    <Smartphone size={16} className="text-gray-400" /> Celulares
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    {cellPhones.map((item, idx) => (
+                                                        <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex gap-3 items-start">
+                                                            <div className="flex-1">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.model}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...cellPhones];
+                                                                        newItems[idx].model = e.target.value;
+                                                                        setCellPhones(newItems);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    placeholder="Ex: Samsung Galaxy A54"
+                                                                />
+                                                            </div>
+                                                            <div className="w-24">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qtd</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.quantity}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...cellPhones];
+                                                                        newItems[idx].quantity = Number(e.target.value);
+                                                                        setCellPhones(newItems);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    min="0"
+                                                                />
+                                                            </div>
+                                                            <div className="w-32">
+                                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo/Mês</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.monthlyCost}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...cellPhones];
+                                                                        newItems[idx].monthlyCost = Number(e.target.value);
+                                                                        setCellPhones(newItems);
+                                                                    }}
+                                                                    className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
+                                                                    step="0.01"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setCellPhones(cellPhones.filter((_, i) => i !== idx))}
+                                                                className="text-red-400 hover:text-red-600 self-end pb-2"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
                                                         </div>
-                                                        <div className="w-32">
-                                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Custo/Mês</label>
-                                                            <input
-                                                                type="number"
-                                                                value={item.monthlyCost}
-                                                                onChange={(e) => {
-                                                                    const newItems = [...cellPhones];
-                                                                    newItems[idx].monthlyCost = Number(e.target.value);
-                                                                    setCellPhones(newItems);
-                                                                }}
-                                                                className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
-                                                                step="0.01"
-                                                            />
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setCellPhones(cellPhones.filter((_, i) => i !== idx))}
-                                                            className="text-red-400 hover:text-red-600 self-end pb-2"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                <button
-                                                    onClick={() => setCellPhones([...cellPhones, { id: `phone-${Date.now()}`, model: '', quantity: 1, monthlyCost: 172.39 }])}
-                                                    className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
-                                                >
-                                                    <Plus size={16} /> Adicionar Celular
-                                                </button>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setCellPhones([...cellPhones, { id: `phone-${Date.now()}`, model: '', quantity: 1, monthlyCost: 172.39 }])}
+                                                        className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
+                                                    >
+                                                        <Plus size={16} /> Adicionar Celular
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
 
                                         {/* Veículos */}
                                         <div>

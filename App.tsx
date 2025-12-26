@@ -318,13 +318,7 @@ const App: React.FC = () => {
             </div>
             <span className="hidden lg:inline text-sm font-medium">{currentUser.name.split(' ')[0]}</span>
           </button>
-          <button
-            onClick={handleLogout}
-            className="p-2 bg-white/10 hover:bg-red-500 rounded-lg transition-all"
-            title="Sair"
-          >
-            <LogOut size={18} />
-          </button>
+          {/* Botão de logout removido */}
         </div>
       </div>
     </header>

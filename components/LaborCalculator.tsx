@@ -692,17 +692,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                     <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-6">
                         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                             <Briefcase size={16} /> Dados do Cliente
-                        </h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
-                                    Nome do Cliente / Projeto
-                                </label>
-                                <input
-                                    type="text"
-                                    value={clientName}
+                                        </div>
+                                    </div>
+                                </div>
                                     onChange={(e) => setClientName(e.target.value)}
+                                {/* Fim do agrupamento de Custo Operacional */}
                                     placeholder="Digite o nome..."
+                                {/* 8. TRIBUTOS */}
                                     className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent"
                                 />
                             </div>

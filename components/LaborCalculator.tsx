@@ -2676,14 +2676,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     )}
                                 </div>
 
-                                {/* 8. TAXAS E MARGENS - MOVED TO SIDERBAR */}
-
-
-
-
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -2691,7 +2685,3 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 };
 
             export default LaborCalculator;
-
-
-
-

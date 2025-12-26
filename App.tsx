@@ -54,10 +54,19 @@ const getGreeting = () => {
 };
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoginExiting, setIsLoginExiting] = useState(false);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  // Login removido
+  const [currentUser] = useState<User | null>({
+    id: 'anon',
+    username: 'Visitante',
+    name: 'Visitante',
+    role: 'Visitante',
+    bio: '',
+    email: '',
+    phone: '',
+    linkedin: '',
+    avatarUrl: '',
+    isAdmin: false
+  });
   const [view, setView] = useState<ViewState>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
@@ -119,29 +128,7 @@ const App: React.FC = () => {
   const cartCount = cart.length;
   const greeting = getGreeting();
 
-  useEffect(() => {
-    const loadUsers = async () => {
-      setIsLoadingUsers(true);
-      const users = await getUsers();
-      setAllUsers(users);
-      setIsLoadingUsers(false);
-    };
-    loadUsers();
-  }, []);
-
-  const handleLogin = (user: User) => {
-    setCurrentUser(user);
-  };
-
-  const handleLogout = () => {
-    setIsLoginExiting(true);
-    setTimeout(() => {
-      setCurrentUser(null);
-      setIsLoginExiting(false);
-      setView('catalog');
-      setCart([]);
-    }, 500);
-  };
+  // Login removido
 
   const addToCart = (solution: SolutionData, selections?: CartSelections) => {
     if (!cart.find(item => item.solution.id === solution.id)) {
@@ -206,9 +193,8 @@ const App: React.FC = () => {
     }
   };
 
-  if (!currentUser) {
-    return <LoginScreen onLoginSuccess={handleLogin} users={allUsers} isExiting={isLoginExiting} />;
-  }
+
+  // Sempre renderiza o app, sem tela de login
 
   const renderHeader = () => (
     <header className="bg-gradient-to-r from-metarh-medium to-purple-700 text-white px-6 py-3 shadow-lg sticky top-0 z-30">

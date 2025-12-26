@@ -17,6 +17,20 @@ export const USERS: User[] = [
     avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80',
     isAdmin: true
   },
+  // Usuário solicitado para acesso
+  {
+    id: 'u-leandro',
+    username: 'Leandro',
+    password: '123',
+    name: 'Leandro',
+    role: 'Diretor',
+    bio: 'Acesso criado manualmente.',
+    email: 'leandro@acesso.com',
+    phone: '',
+    linkedin: '',
+    avatarUrl: '',
+    isAdmin: false
+  },
   {
     id: 'u1',
     username: 'admin',

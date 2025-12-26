@@ -1945,7 +1945,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                     </div>
 
                                     <div className="space-y-3">
-                                        {epiItems.map((item, idx) => (
+                                        {operationalItems.filter(item => item.type === 'epi').map((item, idx) => (
                                             <div key={item.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
                                                 <div className="grid grid-cols-5 gap-3">
                                                     <div className="col-span-2">
@@ -1954,9 +1954,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             type="text"
                                                             value={item.name}
                                                             onChange={(e) => {
-                                                                const newItems = [...epiItems];
-                                                                newItems[idx].name = e.target.value;
-                                                                setEpiItems(newItems);
+                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                const newEpiList = [...epiList];
+                                                                newEpiList[idx].name = e.target.value;
+                                                                setOperationalItems([
+                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                    ...newEpiList
+                                                                ]);
                                                             }}
                                                             className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                             placeholder="Nome do EPI"
@@ -1968,9 +1972,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             type="number"
                                                             value={item.quantity}
                                                             onChange={(e) => {
-                                                                const newItems = [...epiItems];
-                                                                newItems[idx].quantity = Number(e.target.value);
-                                                                setEpiItems(newItems);
+                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                const newEpiList = [...epiList];
+                                                                newEpiList[idx].quantity = Number(e.target.value);
+                                                                setOperationalItems([
+                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                    ...newEpiList
+                                                                ]);
                                                             }}
                                                             className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                             min="0"
@@ -1982,9 +1990,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                             type="number"
                                                             value={item.unitCost}
                                                             onChange={(e) => {
-                                                                const newItems = [...epiItems];
-                                                                newItems[idx].unitCost = Number(e.target.value);
-                                                                setEpiItems(newItems);
+                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                const newEpiList = [...epiList];
+                                                                newEpiList[idx].unitCost = Number(e.target.value);
+                                                                setOperationalItems([
+                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                    ...newEpiList
+                                                                ]);
                                                             }}
                                                             className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                             step="0.01"
@@ -1995,9 +2007,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                                         <select
                                                             value={item.frequency}
                                                             onChange={(e) => {
-                                                                const newItems = [...epiItems];
-                                                                newItems[idx].frequency = e.target.value as any;
-                                                                setEpiItems(newItems);
+                                                                const epiList = operationalItems.filter(i => i.type === 'epi');
+                                                                const newEpiList = [...epiList];
+                                                                newEpiList[idx].frequency = e.target.value as any;
+                                                                setOperationalItems([
+                                                                    ...operationalItems.filter(i => i.type !== 'epi'),
+                                                                    ...newEpiList
+                                                                ]);
                                                             }}
                                                             className="w-full p-2 rounded-2xl border border-gray-300 text-sm"
                                                         >
@@ -2011,7 +2027,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                             </div>
                                         ))}
                                         <button
-                                            onClick={() => setEpiItems([...epiItems, { id: `epi-${Date.now()}`, name: '', quantity: 0, unitCost: 0, frequency: 'monthly' }])}
+                                            onClick={() => setOperationalItems([...operationalItems, { id: `epi-${Date.now()}`, name: '', quantity: 0, unitCost: 0, frequency: 'monthly', type: 'epi' }])}
                                             className="flex items-center gap-2 text-sm font-bold text-metarh-medium hover:underline"
                                         >
                                             <Plus size={16} /> Adicionar EPI

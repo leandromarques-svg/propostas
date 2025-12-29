@@ -1,244 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import {
-    Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
-    FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock, Info,
-    Shield, Laptop, Smartphone, Car, CheckCircle2
-} from 'lucide-react';
-import { SupabaseStatus } from './SupabaseStatus';
-import { 
-    LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE
-} from '../constants';
-import { getTeamRates, TeamRates } from './lib/teamRatesService';
-import { getAppSettings, AppSettings } from './lib/settingsService';
-import { generatePDF } from './lib/pdfGenerator';
+export default LaborCalculator;
+// CLEANUP: All code below this line is legacy/corrupted and should be removed.
+import React, { useState } from 'react';
 
-import { Logo } from './Logo';
-
-interface LaborPosition {
-    id: string;
-    roleName: string;
-    baseSalary: number;
-    vacancies: number;
-    hazardPay: 0 | 0.30 | 0.40; // Periculosidade
-    unhealthinessLevel: 'none' | 'min' | 'med' | 'max'; // Insalubridade
-    nightShift: boolean;
-    nightShiftPercent: number; // Default 0.20
-    isHourly: boolean; // Horista
-    isDailyWorker: boolean; // Diarista
-    hoursPerMonth: number; // Divisor de horas (Referência)
-    daysPerMonth: number; // Divisor de dias (Referência)
-    hoursQuantity: number; // Quantidade de horas a pagar
-    daysQuantity: number; // Quantidade de dias a pagar
-}
-
-export interface BenefitItem {
-    id: string;
-    name: string;
-    type: 'daily' | 'monthly' | 'plan_selection' | 'custom';
-    quantity: number;
-    unitValue: number;
-    days?: number;
-    discountType: 'percentage' | 'fixed';
-    discountValue: number;
-    selectedPlanId?: string;
-    discountBase?: 'salary' | 'benefit'; // Para Vale Transporte: desconto sobre salário base ou valor fornecido
-}
-
-// Novas interfaces para seções de custo adicionais
-export interface EpiItem {
-    id: string;
-    name: string;
-    quantity: number;
-    unitCost: number;
-    frequency: 'monthly' | 'quarterly' | 'annually' | 'one-time';
-}
-
-export interface NotebookItem {
-    id: string;
-    model: string;
-    quantity: number;
-    unitCost: number;
-}
-
-export interface CellPhoneItem {
-    id: string;
-    model: string;
-    quantity: number;
-    monthlyCost: number; // Custo mensal do plano
-}
-
-export interface VehicleItem {
-    id: string;
-    type: string;
-    quantity: number;
-    monthlyCost: number; // Aluguel + combustível + manutenção
-}
-
-
-interface LaborCalculatorProps {
-    onCancel: () => void;
-}
-
-type ProvisioningMode = 'full' | 'semi' | 'none' | 'temporary';
-
-export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) => {
-    // --- STATE ---
-    const [positions, setPositions] = useState<LaborPosition[]>([{
-        id: 'pos-1',
-        roleName: '',
-        baseSalary: 0,
-        vacancies: 1,
-        hazardPay: 0,
-        unhealthinessLevel: 'none',
-        nightShift: false,
-        nightShiftPercent: 0.20,
-        isHourly: false,
-        isDailyWorker: false,
-        hoursPerMonth: 220,
-        daysPerMonth: 22,
-        hoursQuantity: 0,
-        daysQuantity: 0
-    }]);
-
-    // Estados para notebooks, cellPhones e vehicles
-    const [notebooks, setNotebooks] = useState<NotebookItem[]>([]);
-    const [cellPhones, setCellPhones] = useState<CellPhoneItem[]>([]);
-    const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
-
-    const [provisioningMode, setProvisioningMode] = useState<ProvisioningMode>('full');
-    // Contrato Temporário: tempo mínimo 90 dias, máximo 120 dias, sem Sistema S
-    const [temporaryContractDays, setTemporaryContractDays] = useState<number>(90);
-
-    const [recruitmentType, setRecruitmentType] = useState<'indication' | 'selection'>('selection');
+const LaborCalculator: React.FC = () => {
     const [clientName, setClientName] = useState('');
     const [clientCnpj, setClientCnpj] = useState('');
+    return (
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold">Labor Calculator</h1>
+                <input
+                    type="text"
+                    value={clientName}
+                    onChange={e => setClientName(e.target.value)}
+                    placeholder="Nome do Cliente"
+                    className="border p-2 rounded"
+                />
+                <input
+                    type="text"
+                    value={clientCnpj}
+                    onChange={e => setClientCnpj(e.target.value)}
+                    placeholder="CNPJ"
+                    className="border p-2 rounded ml-2"
+                />
+            </div>
+        </div>
+    );
+};
 
-    const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 14) value = value.slice(0, 14);
-
-        // Mask: XX.XXX.XXX/XXXX-XX
-        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-        value = value.replace(/(\d{4})(\d)/, '$1-$2');
-
-        setClientCnpj(value);
-    };
-
-    // Removed recruitmentCostPercent
-
-    // Recruitment Team State
-    const [qtySenior, setQtySenior] = useState(0);
-    const [qtyPlena, setQtyPlena] = useState(0);
-    const [qtyJunior, setQtyJunior] = useState(0);
-    const [demandedDays, setDemandedDays] = useState(0);
-    const [teamRates, setTeamRates] = useState<TeamRates>({ senior: 150, plena: 100, junior: 60 });
-    const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
-
-
-
-    // New Benefits Structure (Unified)
-    const [benefitsList, setBenefitsList] = useState<BenefitItem[]>([
-        // Alimentação e Transporte
-        { id: 'transport', name: 'Vale Transporte', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.transport.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.06, discountBase: 'salary' }, // 6% padrão sobre salário base
-        { id: 'meal', name: 'Refeição', type: 'daily', quantity: 1, unitValue: BENEFIT_OPTIONS.others.meal.defaultValue, days: 22, discountType: 'percentage', discountValue: 0.05 },
-        { id: 'food', name: 'Vale Alimentação', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.food.defaultValue, discountType: 'percentage', discountValue: 0.01 },
-        // Saúde e Bem estar  
-        { id: 'medical', name: 'Plano Médico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'percentage', discountValue: 0.02, selectedPlanId: BENEFIT_OPTIONS.medical[2].id },
-        { id: 'dental', name: 'Plano Odontológico', type: 'plan_selection', quantity: 1, unitValue: 0, discountType: 'fixed', discountValue: 0, selectedPlanId: BENEFIT_OPTIONS.dental[0].id },
-        { id: 'pharmacy', name: 'Auxílio Farmácia | Omni', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.pharmacy.defaultValue, discountType: 'fixed', discountValue: 0 },
-        { id: 'healthCare', name: 'Saúde da Gente', type: 'monthly', quantity: 0, unitValue: BENEFIT_OPTIONS.others.healthCare?.defaultValue || 40, discountType: 'fixed', discountValue: 0 },
-        { id: 'wellhub', name: 'Wellhub Bem estar', type: 'monthly', quantity: 1, unitValue: 29.90, discountType: 'fixed', discountValue: 29.90 }, // Wellhub fixo, desconto integral colaborador
-        // Outros
-        { id: 'lifeInsurance', name: 'Seguro de Vida', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.lifeInsurance.defaultValue, discountType: 'fixed', discountValue: 0 },
-        { id: 'gpsPoint', name: 'Controle de Ponto GPS', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.gpsPoint.defaultValue, discountType: 'fixed', discountValue: 0 },
-        { id: 'plr', name: 'PLR', type: 'monthly', quantity: 1, unitValue: BENEFIT_OPTIONS.others.plr.defaultValue, discountType: 'fixed', discountValue: 0 },
-        // Exames (sem desconto, custo integral do cliente)
-        { id: 'exam-aso', name: 'Exames Clínicos - ASO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-aso')?.value || 0, discountType: 'fixed', discountValue: 0 },
-        { id: 'exam-comp', name: 'Exames Médicos Complementares', type: 'monthly', quantity: 0, unitValue: 0, discountType: 'fixed', discountValue: 0 },
-        { id: 'exam-pcmso', name: 'PCMSO', type: 'monthly', quantity: 1, unitValue: EXAM_OPTIONS.find(e => e.id === 'exam-pcmso')?.value || 0, discountType: 'fixed', discountValue: 0 },
-    ]);
-
-    // Custos Operacionais: EPI, Materiais de Trabalho, Notebooks, Celulares, Veículos
-    const [operationalItems, setOperationalItems] = useState<(
-        EpiItem & { type?: 'epi' | 'material' | 'notebook' | 'cellphone' | 'vehicle' }
-    )[]>([
-        { id: 'epi-1', name: 'Capacete', quantity: 0, unitCost: 50, frequency: 'annually', type: 'epi' },
-        { id: 'epi-2', name: 'Luvas', quantity: 0, unitCost: 15, frequency: 'quarterly', type: 'epi' },
-        { id: 'epi-3', name: 'Óculos de Proteção', quantity: 0, unitCost: 30, frequency: 'annually', type: 'epi' },
-        // Adicione materiais de trabalho, notebooks, celulares, veículos conforme necessário
-    ]);
-    // Outras despesas
-    const [otherExpenses, setOtherExpenses] = useState<number>(0);
-
-
-    // Charges Config (Detailed)
-    const [satRate, setSatRate] = useState<number>(LABOR_CHARGES.groupA.sat);
-    // Removed showChargesConfig (Always visible)
-
-    // Fees (Removed Backup Fee)
-    const [adminFeePercent, setAdminFeePercent] = useState<number>(0.10); // Taxa Administrativa default 10%
-    const [calculationMode, setCalculationMode] = useState<'5_columns' | 'final_rate'>('5_columns'); // 5 Colunas (Sobre Custo) vs Taxa Final (Sobre Faturamento)
-
-
-    // Operational Costs (ex-Recruitment)
-    // Valor digitável para Operação Administrativa
-    const [operationalAdminCost, setOperationalAdminCost] = useState<number>(0);
-    const [operationalAdminDays, setOperationalAdminDays] = useState<number>(0); // Dias de operação administrativa
-    const [extraCosts, setExtraCosts] = useState<{ id: string, name: string, value: number }[]>([]); // Custos Extras
-
-    // ISS Selection
-    const [selectedCity, setSelectedCity] = useState<string>('São Paulo - SP');
-
-    const [result, setResult] = useState<any>(null);
-    const [showPdfModal, setShowPdfModal] = useState(false);
-
-    // Section Confirmation State
-    const [confirmedSections, setConfirmedSections] = useState<Record<string, boolean>>({
-        roles: false,
-        charges: false,
-        benefits: false,
-        exams: false,
-        operational: false,
-        op_recruitment: false,
-        op_admin: false,
-        op_extras: false,
-        epi: false,
-        materials: false,
-        taxes: false,
-        fees: false
-    });
-
-    const toggleSection = (section: string) => {
-        setConfirmedSections(prev => ({ ...prev, [section]: !prev[section] }));
-    };
-
-    const allSectionsConfirmed = Object.entries(confirmedSections).every(([key, value]) => {
-        // Skip operational subsections if recruitmentType is 'indication'
-        if (recruitmentType === 'indication' && ['op_recruitment', 'op_admin', 'op_extras', 'operational'].includes(key)) return true;
-        return value;
-    });
-
-
-    // Load team rates and app settings
-    useEffect(() => {
-        const loadData = async () => {
-            const [rates, settings] = await Promise.all([
-                getTeamRates(),
-                getAppSettings()
-            ]);
-            setTeamRates(rates);
-            setAppSettings(settings);
-
-            // Update defaults from settings
-            if (settings) {
-                setSatRate(settings.sat_rate);
-
-                // Add custom benefits from settings
-                if (settings.benefit_options.custom && settings.benefit_options.custom.length > 0) {
-                    setBenefitsList(prev => {
-                        const existingIds = new Set(prev.map(p => p.id));
+export default LaborCalculator;
                         const newItems = settings.benefit_options.custom
                             ?.filter((c: any) => !existingIds.has(c.id))
                             .map((c: any) => ({
@@ -691,23 +481,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 }
 
 export default LaborCalculator;
-                                    type="text"
-                                    value={clientName}
-                                    onChange={(e) => setClientName(e.target.value)}
-                                    placeholder="Digite o nome..."
-                                    className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">CNPJ</label>
-                                <input
-                                    type="text"
-                                    value={clientCnpj}
-                                    onChange={handleCnpjChange}
-                                    placeholder="XX.XXX.XXX/0001-XX"
-                                    maxLength={18}
-                                    className="w-full text-lg font-bold text-metarh-dark border-b-2 border-gray-100 focus:border-metarh-medium outline-none py-2 transition-colors placeholder-gray-300 bg-transparent font-mono"
-                                />
                             </div>
                         </div>
                     </div>

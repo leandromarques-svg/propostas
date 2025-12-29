@@ -1,6 +1,18 @@
 import React from 'react';
 
 const LaborCalculator: React.FC = () => {
+    return (
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold">Labor Calculator</h1>
+            </div>
+        </div>
+    );
+};
+
+export default LaborCalculator;
+
+const LaborCalculator: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
       <div className="max-w-7xl mx-auto">

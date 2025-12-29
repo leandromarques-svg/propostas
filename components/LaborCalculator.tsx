@@ -11,40 +11,6 @@ const LaborCalculator: React.FC = () => {
 };
 
 export default LaborCalculator;
-                                    </div>
-
-                                    <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
-                                        {/* Group A */}
-                                        <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                            <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Encargos Sociais Obrigatórios - Grupo A</h3>
-                                            <div className="space-y-2 text-xs text-gray-600">
-                                                <div className="flex justify-between">
-                                                    <span>INSS</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.inss)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.inss || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>SESI/SESC</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.sesi_sesc)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.sesi_sesc || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>SENAI/SENAC</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.senai_senac)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.senai_senac || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>INCRA</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.incra)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.incra || 0)}</span>
-                                                    </div>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span>Seguro Acidente Trabalho - SAT</span>

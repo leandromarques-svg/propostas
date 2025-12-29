@@ -5,7 +5,7 @@ import {
     Shield, Laptop, Smartphone, Car, CheckCircle2
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
-import {
+import { 
     LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE
 } from '../constants';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';

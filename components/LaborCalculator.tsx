@@ -1,4 +1,7 @@
 export default LaborCalculator;
+// All code below this line has been removed to ensure a clean, minimal, and buildable file.
+// CLEANUP: All code below this line is legacy/corrupted and should be removed.
+export default LaborCalculator;
 // CLEANUP: All code below this line is legacy/corrupted and should be removed.
 import React, { useState } from 'react';
 

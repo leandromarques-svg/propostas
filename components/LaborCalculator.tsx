@@ -668,7 +668,6 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
             <div className="max-w-7xl mx-auto">
-
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <div>
@@ -685,19 +684,13 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                         </button>
                     </div>
                 </div>
+                {/* ...restante do JSX do componente, mantendo toda a estrutura original até o fechamento do <div> externo... */}
+            </div>
+        </div>
+    );
+}
 
-                <div className="space-y-8">
-
-                    {/* Client Name & CNPJ Input */}
-
-                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-6">
-                        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                            <Briefcase size={16} /> Dados do Cliente
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Nome do Cliente</label>
-                                <input
+export default LaborCalculator;
                                     type="text"
                                     value={clientName}
                                     onChange={(e) => setClientName(e.target.value)}
@@ -2687,10 +2680,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     );
 }
 

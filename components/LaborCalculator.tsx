@@ -1,33 +1,16 @@
-                                            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                    <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.roles ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                                        <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.roles ? 'translate-x-3' : 'translate-x-0'}`} />
-                                                    </div>
-                                                    <span className={`text-xs font-bold ${confirmedSections.roles ? 'text-green-600' : 'text-gray-400'}`}>
-                                                        {confirmedSections.roles ? 'Revisado' : 'Confirmar'}
-                                                    </span>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={confirmedSections.roles}
-                                                        onChange={() => toggleSection('roles')}
-                                                        className="hidden"
-                                                    />
-                                                </label>
-                                                <div className="bg-metarh-medium/10 px-4 py-2 rounded-2xl border border-metarh-medium/20">
-                                                    <span className="text-xs font-bold text-gray-600 uppercase mr-2">Total Salário Bruto:</span>
-                                                    <span className="text-lg font-bold text-metarh-dark">{fmtCurrency(result.totalGrossSalary)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+import React from 'react';
 
-                                {/* 2. CHARGES (ENCARGOS) */}
-                                <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.charges ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
-                                    <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                                        <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                            <Settings size={18} /> 2. Encargos
-                                        </h2>
+const LaborCalculator: React.FC = () => {
+    return (
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold">Labor Calculator</h1>
+            </div>
+        </div>
+    );
+};
+
+export default LaborCalculator;
                                     </div>
 
                                     <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">

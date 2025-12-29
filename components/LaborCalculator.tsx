@@ -1,106 +1,16 @@
 import React from 'react';
 
 const LaborCalculator: React.FC = () => {
-    return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
-            <div className="max-w-7xl mx-auto">
-                <h1 className="text-2xl font-bold">Labor Calculator</h1>
-            </div>
-        </div>
-    );
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-12 animate-fade-in overflow-x-hidden">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl font-bold">Labor Calculator</h1>
+      </div>
+    </div>
+  );
 };
 
 export default LaborCalculator;
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Seguro Acidente Trabalho - SAT</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(satRate)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * satRate || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Salário Educação</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.salario_educacao)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.salario_educacao || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>SEBRAE</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.sebrae)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.sebrae || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>FGTS</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(LABOR_CHARGES.groupA.fgts)}</span>
-                                                        <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * LABOR_CHARGES.groupA.fgts || 0)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
-                                                    <span>Total Grupo A</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(result?.groupAPercent || 0)}</span>
-                                                        <span>{fmtCurrency(result?.groupAValue || 0)}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Group B */}
-                                        <div className="bg-gray-50 p-4 rounded-3xl border border-gray-200">
-                                            <h3 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b border-gray-200 pb-2">Encargos Trabalhistas | Provisões - Grupo B</h3>
-                                            <div className="space-y-2 text-xs text-gray-600">
-                                                {result?.groupBItems && Object.entries(result.groupBItems).map(([key, val]) => (
-                                                    <div key={key} className={`flex justify-between ${val === 0 ? 'opacity-50' : ''}`}>
-                                                        <span className="capitalize">{key.replace(/_/g, ' ')}</span>
-                                                        <div className="flex gap-2">
-                                                            <span>{fmtPercent(val as number)}</span>
-                                                            <span className="font-bold text-gray-800">{fmtCurrency(result?.totalGrossSalary * (val as number) || 0)}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200 mt-2">
-                                                    <span>Total Grupo B</span>
-                                                    <div className="flex gap-2">
-                                                        <span>{fmtPercent(result?.groupBPercent || 0)}</span>
-                                                        <span>{fmtCurrency(result?.groupBValue || 0)}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Highlighted Total Charges */}
-                                    <div className="mt-4 bg-metarh-medium/10 border border-metarh-medium/30 rounded-3xl p-4 flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <label className="flex items-center gap-2 cursor-pointer select-none bg-white/50 px-3 py-1.5 rounded-full border border-metarh-medium/20">
-                                                <div className={`w-8 h-5 rounded-full p-1 transition-colors ${confirmedSections.charges ? 'bg-green-500' : 'bg-gray-200'}`}>
-                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${confirmedSections.charges ? 'translate-x-3' : 'translate-x-0'}`} />
-                                                </div>
-                                                <span className={`text-xs font-bold ${confirmedSections.charges ? 'text-green-600' : 'text-gray-400'}`}>
-                                                    {confirmedSections.charges ? 'Revisado' : 'Confirmar'}
-                                                </span>
-                                                <input type="checkbox" checked={confirmedSections.charges} onChange={() => toggleSection('charges')} className="hidden" />
-                                            </label>
-                                            <span className="text-sm font-bold text-metarh-dark uppercase">Total de Encargos (A + B)</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-2xl font-bold text-metarh-medium">
-                                                {fmtPercent((result?.groupAPercent || 0) + (result?.groupBPercent || 0))}
-                                            </span>
-                                            {result && (
-                                                <div className="text-xs text-gray-500 font-bold">
-                                                    {fmtCurrency(result.totalCharges)}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* 3. BENEFITS (Organized by Category) */}
 
                                 {/* 3. BENEFITS (Organized by Category) */}

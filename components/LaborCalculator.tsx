@@ -8,7 +8,7 @@ const LaborCalculator: React.FC = () => {
             </div>
         </div>
     );
-}; 
+};  
 
 export default LaborCalculator;
 

@@ -5,7 +5,7 @@ interface LogoProps {
   variant?: 'white' | 'purple';
   orientation?: 'horizontal' | 'vertical' | 'icon';
   className?: string; 
-}
+} 
 
 export const Logo: React.FC<LogoProps> = ({
   variant = 'purple',

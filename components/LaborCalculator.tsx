@@ -1508,7 +1508,7 @@ const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) => {
                                         </div>
                                     )
                                 }
-                            </div >
+                            </div>
 
                             {/* 4. EXAMES */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.exams ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
@@ -2450,9 +2450,9 @@ const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) => {
             </div>
             {/* End of Content Container */}
         </div>
-        {/* End of Page Container */ }
-    </div >
-    </div >
+        {/* End of Page Container */}
+    </div>
+    </div>
     );
 }
 

@@ -60,7 +60,7 @@ const App: React.FC = () => {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [view, setView] = useState<ViewState>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
+  // const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
   const [selectedSolution, setSelectedSolution] = useState<SolutionData | null>(null);
 
   // State for Proposal Layout
@@ -69,7 +69,7 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  // const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [isAppSettingsModalOpen, setIsAppSettingsModalOpen] = useState(false);
   const [selectedSummaryPackage, setSelectedSummaryPackage] = useState<string | null>(null);
   const [viewPackageSummary, setViewPackageSummary] = useState<string | null>(null);
@@ -176,11 +176,11 @@ const App: React.FC = () => {
     setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }));
   };
 
-  const handleSaveProposal = (proposal: SavedProposal) => {
-    setProposalHistory([proposal, ...proposalHistory]);
-    setCart([]);
-    setView('catalog');
-  };
+  // const handleSaveProposal = (proposal: SavedProposal) => {
+  //   setProposalHistory([proposal, ...proposalHistory]);
+  //   setCart([]);
+  //   setView('catalog');
+  // };
 
   const handleCreateUser = async (newUser: Omit<User, 'id'>) => {
     const createdUser = await saveUser(newUser);
@@ -281,20 +281,6 @@ const App: React.FC = () => {
               </div>
             )}
           </div>
-          <button
-            onClick={() => setIsSummaryModalOpen(true)}
-            className="px-4 py-2 rounded-lg font-medium text-sm bg-white/10 hover:bg-white/20 transition-all relative"
-          >
-            <span className="flex items-center gap-2">
-              <ShoppingBag size={18} />
-              <span className="hidden sm:inline">Minhas Propostas</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-yellow-400 text-metarh-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </span>
-          </button>
         </nav>
 
         {/* Right: Profile + Admin Controls */}
@@ -453,20 +439,21 @@ const App: React.FC = () => {
   }
 
   if (view === 'proposal') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
-        {renderHeader()}
-        <ProposalView
-          cart={cart}
-          onBack={() => setView('catalog')}
-          onSaveToHistory={handleSaveProposal}
-          user={currentUser}
-          history={proposalHistory}
-          onRemove={removeFromCart}
-        />
-        <Footer className="" />
-      </div>
-    );
+    // Removido: view proposal e ProposalView
+    // return (
+    //   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+    //     {renderHeader()}
+    //     <ProposalView
+    //       cart={cart}
+    //       onBack={() => setView('catalog')}
+    //       onSaveToHistory={handleSaveProposal}
+    //       user={currentUser}
+    //       history={proposalHistory}
+    //       onRemove={removeFromCart}
+    //     />
+    //     <Footer className="" />
+    //   </div>
+    // );
   }
 
   // Temporarily disabled - Layout Editor

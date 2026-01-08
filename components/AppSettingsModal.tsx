@@ -375,7 +375,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                             </div>
                                         )}
                                     </div>
-                                    </div>
                                 )}
                             </div>
                         )}

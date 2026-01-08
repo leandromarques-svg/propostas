@@ -29,6 +29,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
         benefit_options: { medical: [], dental: [], wellhub: [], custom: [] }
     });
 
+    // CRUD State for custom values
+    const [customEdit, setCustomEdit] = useState<{ id?: string; name: string; value: number; category: string }>({ name: '', value: 0, category: '' });
+    const [isEditingCustom, setIsEditingCustom] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
             loadAllSettings();
@@ -247,6 +251,130 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Custom Values CRUD */}
+                                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2">
+                                            <Briefcase size={20} className="text-gray-600" />
+                                            Itens Personalizados (Custos/Benefícios)
+                                        </h3>
+                                        <p className="text-sm text-gray-500 mb-4">Gerencie itens customizados para custos/benefícios.</p>
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-full text-sm border">
+                                                <thead>
+                                                    <tr className="bg-gray-100">
+                                                        <th className="px-3 py-2 border">Nome</th>
+                                                        <th className="px-3 py-2 border">Valor (R$)</th>
+                                                        <th className="px-3 py-2 border">Categoria</th>
+                                                        <th className="px-3 py-2 border">Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {(generalSettings.benefit_options.custom || []).map((item) => (
+                                                        <tr key={item.id} className="border-b">
+                                                            <td className="px-3 py-2 border">{item.name}</td>
+                                                            <td className="px-3 py-2 border">{fmtCurrency(item.value)}</td>
+                                                            <td className="px-3 py-2 border">{item.category}</td>
+                                                            <td className="px-3 py-2 border space-x-2">
+                                                                <button
+                                                                    className="px-2 py-1 rounded bg-yellow-200 hover:bg-yellow-300 text-yellow-900 font-bold"
+                                                                    onClick={() => {
+                                                                        setCustomEdit(item);
+                                                                        setIsEditingCustom(true);
+                                                                    }}
+                                                                >Editar</button>
+                                                                <button
+                                                                    className="px-2 py-1 rounded bg-red-200 hover:bg-red-300 text-red-900 font-bold"
+                                                                    onClick={() => {
+                                                                        if (window.confirm('Remover este item?')) {
+                                                                            setGeneralSettings((prev) => ({
+                                                                                ...prev,
+                                                                                benefit_options: {
+                                                                                    ...prev.benefit_options,
+                                                                                    custom: (prev.benefit_options.custom || []).filter((i) => i.id !== item.id)
+                                                                                }
+                                                                            }));
+                                                                        }
+                                                                    }}
+                                                                >Excluir</button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="mt-4 flex gap-2">
+                                            <button
+                                                className="px-4 py-2 rounded bg-metarh-medium text-white font-bold hover:bg-metarh-dark"
+                                                onClick={() => {
+                                                    setCustomEdit({ name: '', value: 0, category: '' });
+                                                    setIsEditingCustom(true);
+                                                }}
+                                            >Adicionar Novo</button>
+                                        </div>
+                                        {isEditingCustom && (
+                                            <div className="mt-6 p-4 bg-white border rounded-xl shadow flex flex-col gap-3">
+                                                <div className="flex gap-3">
+                                                    <input
+                                                        className="flex-1 p-2 border rounded"
+                                                        placeholder="Nome do item"
+                                                        value={customEdit.name}
+                                                        onChange={e => setCustomEdit({ ...customEdit, name: e.target.value })}
+                                                    />
+                                                    <input
+                                                        className="w-32 p-2 border rounded"
+                                                        type="number"
+                                                        placeholder="Valor"
+                                                        value={customEdit.value}
+                                                        onChange={e => setCustomEdit({ ...customEdit, value: Number(e.target.value) })}
+                                                    />
+                                                    <input
+                                                        className="w-48 p-2 border rounded"
+                                                        placeholder="Categoria"
+                                                        value={customEdit.category}
+                                                        onChange={e => setCustomEdit({ ...customEdit, category: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex gap-2 mt-2">
+                                                    <button
+                                                        className="px-4 py-2 rounded bg-green-600 text-white font-bold hover:bg-green-700"
+                                                        onClick={() => {
+                                                            if (!customEdit.name.trim()) {
+                                                                alert('Nome obrigatório');
+                                                                return;
+                                                            }
+                                                            if (!customEdit.category.trim()) {
+                                                                alert('Categoria obrigatória');
+                                                                return;
+                                                            }
+                                                            setGeneralSettings(prev => {
+                                                                let customArr = prev.benefit_options.custom || [];
+                                                                // If editing, replace; else, add new with unique id
+                                                                if (customEdit.id) {
+                                                                    customArr = customArr.map(i => i.id === customEdit.id ? { ...customEdit } : i);
+                                                                } else {
+                                                                    customArr = [...customArr, { ...customEdit, id: `custom-${Date.now()}` }];
+                                                                }
+                                                                return {
+                                                                    ...prev,
+                                                                    benefit_options: {
+                                                                        ...prev.benefit_options,
+                                                                        custom: customArr
+                                                                    }
+                                                                };
+                                                            });
+                                                            setIsEditingCustom(false);
+                                                        }}
+                                                    >Salvar</button>
+                                                    <button
+                                                        className="px-4 py-2 rounded bg-gray-300 text-gray-700 font-bold hover:bg-gray-400"
+                                                        onClick={() => setIsEditingCustom(false)}
+                                                    >Cancelar</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                     </div>
                                 </div>
                             )}

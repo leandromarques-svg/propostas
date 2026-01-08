@@ -13,7 +13,7 @@ import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayou
 import { PricingCalculator } from './components/PricingCalculator';
 import { LaborCalculator } from './components/LaborCalculator';
 import { TrilhandoPlusCalculator } from './components/TrilhandoPlusCalculator';
-// importações de userService removidas
+import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight, Sparkles } from 'lucide-react';
@@ -54,19 +54,10 @@ const getGreeting = () => {
 };
 
 const App: React.FC = () => {
-  // Login removido
-  const [currentUser] = useState<User | null>({
-    id: 'anon',
-    username: 'Visitante',
-    name: 'Visitante',
-    role: 'Visitante',
-    bio: '',
-    email: '',
-    phone: '',
-    linkedin: '',
-    avatarUrl: '',
-    isAdmin: false
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoginExiting, setIsLoginExiting] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [view, setView] = useState<ViewState>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
@@ -128,7 +119,29 @@ const App: React.FC = () => {
   const cartCount = cart.length;
   const greeting = getGreeting();
 
-  // Login removido
+  useEffect(() => {
+    const loadUsers = async () => {
+      setIsLoadingUsers(true);
+      const users = await getUsers();
+      setAllUsers(users);
+      setIsLoadingUsers(false);
+    };
+    loadUsers();
+  }, []);
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    setIsLoginExiting(true);
+    setTimeout(() => {
+      setCurrentUser(null);
+      setIsLoginExiting(false);
+      setView('catalog');
+      setCart([]);
+    }, 500);
+  };
 
   const addToCart = (solution: SolutionData, selections?: CartSelections) => {
     if (!cart.find(item => item.solution.id === solution.id)) {
@@ -169,17 +182,33 @@ const App: React.FC = () => {
     setView('catalog');
   };
 
+  const handleCreateUser = async (newUser: Omit<User, 'id'>) => {
+    const createdUser = await saveUser(newUser);
+    if (createdUser) {
+      setAllUsers([...allUsers, createdUser]);
+    }
+  };
 
-  // Função de criar usuário desativada (login removido)
+  const handleUpdateUser = async (updatedUser: User) => {
+    const savedUser = await saveUser(updatedUser);
+    if (savedUser) {
+      setAllUsers(allUsers.map(u => u.id === savedUser.id ? savedUser : u));
+      if (currentUser?.id === savedUser.id) {
+        setCurrentUser(savedUser);
+      }
+    }
+  };
 
+  const handleDeleteUser = async (userId: string) => {
+    const success = await deleteUser(userId);
+    if (success) {
+      setAllUsers(allUsers.filter(u => u.id !== userId));
+    }
+  };
 
-  // Função de atualizar usuário desativada (login removido)
-
-
-  // Função de deletar usuário desativada (login removido)
-
-
-  // Sempre renderiza o app, sem tela de login
+  if (!currentUser) {
+    return <LoginScreen onLoginSuccess={handleLogin} users={allUsers} isExiting={isLoginExiting} />;
+  }
 
   const renderHeader = () => (
     <header className="bg-gradient-to-r from-metarh-medium to-purple-700 text-white px-6 py-3 shadow-lg sticky top-0 z-30">
@@ -303,7 +332,13 @@ const App: React.FC = () => {
             </div>
             <span className="hidden lg:inline text-sm font-medium">{currentUser.name.split(' ')[0]}</span>
           </button>
-          {/* Botão de logout removido */}
+          <button
+            onClick={handleLogout}
+            className="p-2 bg-white/10 hover:bg-red-500 rounded-lg transition-all"
+            title="Sair"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </header>
@@ -688,16 +723,16 @@ const App: React.FC = () => {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         user={currentUser}
-        // onSave removido (login removido)
+        onSave={handleUpdateUser}
       />
 
       <UserManagementModal
         isOpen={isUserManagementOpen}
         onClose={() => setIsUserManagementOpen(false)}
-        users={[]}
-        // onUpdateUser removido (login removido)
-        // onDeleteUser removido (login removido)
-        // onCreateUser removido (login removido)
+        users={allUsers}
+        onUpdateUser={handleUpdateUser}
+        onDeleteUser={handleDeleteUser}
+        onCreateUser={handleCreateUser}
         currentUser={currentUser}
       />
 

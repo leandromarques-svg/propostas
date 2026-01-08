@@ -1,8 +1,72 @@
 
 
-import { SolutionData, FixedCostItem } from './types';
+import { SolutionData, User, FixedCostItem } from './types';
 
-// --- USERS removido ---
+// --- USERS ---
+export const USERS: User[] = [
+  {
+    id: 'u0',
+    username: 'Leandro',
+    password: '123',
+    name: 'Leandro',
+    role: 'Diretor Comercial',
+    bio: 'Especialista em estratégias de crescimento e soluções de RH de alto impacto.',
+    email: 'leandro@metarh.com.br',
+    phone: '(11) 99999-8888',
+    linkedin: 'linkedin.com/in/leandro-metarh',
+    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80',
+    isAdmin: true
+  },
+  // Usuário solicitado para acesso
+  {
+    id: 'u-leandro',
+    username: 'Leandro',
+    password: '123',
+    name: 'Leandro',
+    role: 'Diretor',
+    bio: 'Acesso criado manualmente.',
+    email: 'leandro@acesso.com',
+    phone: '',
+    linkedin: '',
+    avatarUrl: '',
+    isAdmin: false
+  },
+  {
+    id: 'u1',
+    username: 'admin',
+    password: '123',
+    name: 'Consultor METARH',
+    role: 'Consultor Sênior',
+    bio: 'Especialista em soluções estratégicas de RH com foco em inovação e cultura organizacional.',
+    email: 'comercial@metarh.com.br',
+    phone: '(11) 99999-9999',
+    linkedin: 'linkedin.com/company/metarh',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359-7014db8778f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80'
+  },
+  {
+    id: 'u2',
+    username: 'julia.silva',
+    password: 'metarh2025',
+    name: 'Júlia Silva',
+    role: 'Consultora de Negócios',
+    bio: 'Apaixonada por conectar talentos e transformar organizações através de pessoas.',
+    email: 'julia.silva@metarh.com.br',
+    phone: '(11) 98765-4321',
+    linkedin: 'linkedin.com/in/juliasilva',
+    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80'
+  },
+  {
+    id: 'u3',
+    username: 'marcos.souza',
+    password: 'metarh2025',
+    name: 'Marcos Souza',
+    role: 'Especialista Tech Recruiter',
+    bio: 'Focado em recrutamento de alta performance para tecnologia e inovação.',
+    email: 'marcos.souza@metarh.com.br',
+    phone: '(11) 91234-5678',
+    linkedin: 'linkedin.com/in/marcossouza'
+  }
+];
 
 export const SOLUTIONS_DATA: SolutionData[] = [
   {

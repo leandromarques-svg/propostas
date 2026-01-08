@@ -14,28 +14,45 @@ interface LoginScreenProps {
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users = [], isExiting = false }) => {
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loginUser, setLoginUser] = useState<User | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Autenticação apenas pelo nome de usuário ou email
-    const uniqueUsers = Array.from(new Map((users || []).map(item => [item.username, item])).values());
-    const foundUser = uniqueUsers.find(u =>
-      u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()
-    );
+    try {
+      // Fetch users from Supabase
+      const remoteUsers = await getUsers();
+      // Combine with local users if needed, or just use remote
+      const allUsers = [...(users || []), ...remoteUsers];
 
-    if (foundUser) {
-      setLoginUser(foundUser);
-      setTimeout(() => {
-        onLoginSuccess(foundUser);
-      }, 500);
-    } else {
-      setError('Usuário não encontrado');
+      // Remove duplicates if any (by username)
+      const uniqueUsers = Array.from(new Map(allUsers.map(item => [item.username, item])).values());
+
+      // Local Authentication Logic
+      const foundUser = uniqueUsers.find(u =>
+        (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) &&
+        u.password === password
+      );
+
+      if (foundUser) {
+        setLoginUser(foundUser);
+        // Simulate loading delay for better UX before switching screens
+        setTimeout(() => {
+          onLoginSuccess(foundUser);
+        }, 1500);
+      } else {
+        setError('Usuário ou senha incorretos');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao conectar ao servidor: ' + JSON.stringify(err));
       setIsLoading(false);
     }
   };
@@ -91,7 +108,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Usuário</label>
               <input
@@ -99,8 +115,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
-                placeholder="Digite seu usuário ou email"
+                placeholder="Digite seu usuário"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Senha</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
+                  placeholder="Digite sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-2"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             {error && (

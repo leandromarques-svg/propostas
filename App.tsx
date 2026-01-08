@@ -619,32 +619,6 @@ const App: React.FC = () => {
                                   >
                                     Detalhes
                                   </button>
-
-                                  {inCart ? (
-                                    <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 h-10 px-1">
-                                      <button
-                                        onClick={() => updateQuantity(solution.id, -1)}
-                                        className="w-8 h-full flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors font-bold"
-                                      >
-                                        -
-                                      </button>
-                                      <span className="w-6 text-center text-sm font-bold text-gray-800">{inCart.quantity}</span>
-                                      <button
-                                        onClick={() => updateQuantity(solution.id, 1)}
-                                        className="w-8 h-full flex items-center justify-center text-gray-500 hover:text-metarh-medium transition-colors font-bold"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      onClick={() => addToCart(solution)}
-                                      className="w-10 h-10 rounded-full bg-metarh-medium text-white flex items-center justify-center hover:bg-metarh-dark transition-all shadow-lg shadow-purple-200 hover:shadow-purple-300 hover:scale-105"
-                                      title="Adicionar à proposta"
-                                    >
-                                      <Plus size={20} />
-                                    </button>
-                                  )}
                                 </div>
                               </div>
                             );

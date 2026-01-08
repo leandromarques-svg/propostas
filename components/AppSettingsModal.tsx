@@ -376,8 +376,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                         )}
                                     </div>
                                 )}
-                        )}
-                )}
+                            )}
 
                 {/* Actions */}
                 <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-white flex-shrink-0">

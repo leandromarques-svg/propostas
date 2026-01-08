@@ -253,7 +253,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                         </div>
                                     </div>
 
-                                    {/* Custom Values CRUD */}
+                                    {/* Custom Values CRUD - Revisado */}
                                     <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
                                         <h3 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2">
                                             <Briefcase size={20} className="text-gray-600" />
@@ -350,7 +350,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                                             }
                                                             setGeneralSettings(prev => {
                                                                 let customArr = prev.benefit_options.custom || [];
-                                                                // If editing, replace; else, add new with unique id
                                                                 if (customEdit.id) {
                                                                     customArr = customArr.map(i => i.id === customEdit.id ? { ...customEdit } : i);
                                                                 } else {

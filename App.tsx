@@ -25,6 +25,15 @@ const getPackageTheme = (packageKey: string) => {
   return baseTheme;
 };
 
+
+const PRESENTATION_URLS: Record<string, string> = {
+  'Business': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Business.pdf',
+  'Pharma Recruiter': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Pharma%20Recruiter.pdf',
+  'Tech Recruiter': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Tech%20Recruiter.pdf',
+  'Trilhando +': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Trilhando.pdf',
+  'Varejo Pro': 'https://metarh.com.br/wp-content/uploads/apresentacoes/VarejoPro.pdf'
+};
+
 const PackageIcon: React.FC<{ name: string; className?: string; size?: number }> = ({ name, className, size }) => {
   switch (name) {
     case 'Business':
@@ -600,7 +609,19 @@ const App: React.FC = () => {
                               <Info size={20} />
                             </button>
                             <div className="w-px h-4 bg-gray-300"></div>
-                            <button className="text-metarh-medium hover:text-metarh-dark transition-colors" title="Baixar PDF">
+                            <button
+                              className={`text-metarh-medium transition-colors ${PRESENTATION_URLS[group] ? 'hover:text-metarh-dark' : 'opacity-40 cursor-not-allowed'}`}
+                              title={PRESENTATION_URLS[group] ? "Baixar Apresentação" : "Apresentação indisponível"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const url = PRESENTATION_URLS[group];
+                                if (url) {
+                                  window.open(url, '_blank');
+                                } else {
+                                  alert('A apresentação para esta solução ainda não está disponível.');
+                                }
+                              }}
+                            >
                               <FileDown size={20} />
                             </button>
                           </div>

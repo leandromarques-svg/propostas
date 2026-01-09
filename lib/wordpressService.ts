@@ -52,10 +52,15 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         const posts: any[] = await response.json();
         console.log(`[WordPress] Received ${posts.length} posts from categories ${categoryId},${stageId}`);
 
-        // Filtro extra: garantir que o post tenha a categoria da solução
+        // Filtro: garantir que o post tenha APENAS a categoria da solução (além do funil)
+        const solutionCategoryIds = Object.values(WP_CONFIG.categories);
         const filteredPosts = posts.filter((post: any) => {
             const postCategories = post.categories || [];
-            return postCategories.includes(categoryId);
+            // Deve conter a categoria da solução
+            if (!postCategories.includes(categoryId)) return false;
+            // Não pode conter nenhuma outra categoria de solução
+            const otherSolutionCategories = solutionCategoryIds.filter(id => id !== categoryId);
+            return !otherSolutionCategories.some(id => postCategories.includes(id));
         });
         return {
             posts: filteredPosts,

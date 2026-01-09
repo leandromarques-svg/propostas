@@ -29,10 +29,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
         benefit_options: { medical: [], dental: [], wellhub: [], custom: [] }
     });
 
-    // CRUD State for custom values
-    const [customEdit, setCustomEdit] = useState<{ id?: string; name: string; value: number; category: string }>({ name: '', value: 0, category: '' });
-    const [isEditingCustom, setIsEditingCustom] = useState(false);
-
     useEffect(() => {
         if (isOpen) {
             loadAllSettings();
@@ -252,9 +248,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                             </div>
                                         </div>
                                     </div>
-
-                                )}
+                                </div>
                             )}
+                        </div>
+                    )}
+                </div>
 
                 {/* Actions */}
                 <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-white flex-shrink-0">

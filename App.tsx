@@ -239,7 +239,7 @@ const App: React.FC = () => {
             >
               <span className="flex items-center gap-2">
                 <Calculator size={18} />
-                <span className="hidden sm:inline">Simulação</span>
+                <span className="hidden sm:inline">Calculadoras</span>
                 <ChevronDown size={14} className={`transition-transform ${showCalculatorMenu ? 'rotate-180' : ''}`} />
               </span>
             </button>
@@ -254,7 +254,7 @@ const App: React.FC = () => {
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2"
                 >
                   <Calculator size={16} />
-                  Simulação de Projetos
+                  Calculadora de Projetos
                 </button>
                 <button
                   onClick={() => {
@@ -265,7 +265,7 @@ const App: React.FC = () => {
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
                 >
                   <Users size={16} />
-                  Simulação de Mão de Obra
+                  Gestão de Mão de Obra
                 </button>
                 <button
                   onClick={() => {
@@ -276,7 +276,7 @@ const App: React.FC = () => {
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
                 >
                   <Sparkles size={16} />
-                  Simulação Trilhando+
+                  Calculadora Trilhando+
                 </button>
               </div>
             )}
@@ -379,7 +379,7 @@ const App: React.FC = () => {
                 <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Calculator size={28} className="text-metarh-medium" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Simulação de Projetos</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Calculadora de Projetos</h2>
                 <p className="text-sm text-gray-500 mb-4">
                   Precificação de projetos de consultoria, R&S e serviços pontuais.
                 </p>
@@ -401,7 +401,7 @@ const App: React.FC = () => {
                 <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Users size={28} className="text-metarh-medium" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Simulação de Mão de Obra</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Gestão de Mão de Obra</h2>
                 <p className="text-sm text-gray-500 mb-4">
                   Cálculo de custos para mão de obra administrada e terceiros.
                 </p>
@@ -423,7 +423,7 @@ const App: React.FC = () => {
                 <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Sparkles size={28} className="text-metarh-medium" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Simulação Trilhando+</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Calculadora Trilhando+</h2>
                 <p className="text-sm text-gray-500 mb-4">
                   Precificação exclusiva para projetos do programa Trilhando+.
                 </p>

@@ -52,10 +52,14 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         const posts: any[] = await response.json();
         console.log(`[WordPress] Received ${posts.length} posts from categories ${categoryId},${stageId}`);
 
-        // Não precisa filtrar client-side, a API já retorna só os posts corretos
+        // Filtro extra: garantir que o post tenha a categoria da solução
+        const filteredPosts = posts.filter((post: any) => {
+            const postCategories = post.categories || [];
+            return postCategories.includes(categoryId);
+        });
         return {
-            posts: posts,
-            total: posts.length
+            posts: filteredPosts,
+            total: filteredPosts.length
         };
     } catch (error) {
         console.error('[WordPress] Error fetching blog posts:', error);

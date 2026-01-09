@@ -29,6 +29,7 @@ const getPackageTheme = (packageKey: string) => {
 const PRESENTATION_URLS: Record<string, string> = {
   'Business': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Business.pdf',
   'Pharma Recruiter': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Pharma%20Recruiter.pdf',
+  'Staffing': 'https://metarh.com.br/wp-content/uploads/apresentacoes/staffing.pdf',
   'Tech Recruiter': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Tech%20Recruiter.pdf',
   'Trilhando +': 'https://metarh.com.br/wp-content/uploads/apresentacoes/Trilhando.pdf',
   'Varejo Pro': 'https://metarh.com.br/wp-content/uploads/apresentacoes/VarejoPro.pdf'

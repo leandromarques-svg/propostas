@@ -240,6 +240,20 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                   <input name="bio" value={formData.bio || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Link Apresentação Personalizada (Opcional)</label>
+                  <input
+                    name="customPresentationUrl"
+                    value={formData.customPresentationUrl || ''}
+                    onChange={handleChange}
+                    placeholder="https://..."
+                    className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Se preenchido, este link substituirá o download padrão de apresentações para este usuário.
+                  </p>
+                </div>
+
                 <div className="flex items-center gap-4 pt-2">
                   <div className="flex items-center gap-2">
                     <input

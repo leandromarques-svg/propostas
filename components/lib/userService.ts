@@ -23,7 +23,8 @@ export async function getUsers(): Promise<User[]> {
         bio: p.bio,
         avatarUrl: p.avatar_url,
         isAdmin: p.is_admin,
-        canUseCalculator: p.can_use_calculator
+        canUseCalculator: p.can_use_calculator,
+        customPresentationUrl: p.custom_presentation_url
     }));
 }
 
@@ -40,7 +41,8 @@ export async function saveUser(user: User | Omit<User, 'id'>): Promise<User | nu
         bio: user.bio,
         avatar_url: user.avatarUrl,
         is_admin: user.isAdmin,
-        can_use_calculator: user.canUseCalculator
+        can_use_calculator: user.canUseCalculator,
+        custom_presentation_url: user.customPresentationUrl
     };
 
     console.log('Saving user profile:', profile);
@@ -70,7 +72,8 @@ export async function saveUser(user: User | Omit<User, 'id'>): Promise<User | nu
         bio: data.bio,
         avatarUrl: data.avatar_url,
         isAdmin: data.is_admin,
-        canUseCalculator: data.can_use_calculator
+        canUseCalculator: data.can_use_calculator,
+        customPresentationUrl: data.custom_presentation_url
     };
 }
 

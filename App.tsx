@@ -233,7 +233,6 @@ const App: React.FC = () => {
             </span>
           </button>
           <div className="relative">
-            {currentUser.canUseCalculator && (
             {(currentUser.isAdmin || currentUser.canUseCalculator) && (
               <>
                 <button

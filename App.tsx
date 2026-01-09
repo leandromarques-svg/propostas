@@ -234,6 +234,7 @@ const App: React.FC = () => {
           </button>
           <div className="relative">
             {currentUser.canUseCalculator && (
+            {(currentUser.isAdmin || currentUser.canUseCalculator) && (
               <>
                 <button
                   onClick={() => setShowCalculatorMenu(!showCalculatorMenu)}

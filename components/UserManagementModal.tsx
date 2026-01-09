@@ -257,9 +257,10 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                       type="checkbox"
                       name="canUseCalculator"
                       id="canUseCalculator"
-                      checked={formData.canUseCalculator || false}
+                      checked={formData.isAdmin ? true : (formData.canUseCalculator || false)}
                       onChange={handleChange}
                       className="w-5 h-5 text-metarh-medium rounded focus:ring-metarh-medium"
+                      disabled={formData.isAdmin}
                     />
                     <label htmlFor="canUseCalculator" className="text-sm font-bold text-gray-700">Pode usar Calculadora</label>
                   </div>

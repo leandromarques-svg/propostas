@@ -214,6 +214,9 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                                         <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
                                                     </h5>
                                                     <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                    <div className="mt-2 text-[10px] text-gray-400">
+                                                        Categorias do post: {post.categories && post.categories.join(', ')}
+                                                    </div>
                                                 </a>
                                             ))
                                         ) : (

@@ -1,5 +1,15 @@
 {
     "buildCommand": "npm install && npm run build",
     "installCommand": "npm install",
-    "framework": "vite"
+    "framework": "vite",
+    "rewrites": [
+        {
+            "source": "/api/wp/:path*",
+            "destination": "https://metarh.com.br/metarhnews/wp-json/wp/v2/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
 }

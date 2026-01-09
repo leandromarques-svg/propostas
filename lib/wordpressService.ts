@@ -1,6 +1,6 @@
 // WordPress API Configuration
 const WP_CONFIG = {
-    baseUrl: 'https://metarh.com.br/metarhnews/wp-json/wp/v2',
+    baseUrl: '/api/wp',
     categories: {
         'Business': 128,
         'Pharma Recruiter': 155,

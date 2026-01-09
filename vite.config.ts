@@ -16,5 +16,14 @@ export default defineConfig(({ mode }) => {
       // with the actual string value from the .env file during build/serve.
       'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY),
     },
+    server: {
+      proxy: {
+        '/api/wp': {
+          target: 'https://metarh.com.br/metarhnews/wp-json/wp/v2',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/wp/, '')
+        }
+      }
+    }
   };
 });

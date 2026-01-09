@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase';
-import { BENEFIT_OPTIONS, MINIMUM_WAGE, LABOR_CHARGES } from '../../constants';
+import { BENEFIT_OPTIONS, MINIMUM_WAGE, LABOR_CHARGES, LABOR_TAX_RATES, EXAM_OPTIONS, TAX_RATES } from '../../constants';
 
 export interface AppSettings {
     minimum_wage: number;
@@ -16,9 +16,16 @@ export interface AppSettings {
             pharmacy?: number;
             gpsPoint?: number;
             plr?: number;
+            healthCare?: number;
+            operationalTeam?: number;
+            adminOperations?: number;
         };
         custom?: { id: string; name: string; value: number; category: string }[];
     };
+    labor_charges_config: typeof LABOR_CHARGES;
+    labor_tax_rates_config: typeof LABOR_TAX_RATES;
+    general_tax_rates: typeof TAX_RATES;
+    exam_options_list: typeof EXAM_OPTIONS;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -35,9 +42,16 @@ const DEFAULT_SETTINGS: AppSettings = {
             lifeInsurance: BENEFIT_OPTIONS.others.lifeInsurance.defaultValue,
             pharmacy: BENEFIT_OPTIONS.others.pharmacy.defaultValue,
             gpsPoint: BENEFIT_OPTIONS.others.gpsPoint.defaultValue,
-            plr: BENEFIT_OPTIONS.others.plr.defaultValue
+            plr: BENEFIT_OPTIONS.others.plr.defaultValue,
+            healthCare: BENEFIT_OPTIONS.others.healthCare.defaultValue,
+            operationalTeam: BENEFIT_OPTIONS.others.operationalTeam.defaultValue,
+            adminOperations: BENEFIT_OPTIONS.others.adminOperations.defaultValue
         }
-    }
+    },
+    labor_charges_config: LABOR_CHARGES,
+    labor_tax_rates_config: LABOR_TAX_RATES,
+    general_tax_rates: TAX_RATES,
+    exam_options_list: EXAM_OPTIONS
 };
 
 export const getAppSettings = async (): Promise<AppSettings> => {
@@ -54,7 +68,21 @@ export const getAppSettings = async (): Promise<AppSettings> => {
             data.forEach((item: any) => {
                 if (item.key === 'minimum_wage') settings.minimum_wage = Number(item.value);
                 if (item.key === 'sat_rate') settings.sat_rate = Number(item.value);
-                if (item.key === 'benefit_options') settings.benefit_options = item.value;
+
+                // Handle complex objects
+                if (item.key === 'labor_charges_config') settings.labor_charges_config = item.value;
+                if (item.key === 'labor_tax_rates_config') settings.labor_tax_rates_config = item.value;
+                if (item.key === 'general_tax_rates') settings.general_tax_rates = item.value;
+                if (item.key === 'exam_options_list') settings.exam_options_list = item.value;
+
+                // Handle Benefits - merging lists
+                if (item.key === 'benefit_options') {
+                    // Legacy structure support
+                    settings.benefit_options = { ...settings.benefit_options, ...item.value };
+                }
+                if (item.key === 'benefit_options_medical') settings.benefit_options.medical = item.value;
+                if (item.key === 'benefit_options_dental') settings.benefit_options.dental = item.value;
+                if (item.key === 'benefit_options_wellhub') settings.benefit_options.wellhub = item.value;
             });
         }
 

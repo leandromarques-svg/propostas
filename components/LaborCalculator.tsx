@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle,
     FileText, Loader2, Sparkles, ChevronDown, ChevronUp, Settings, Briefcase, Clock, Info,
@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import {
-    LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE
+    LABOR_CHARGES, LABOR_TAX_RATES, BENEFIT_OPTIONS, EXAM_OPTIONS, MINIMUM_WAGE, TAX_RATES
 } from '../constants';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
 import { getAppSettings, AppSettings } from './lib/settingsService';
@@ -211,6 +211,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
     });
 
 
+    // Dynamic Config State (Initialized with Constants)
+    const [chargesConfig, setChargesConfig] = useState(LABOR_CHARGES);
+    const [taxRatesConfig, setTaxRatesConfig] = useState(LABOR_TAX_RATES);
+    const [generalTaxRates, setGeneralTaxRates] = useState(TAX_RATES); // New
+
     // Load team rates and app settings
     useEffect(() => {
         const loadData = async () => {
@@ -224,6 +229,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             // Update defaults from settings
             if (settings) {
                 setSatRate(settings.sat_rate);
+
+                // Update dynamic configs if present in settings
+                if (settings.labor_charges_config) setChargesConfig(settings.labor_charges_config);
+                if (settings.labor_tax_rates_config) setTaxRatesConfig(settings.labor_tax_rates_config);
+                if (settings.general_tax_rates) setGeneralTaxRates(settings.general_tax_rates); // New
 
                 // Add custom benefits from settings
                 if (settings.benefit_options.custom && settings.benefit_options.custom.length > 0) {
@@ -260,6 +270,7 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         adminFeePercent,
         satRate, qtySenior, qtyPlena, qtyJunior, demandedDays, teamRates, appSettings,
         operationalAdminDays, extraCosts, selectedCity,
+        chargesConfig, taxRatesConfig, generalTaxRates // Added dependencies
     ]);
 
     const calculateBenefitRow = (item: BenefitItem, averageBaseSalary: number = 0) => {
@@ -347,41 +358,26 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         const positionsCalculated = positions.map(pos => {
             // 1. Base Salary
             const base = pos.baseSalary;
-
-            // Hourly and Daily Rate Calculations (Reference)
-            // Hourly and Daily Rate Calculations (Standard 220h / 22d)
             const hourlyRate = base / 220;
             const dailyRate = base / 22;
 
-            // 2. Hazard Pay (Periculosidade) - % on Base Salary (or calculated base?)
-            // Usually Hazard Pay is on the base salary. If hourly, it should be on the hourly earnings?
-            // Let's assume it applies to the "Effective Base" (earnings).
-
-            // 3. Unhealthiness (Insalubridade) - % on Minimum Wage
             let unhealthinessValue = 0;
             const minimumWage = appSettings?.minimum_wage || MINIMUM_WAGE;
             if (pos.unhealthinessLevel === 'min') unhealthinessValue = minimumWage * 0.10;
             if (pos.unhealthinessLevel === 'med') unhealthinessValue = minimumWage * 0.20;
             if (pos.unhealthinessLevel === 'max') unhealthinessValue = minimumWage * 0.40;
 
-            // 4. Night Shift (Adicional Noturno) - % on Base Salary (usually)
-            // If hourly, on hourly earnings.
-
-            // 5. Hourly/Daily Worker Additional Value
-            let effectiveBase = base; // Default to monthly base
+            let effectiveBase = base;
 
             if (pos.isHourly) {
-                // hoursPerMonth is the quantity of hours to be paid
                 effectiveBase = hourlyRate * pos.hoursPerMonth;
             } else if (pos.isDailyWorker) {
-                // daysPerMonth is the quantity of days to be paid
                 effectiveBase = dailyRate * pos.daysPerMonth;
             }
 
             const hazardValue = effectiveBase * pos.hazardPay;
             const nightShiftValue = pos.nightShift ? (effectiveBase * pos.nightShiftPercent) : 0;
 
-            // Gross Salary
             const gross = effectiveBase + hazardValue + unhealthinessValue + nightShiftValue;
 
             totalBaseSalary += effectiveBase * pos.vacancies;
@@ -394,18 +390,18 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
         // Charges (Encargos) - Detailed Calculation
         // Group A
         const groupAPercent =
-            LABOR_CHARGES.groupA.inss +
-            LABOR_CHARGES.groupA.sesi_sesc +
-            LABOR_CHARGES.groupA.senai_senac +
-            LABOR_CHARGES.groupA.incra +
+            chargesConfig.groupA.inss +
+            chargesConfig.groupA.sesi_sesc +
+            chargesConfig.groupA.senai_senac +
+            chargesConfig.groupA.incra +
             satRate + // Dynamic SAT
-            LABOR_CHARGES.groupA.salario_educacao +
-            LABOR_CHARGES.groupA.sebrae +
-            LABOR_CHARGES.groupA.fgts;
+            chargesConfig.groupA.salario_educacao +
+            chargesConfig.groupA.sebrae +
+            chargesConfig.groupA.fgts;
 
         // Group B Logic based on Provisioning Mode
         let groupBPercent = 0;
-        let groupBItems = { ...LABOR_CHARGES.groupB }; // Copy to modify if needed
+        let groupBItems = { ...chargesConfig.groupB }; // Copy to modify if needed
 
         if (provisioningMode === 'none') {
             groupBPercent = 0;
@@ -420,10 +416,10 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
             groupBItems.deposito_rescisao = 0;
             groupBItems.auxilio_doenca = 0;
             // Recalculate sum
-            groupBPercent = Object.values(groupBItems).reduce((a, b) => a + b, 0);
+            groupBPercent = Object.values(groupBItems).reduce((a: number, b: any) => a + Number(b), 0);
         } else {
             // Full
-            groupBPercent = Object.values(LABOR_CHARGES.groupB).reduce((a, b) => a + b, 0);
+            groupBPercent = Object.values(chargesConfig.groupB).reduce((a: number, b: any) => a + Number(b), 0);
         }
 
         const groupAValue = totalGrossSalary * groupAPercent;

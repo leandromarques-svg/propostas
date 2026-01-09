@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-// Force update check
 import { ProjectPricingInputs, PricingResult, FixedCostItem, Position } from '../types';
 import { WEIGHT_TABLES, HOURLY_RATES, DEFAULT_FIXED_ITEMS, TAX_RATES } from '../constants';
 import { Calculator, DollarSign, Users, BarChart3, Plus, Trash2, AlertCircle, FileText, Loader2, Sparkles, Briefcase } from 'lucide-react';
 import { SupabaseStatus } from './SupabaseStatus';
 import { generateProposalPDF } from './lib/pdfGenerator';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
+import { getAppSettings, AppSettings } from './lib/settingsService';
 import { Logo } from './Logo';
 
 interface PricingCalculatorProps {
@@ -50,6 +50,9 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     junior: 60
   });
 
+  // Tax Rates State (Dynamic)
+  const [taxRates, setTaxRates] = useState(TAX_RATES);
+
   const ROLE_OPTIONS = [
     { label: 'Diretoria', value: 2 },
     { label: 'Gerência', value: 1.75 },
@@ -64,11 +67,17 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
   const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
 
-  // Load team rates on mount and refresh every 5 seconds
+  // Load team rates and settings on mount and refresh every 5 seconds
   useEffect(() => {
     const loadRates = async () => {
-      const rates = await getTeamRates();
+      const [rates, settings] = await Promise.all([
+        getTeamRates(),
+        getAppSettings()
+      ]);
       setTeamRates(rates);
+      if (settings && settings.general_tax_rates) {
+        setTaxRates(settings.general_tax_rates);
+      }
     };
 
     // Load immediately
@@ -84,7 +93,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   // --- CALCULATION LOGIC ---
   useEffect(() => {
     calculatePricing();
-  }, [inputs, profitMarginPct, complexityScale, teamRates]);
+  }, [inputs, profitMarginPct, complexityScale, teamRates, taxRates]);
 
   const calculatePricing = () => {
     const {
@@ -159,16 +168,16 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
     // 4. Taxes - taxes are calculated on the whole proposal composition
     const issRate = 0.05; // São Paulo default
     const taxIss = totalPreTax * issRate;
-    const taxPis = totalPreTax * TAX_RATES.pis;
-    const taxCofins = totalPreTax * TAX_RATES.cofins;
-    const taxIrrf = totalPreTax * TAX_RATES.irrf;
-    const taxCsll = totalPreTax * TAX_RATES.csll;
+    const taxPis = totalPreTax * taxRates.pis;
+    const taxCofins = totalPreTax * taxRates.cofins;
+    const taxIrrf = totalPreTax * taxRates.irrf;
+    const taxCsll = totalPreTax * taxRates.csll;
 
     const totalTaxes = taxIss + taxPis + taxCofins + taxIrrf + taxCsll;
 
     // 5. Final
     const grossNF = totalPreTax + totalTaxes;
-    const retentionIR = grossNF * TAX_RATES.retentionIR; // 1.5% on Gross
+    const retentionIR = grossNF * taxRates.retentionIR;
 
     // Total Líquido (Recebido) = Valor da Nota - Retenção de IR
     const netLiquid = grossNF - retentionIR;
@@ -549,9 +558,18 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <InputField label="Equipe Senior" type="number" value={inputs.qtyConsultant2} onChange={(v) => handleNumberChange('qtyConsultant2', v)} />
-                  <InputField label="Equipe Plena" type="number" value={inputs.qtyConsultant1} onChange={(v) => handleNumberChange('qtyConsultant1', v)} />
-                  <InputField label="Equipe Junior" type="number" value={inputs.qtyAssistant} onChange={(v) => handleNumberChange('qtyAssistant', v)} />
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-500 font-bold mb-1">Sênior ({fmtCurrency(teamRates.senior)})</label>
+                    <input type="number" value={inputs.qtyConsultant2} onChange={(e) => handleNumberChange('qtyConsultant2', e.target.value)} className="p-2 border rounded-xl" />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-500 font-bold mb-1">Pleno ({fmtCurrency(teamRates.plena)})</label>
+                    <input type="number" value={inputs.qtyConsultant1} onChange={(e) => handleNumberChange('qtyConsultant1', e.target.value)} className="p-2 border rounded-xl" />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-500 font-bold mb-1">Júnior ({fmtCurrency(teamRates.junior)})</label>
+                    <input type="number" value={inputs.qtyAssistant} onChange={(e) => handleNumberChange('qtyAssistant', e.target.value)} className="p-2 border rounded-xl" />
+                  </div>
                 </div>
 
                 {/* Team Totals */}
@@ -688,11 +706,10 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                 <div className="space-y-6">
                   {/* Summary Costs */}
                   <div className="space-y-2 pb-4 border-b border-white/10">
-                    <Row label="Custo Equipe" value={fmtCurrency(result.teamCostTotal)} />
-                    <Row label="Custos Fixos" value={fmtCurrency(result.fixedItemsCostTotal)} />
-                    <Row label="Total Operacional" value={fmtCurrency(result.totalOperationalCost)} />
+                    <div className="flex justify-between text-sm"><span className="text-gray-400">Custo Equipe</span><span className="font-bold">{fmtCurrency(result.teamCostTotal)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-400">Custos Fixos</span><span className="font-bold">{fmtCurrency(result.fixedItemsCostTotal)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-400">Total Operacional</span><span className="font-bold">{fmtCurrency(result.totalOperationalCost)}</span></div>
 
-                    {/* Highlighted Reference Salary */}
                     {/* Highlighted Reference Salary */}
                     <div className="bg-white/10 border border-white/20 rounded-3xl p-3 my-3">
                       <div className="flex justify-between items-center">
@@ -713,19 +730,19 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
                   {/* Revenue & Costs */}
                   <div className="space-y-2 pb-4 border-b border-white/10">
-                    <Row label="Taxa Administrativa" value={fmtCurrency(result.adminFee)} />
+                    <div className="flex justify-between text-sm"><span className="text-gray-400">Taxa Administrativa</span><span className="font-bold">{fmtCurrency(result.adminFee)}</span></div>
                   </div>
 
                   {/* Taxes Breakdown */}
                   <div className="bg-white/5 p-4 rounded-3xl space-y-1 text-xs">
                     <p className="font-bold text-gray-300 mb-2 uppercase tracking-wider">Impostos (NF)</p>
-                    <Row label="ISS" value={fmtCurrency(result.taxIss)} small />
-                    <Row label="PIS (1.65%)" value={fmtCurrency(result.taxPis)} small />
-                    <Row label="COFINS (7.6%)" value={fmtCurrency(result.taxCofins)} small />
-                    <Row label="IRRF (1.5%)" value={fmtCurrency(result.taxIrrf)} small />
-                    <Row label="CSLL (1%)" value={fmtCurrency(result.taxCsll)} small />
+                    <div className="flex justify-between"><span className="text-gray-500">ISS</span><span className="text-gray-300">{fmtCurrency(result.taxIss)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">PIS ({fmtPercent(taxRates.pis)})</span><span className="text-gray-300">{fmtCurrency(result.taxPis)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">COFINS ({fmtPercent(taxRates.cofins)})</span><span className="text-gray-300">{fmtCurrency(result.taxCofins)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">IRRF ({fmtPercent(taxRates.irrf)})</span><span className="text-gray-300">{fmtCurrency(result.taxIrrf)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">CSLL ({fmtPercent(taxRates.csll)})</span><span className="text-gray-300">{fmtCurrency(result.taxCsll)}</span></div>
                     <div className="pt-2 border-t border-white/10">
-                      <Row label="Total Tributos" value={fmtCurrency(result.totalTaxes)} />
+                      <div className="flex justify-between font-bold"><span className="text-gray-400">Total Tributos</span><span className="text-white">{fmtCurrency(result.totalTaxes)}</span></div>
                     </div>
                   </div>
 
@@ -738,7 +755,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                     </div>
 
                     <div className="flex justify-between text-xs text-red-300 px-2">
-                      <span>Retenção IR (1.5%)</span>
+                      <span>Retenção IR ({fmtPercent(taxRates.retentionIR)})</span>
                       <span>- {fmtCurrency(result.retentionIR)}</span>
                     </div>
 
@@ -799,9 +816,10 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                         alert('Erro ao gerar PDF. Verifique console.');
                       }
                     }}
-                    className="w-full py-3 bg-white text-metarh-dark font-bold rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 mt-4"
+                    className="w-full bg-metarh-lime hover:bg-metarh-lime/90 text-metarh-dark font-bold text-lg py-4 rounded-2xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                   >
-                    <FileText size={18} /> Gerar PDF
+                    <FileText size={24} />
+                    Gerar Proposta PDF
                   </button>
                 </div>
               )}
@@ -810,42 +828,19 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
         </div>
       </div>
-      {/* Footer */}
-
     </div>
   );
 };
 
-// --- SUB-COMPONENTS ---
-
-const InputField: React.FC<{ label: string, type: string, value: any, onChange: (val: string) => void }> = ({ label, type, value, onChange }) => (
+// Simple InputField helper
+const InputField = ({ label, type = "text", value, onChange }: any) => (
   <div>
     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{label}</label>
     <input
       type={type}
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full p-3 bg-gray-50 rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-mono"
-    />
-  </div>
-);
-
-const SelectField: React.FC<{ label: string, value: number, onChange: (val: string) => void, options: { label: string, value: number }[] }> = ({ label, value, onChange, options }) => (
-  <div>
-    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{label}</label>
-    <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full p-3 bg-gray-50 rounded-3xl border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none text-sm"
-    >
-      {options.map((opt, i) => <option key={i} value={opt.value}>{opt.label}</option>)}
-    </select>
-  </div>
-);
-
-const Row: React.FC<{ label: string, value: string, highlight?: boolean, small?: boolean }> = ({ label, value, highlight, small }) => (
-  <div className={`flex justify-between ${small ? 'text-gray-400' : highlight ? 'text-white font-bold' : 'text-gray-300'}`}>
-    <span>{label}</span>
-    <span>{value}</span>
+      className="w-full p-2 bg-gray-50 rounded-2xl border border-gray-200 text-sm font-bold"
+    />
   </div>
 );

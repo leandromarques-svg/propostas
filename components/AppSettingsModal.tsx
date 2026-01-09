@@ -12,7 +12,7 @@ interface AppSettingsModalProps {
     onClose: () => void;
 }
 
-type Tab = 'team' | 'general';
+type Tab = 'team' | 'general' | 'encargos' | 'benefits_catalog';
 
 export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState<Tab>('team');
@@ -66,6 +66,26 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                     custom: generalSettings.benefit_options.custom || []
                 };
                 await updateAppSetting('benefit_options', optionsToSave);
+
+                // Save new detailed configurations
+                if (generalSettings.labor_charges_config) {
+                    await updateAppSetting('labor_charges_config', generalSettings.labor_charges_config);
+                }
+                if (generalSettings.general_tax_rates) {
+                    await updateAppSetting('general_tax_rates', generalSettings.general_tax_rates);
+                }
+                if (generalSettings.benefit_options.medical) {
+                    await updateAppSetting('benefit_options_medical', generalSettings.benefit_options.medical);
+                }
+                if (generalSettings.benefit_options.dental) {
+                    await updateAppSetting('benefit_options_dental', generalSettings.benefit_options.dental);
+                }
+                if (generalSettings.benefit_options.wellhub) {
+                    await updateAppSetting('benefit_options_wellhub', generalSettings.benefit_options.wellhub);
+                }
+                if (generalSettings.exam_options_list) {
+                    await updateAppSetting('exam_options_list', generalSettings.exam_options_list);
+                }
             }
             alert('Configurações salvas com sucesso!');
             onClose();
@@ -103,9 +123,21 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                     </button>
                     <button
                         onClick={() => setActiveTab('general')}
-                        className={`py-4 font-bold text-sm transition-colors border-b-2 ${activeTab === 'general' ? 'border-metarh-medium text-metarh-medium' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                        className={`py-4 mr-6 font-bold text-sm transition-colors border-b-2 ${activeTab === 'general' ? 'border-metarh-medium text-metarh-medium' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                     >
                         Parâmetros Gerais
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('encargos')}
+                        className={`py-4 mr-6 font-bold text-sm transition-colors border-b-2 ${activeTab === 'encargos' ? 'border-metarh-medium text-metarh-medium' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        Encargos e Impostos
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('benefits_catalog')}
+                        className={`py-4 font-bold text-sm transition-colors border-b-2 ${activeTab === 'benefits_catalog' ? 'border-metarh-medium text-metarh-medium' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        Catálogo de Benefícios
                     </button>
                 </div>
 
@@ -205,10 +237,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                     <div className="bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
                                         <h3 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2">
                                             <Heart size={20} className="text-yellow-600" />
-                                            Outros Benefícios
+                                            Outros Benefícios (Valores Padrão)
                                         </h3>
-                                        <p className="text-sm text-gray-500 mb-4">Atualize os valores padrão sugeridos na calculadora.</p>
-
                                         <div className="grid md:grid-cols-3 gap-6">
                                             <div>
                                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Vale Transporte (Dia)</label>
@@ -246,8 +276,226 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({ isOpen, onCl
                                                     className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700"
                                                 />
                                             </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Assist. Saúde (Saúde da Gente)</label>
+                                                <input
+                                                    type="number"
+                                                    value={generalSettings.benefit_options.others?.healthCare || 0}
+                                                    onChange={(e) => {
+                                                        const newOthers = { ...generalSettings.benefit_options.others, healthCare: Number(e.target.value) };
+                                                        setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, others: newOthers } });
+                                                    }}
+                                                    className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Seguro de Vida</label>
+                                                <input
+                                                    type="number"
+                                                    value={generalSettings.benefit_options.others?.lifeInsurance || 0}
+                                                    onChange={(e) => {
+                                                        const newOthers = { ...generalSettings.benefit_options.others, lifeInsurance: Number(e.target.value) };
+                                                        setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, others: newOthers } });
+                                                    }}
+                                                    className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Controle de Ponto GPS</label>
+                                                <input
+                                                    type="number"
+                                                    value={generalSettings.benefit_options.others?.gpsPoint || 0}
+                                                    onChange={(e) => {
+                                                        const newOthers = { ...generalSettings.benefit_options.others, gpsPoint: Number(e.target.value) };
+                                                        setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, others: newOthers } });
+                                                    }}
+                                                    className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Auxílio Farmácia</label>
+                                                <input
+                                                    type="number"
+                                                    value={generalSettings.benefit_options.others?.pharmacy || 0}
+                                                    onChange={(e) => {
+                                                        const newOthers = { ...generalSettings.benefit_options.others, pharmacy: Number(e.target.value) };
+                                                        setGeneralSettings({ ...generalSettings, benefit_options: { ...generalSettings.benefit_options, others: newOthers } });
+                                                    }}
+                                                    className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'encargos' && generalSettings.labor_charges_config && (
+                                <div className="space-y-6">
+                                    <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4">Encargos Sociais (Grupo A)</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {Object.entries(generalSettings.labor_charges_config.groupA).map(([key, value]) => (
+                                                <div key={key}>
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{key.replace('_', ' ')}</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="number"
+                                                            value={(Number(value) * 100).toFixed(2)}
+                                                            onChange={(e) => {
+                                                                const newVal = Number(e.target.value) / 100;
+                                                                const newGroupA = { ...generalSettings.labor_charges_config.groupA, [key]: newVal };
+                                                                setGeneralSettings({
+                                                                    ...generalSettings,
+                                                                    labor_charges_config: { ...generalSettings.labor_charges_config, groupA: newGroupA }
+                                                                });
+                                                            }}
+                                                            className="w-full p-2 bg-white rounded-lg border border-gray-200 font-bold"
+                                                            step="0.01"
+                                                        />
+                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4">Encargos Sociais (Grupo B)</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {Object.entries(generalSettings.labor_charges_config.groupB).map(([key, value]) => (
+                                                <div key={key}>
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{key.replace('_', ' ')}</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="number"
+                                                            value={(Number(value) * 100).toFixed(2)}
+                                                            onChange={(e) => {
+                                                                const newVal = Number(e.target.value) / 100;
+                                                                const newGroupB = { ...generalSettings.labor_charges_config.groupB, [key]: newVal };
+                                                                setGeneralSettings({
+                                                                    ...generalSettings,
+                                                                    labor_charges_config: { ...generalSettings.labor_charges_config, groupB: newGroupB }
+                                                                });
+                                                            }}
+                                                            className="w-full p-2 bg-white rounded-lg border border-gray-200 font-bold"
+                                                            step="0.01"
+                                                        />
+                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4">Impostos Federais (Estimativa)</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {Object.entries(generalSettings.general_tax_rates || {}).filter(([k]) => k !== 'issOptions').map(([key, value]) => (
+                                                <div key={key}>
+                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{key.replace('_', ' ')}</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="number"
+                                                            value={(Number(value) * 100).toFixed(2)}
+                                                            onChange={(e) => {
+                                                                const newVal = Number(e.target.value) / 100;
+                                                                setGeneralSettings({
+                                                                    ...generalSettings,
+                                                                    general_tax_rates: { ...generalSettings.general_tax_rates, [key]: newVal }
+                                                                });
+                                                            }}
+                                                            className="w-full p-2 bg-white rounded-lg border border-gray-200 font-bold"
+                                                            step="0.01"
+                                                        />
+                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'benefits_catalog' && (
+                                <div className="space-y-6">
+                                    {/* Medical Plans */}
+                                    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4">Planos Médicos</h3>
+                                        <textarea
+                                            rows={10}
+                                            value={JSON.stringify(generalSettings.benefit_options.medical, null, 2)}
+                                            onChange={(e) => {
+                                                try {
+                                                    const parsed = JSON.parse(e.target.value);
+                                                    setGeneralSettings({
+                                                        ...generalSettings,
+                                                        benefit_options: { ...generalSettings.benefit_options, medical: parsed }
+                                                    });
+                                                } catch (err) { }
+                                            }}
+                                            className="w-full p-4 bg-gray-50 rounded-xl font-mono text-xs border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none"
+                                        />
+                                        <p className="text-xs text-gray-400 mt-2">Edite no formato JSON. Cuidado com a sintaxe.</p>
+                                    </div>
+
+                                    {/* Dental Plans */}
+                                    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4">Planos Odontológicos</h3>
+                                        <textarea
+                                            rows={6}
+                                            value={JSON.stringify(generalSettings.benefit_options.dental, null, 2)}
+                                            onChange={(e) => {
+                                                try {
+                                                    const parsed = JSON.parse(e.target.value);
+                                                    setGeneralSettings({
+                                                        ...generalSettings,
+                                                        benefit_options: { ...generalSettings.benefit_options, dental: parsed }
+                                                    });
+                                                } catch (err) { }
+                                            }}
+                                            className="w-full p-4 bg-gray-50 rounded-xl font-mono text-xs border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none"
+                                        />
+                                    </div>
+
+                                    {/* Wellhub/Gympass */}
+                                    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                                        <h3 className="text-lg font-bold text-metarh-dark mb-4">Planos Wellhub (Gympass)</h3>
+                                        <textarea
+                                            rows={10}
+                                            value={JSON.stringify(generalSettings.benefit_options.wellhub, null, 2)}
+                                            onChange={(e) => {
+                                                try {
+                                                    const parsed = JSON.parse(e.target.value);
+                                                    setGeneralSettings({
+                                                        ...generalSettings,
+                                                        benefit_options: { ...generalSettings.benefit_options, wellhub: parsed }
+                                                    });
+                                                } catch (err) { }
+                                            }}
+                                            className="w-full p-4 bg-gray-50 rounded-xl font-mono text-xs border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none"
+                                        />
+                                    </div>
+
+                                    {/* Exam Options */}
+                                    {generalSettings.exam_options_list && (
+                                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                                            <h3 className="text-lg font-bold text-metarh-dark mb-4">Catálogo de Exames</h3>
+                                            <textarea
+                                                rows={6}
+                                                value={JSON.stringify(generalSettings.exam_options_list, null, 2)}
+                                                onChange={(e) => {
+                                                    try {
+                                                        const parsed = JSON.parse(e.target.value);
+                                                        setGeneralSettings({
+                                                            ...generalSettings,
+                                                            exam_options_list: parsed
+                                                        });
+                                                    } catch (err) { }
+                                                }}
+                                                className="w-full p-4 bg-gray-50 rounded-xl font-mono text-xs border border-gray-200 focus:ring-2 focus:ring-metarh-medium outline-none"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

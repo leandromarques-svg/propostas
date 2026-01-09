@@ -64,7 +64,8 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       linkedin: '',
       bio: '',
       avatarUrl: '',
-      isAdmin: false
+      isAdmin: false,
+      canUseCalculator: false
     });
     setShowPassword(true);
   };
@@ -239,16 +240,29 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                   <input name="bio" value={formData.bio || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-metarh-medium outline-none" />
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    name="isAdmin"
-                    id="isAdmin"
-                    checked={formData.isAdmin || false}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-metarh-medium rounded focus:ring-metarh-medium"
-                  />
-                  <label htmlFor="isAdmin" className="text-sm font-bold text-gray-700">Conceder acesso de Administrador (Master)</label>
+                <div className="flex items-center gap-4 pt-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="isAdmin"
+                      id="isAdmin"
+                      checked={formData.isAdmin || false}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-metarh-medium rounded focus:ring-metarh-medium"
+                    />
+                    <label htmlFor="isAdmin" className="text-sm font-bold text-gray-700">Administrador (Master)</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="canUseCalculator"
+                      id="canUseCalculator"
+                      checked={formData.canUseCalculator || false}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-metarh-medium rounded focus:ring-metarh-medium"
+                    />
+                    <label htmlFor="canUseCalculator" className="text-sm font-bold text-gray-700">Pode usar Calculadora</label>
+                  </div>
                 </div>
 
                 <div className="pt-6 border-t border-gray-100 flex justify-end gap-3">

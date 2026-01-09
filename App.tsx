@@ -233,52 +233,56 @@ const App: React.FC = () => {
             </span>
           </button>
           <div className="relative">
-            <button
-              onClick={() => setShowCalculatorMenu(!showCalculatorMenu)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'calculator' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
-            >
-              <span className="flex items-center gap-2">
-                <Calculator size={18} />
-                <span className="hidden sm:inline">Calculadoras</span>
-                <ChevronDown size={14} className={`transition-transform ${showCalculatorMenu ? 'rotate-180' : ''}`} />
-              </span>
-            </button>
-            {showCalculatorMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden min-w-[200px] z-50">
+            {currentUser.canUseCalculator && (
+              <>
                 <button
-                  onClick={() => {
-                    setView('calculator');
-                    setActiveCalculator('pricing');
-                    setShowCalculatorMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2"
+                  onClick={() => setShowCalculatorMenu(!showCalculatorMenu)}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'calculator' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
                 >
-                  <Calculator size={16} />
-                  Calculadora de Projetos
+                  <span className="flex items-center gap-2">
+                    <Calculator size={18} />
+                    <span className="hidden sm:inline">Calculadoras</span>
+                    <ChevronDown size={14} className={`transition-transform ${showCalculatorMenu ? 'rotate-180' : ''}`} />
+                  </span>
                 </button>
-                <button
-                  onClick={() => {
-                    setView('calculator');
-                    setActiveCalculator('labor');
-                    setShowCalculatorMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
-                >
-                  <Users size={16} />
-                  Gestão de Mão de Obra
-                </button>
-                <button
-                  onClick={() => {
-                    setView('calculator');
-                    setActiveCalculator('trilhando');
-                    setShowCalculatorMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
-                >
-                  <Sparkles size={16} />
-                  Calculadora Trilhando+
-                </button>
-              </div>
+                {showCalculatorMenu && (
+                  <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden min-w-[200px] z-50">
+                    <button
+                      onClick={() => {
+                        setView('calculator');
+                        setActiveCalculator('pricing');
+                        setShowCalculatorMenu(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2"
+                    >
+                      <Calculator size={16} />
+                      Calculadora de Projetos
+                    </button>
+                    <button
+                      onClick={() => {
+                        setView('calculator');
+                        setActiveCalculator('labor');
+                        setShowCalculatorMenu(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
+                    >
+                      <Users size={16} />
+                      Gestão de Mão de Obra
+                    </button>
+                    <button
+                      onClick={() => {
+                        setView('calculator');
+                        setActiveCalculator('trilhando');
+                        setShowCalculatorMenu(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
+                    >
+                      <Sparkles size={16} />
+                      Calculadora Trilhando+
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </nav>

@@ -51,6 +51,7 @@ export interface User {
   linkedin: string;
   avatarUrl?: string;
   isAdmin?: boolean; // Master user flag
+  canUseCalculator?: boolean; // Permissão para usar calculadora
 }
 
 // --- PROPOSAL LAYOUT TYPES ---

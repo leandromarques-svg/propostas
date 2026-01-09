@@ -39,8 +39,8 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
             return { posts: [], total: 0 };
         }
 
-        // Fetch posts from the Solution Category
-        const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=20&_embed`;
+        // Fetch posts that have BOTH the solution category and the funnel stage category
+        const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId},${stageId}&per_page=20&_embed`;
         console.log(`[WordPress] API URL: ${url}`);
 
         const response = await fetch(url);
@@ -50,20 +50,12 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         }
 
         const posts: any[] = await response.json();
-        console.log(`[WordPress] Received ${posts.length} posts from category ${categoryId}`);
+        console.log(`[WordPress] Received ${posts.length} posts from categories ${categoryId},${stageId}`);
 
-        // Client-side filtering
-        const filteredPosts = posts.filter((post: any) => {
-            const postCategories = post.categories || [];
-            return postCategories.includes(stageId);
-        });
-
-        console.log(`[WordPress] Filtered to ${filteredPosts.length} posts with both categories`);
-
-        // Return all filtered posts and total count
+        // Não precisa filtrar client-side, a API já retorna só os posts corretos
         return {
-            posts: filteredPosts,
-            total: filteredPosts.length
+            posts: posts,
+            total: posts.length
         };
     } catch (error) {
         console.error('[WordPress] Error fetching blog posts:', error);

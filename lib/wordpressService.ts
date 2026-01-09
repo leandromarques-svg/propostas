@@ -43,7 +43,7 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         // Then we filter locally for the funnel stage.
         // Fetching by 'categories=A,B' (OR logic) causes the response to be flooded by the broad funnel category,
         // pushing the specific solution posts out of the page limit.
-        const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=40&_embed`;
+        const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=100&_embed`;
         // console.log(`[WordPress] API URL: ${url}`);
 
         const response = await fetch(url);
@@ -64,7 +64,7 @@ export const getBlogPosts = async (solutionPackage: string, funnelStage: 'topo' 
         // console.log(`[WordPress] After filtering for ${funnelStage} (ID: ${stageId}): ${filteredPosts.length} posts`);
 
         return {
-            posts: filteredPosts.slice(0, 6), // Limit to 6 posts for display
+            posts: filteredPosts, // Return all matching posts
             total: filteredPosts.length
         };
     } catch (error) {

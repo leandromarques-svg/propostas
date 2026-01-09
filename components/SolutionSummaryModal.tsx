@@ -200,27 +200,32 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                         </span>
                                     </h4>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-2 px-2 custom-scrollbar">
                                         {blogPosts.topo.posts.length > 0 ? (
                                             blogPosts.topo.posts.map((post) => (
-                                                <a
-                                                    key={post.id}
-                                                    href={post.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group flex flex-col h-full"
-                                                >
-                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors text-sm line-clamp-2">
-                                                        <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                                    </h5>
-                                                    <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
-                                                    <div className="mt-2 text-[10px] text-gray-400">
-                                                        Categorias do post: {post.categories && post.categories.join(', ')}
-                                                    </div>
-                                                </a>
+                                                <div key={post.id} className="snap-center shrink-0 w-80">
+                                                    <a
+                                                        href={post.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group flex flex-col h-full h-[280px]"
+                                                    >
+                                                        <h5 className="font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors text-sm line-clamp-2 min-h-[40px]">
+                                                            <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+                                                        </h5>
+                                                        <div className="flex-1 overflow-hidden relative">
+                                                            <p className="text-xs text-gray-500 line-clamp-6" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                            <div className="absolute bottom-0 w-full h-8 bg-gradient-to-t from-white to-transparent"></div>
+                                                        </div>
+                                                        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
+                                                            <span className="text-[10px] text-gray-400 font-medium">Ler artigo completo</span>
+                                                            <ExternalLink size={12} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </div>
+                                                    </a>
+                                                </div>
                                             ))
                                         ) : (
-                                            <div className="col-span-full w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                            <div className="w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center shrink-0">
                                                 <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
                                                 <p className="text-xs text-gray-300 mt-1">Topo de funil zerado</p>
                                             </div>
@@ -238,24 +243,32 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                         </span>
                                     </h4>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-2 px-2 custom-scrollbar">
                                         {blogPosts.meio.posts.length > 0 ? (
                                             blogPosts.meio.posts.map((post) => (
-                                                <a
-                                                    key={post.id}
-                                                    href={post.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-4 bg-white border border-gray-200 rounded-xl hover:border-yellow-300 hover:shadow-md transition-all group flex flex-col h-full"
-                                                >
-                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors text-sm line-clamp-2">
-                                                        <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                                    </h5>
-                                                    <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
-                                                </a>
+                                                <div key={post.id} className="snap-center shrink-0 w-80">
+                                                    <a
+                                                        href={post.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-4 bg-white border border-gray-200 rounded-xl hover:border-yellow-300 hover:shadow-md transition-all group flex flex-col h-full h-[280px]"
+                                                    >
+                                                        <h5 className="font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors text-sm line-clamp-2 min-h-[40px]">
+                                                            <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+                                                        </h5>
+                                                        <div className="flex-1 overflow-hidden relative">
+                                                            <p className="text-xs text-gray-500 line-clamp-6" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                            <div className="absolute bottom-0 w-full h-8 bg-gradient-to-t from-white to-transparent"></div>
+                                                        </div>
+                                                        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
+                                                            <span className="text-[10px] text-gray-400 font-medium">Ler artigo completo</span>
+                                                            <ExternalLink size={12} className="text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </div>
+                                                    </a>
+                                                </div>
                                             ))
                                         ) : (
-                                            <div className="col-span-full w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                            <div className="w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center shrink-0">
                                                 <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
                                                 <p className="text-xs text-gray-300 mt-1">Meio de funil zerado</p>
                                             </div>
@@ -273,24 +286,32 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                                         </span>
                                     </h4>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-2 px-2 custom-scrollbar">
                                         {blogPosts.fundo.posts.length > 0 ? (
                                             blogPosts.fundo.posts.map((post) => (
-                                                <a
-                                                    key={post.id}
-                                                    href={post.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-4 bg-white border border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all group flex flex-col h-full"
-                                                >
-                                                    <h5 className="font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors text-sm line-clamp-2">
-                                                        <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                                                    </h5>
-                                                    <p className="text-xs text-gray-500 line-clamp-3 flex-1" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
-                                                </a>
+                                                <div key={post.id} className="snap-center shrink-0 w-80">
+                                                    <a
+                                                        href={post.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-4 bg-white border border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all group flex flex-col h-full h-[280px]"
+                                                    >
+                                                        <h5 className="font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors text-sm line-clamp-2 min-h-[40px]">
+                                                            <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+                                                        </h5>
+                                                        <div className="flex-1 overflow-hidden relative">
+                                                            <p className="text-xs text-gray-500 line-clamp-6" dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
+                                                            <div className="absolute bottom-0 w-full h-8 bg-gradient-to-t from-white to-transparent"></div>
+                                                        </div>
+                                                        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
+                                                            <span className="text-[10px] text-gray-400 font-medium">Ler artigo completo</span>
+                                                            <ExternalLink size={12} className="text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </div>
+                                                    </a>
+                                                </div>
                                             ))
                                         ) : (
-                                            <div className="col-span-full w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center">
+                                            <div className="w-full p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center h-32 flex flex-col items-center justify-center shrink-0">
                                                 <p className="text-sm text-gray-400 font-medium">Nenhum conteúdo</p>
                                                 <p className="text-xs text-gray-300 mt-1">Fundo de funil zerado</p>
                                             </div>

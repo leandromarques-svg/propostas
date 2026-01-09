@@ -22,7 +22,8 @@ export async function getUsers(): Promise<User[]> {
         linkedin: p.linkedin,
         bio: p.bio,
         avatarUrl: p.avatar_url,
-        isAdmin: p.is_admin
+        isAdmin: p.is_admin,
+        canUseCalculator: p.can_use_calculator
     }));
 }
 
@@ -38,7 +39,8 @@ export async function saveUser(user: User | Omit<User, 'id'>): Promise<User | nu
         linkedin: user.linkedin,
         bio: user.bio,
         avatar_url: user.avatarUrl,
-        is_admin: user.isAdmin
+        is_admin: user.isAdmin,
+        can_use_calculator: user.canUseCalculator
     };
 
     console.log('Saving user profile:', profile);
@@ -67,7 +69,8 @@ export async function saveUser(user: User | Omit<User, 'id'>): Promise<User | nu
         linkedin: data.linkedin,
         bio: data.bio,
         avatarUrl: data.avatar_url,
-        isAdmin: data.is_admin
+        isAdmin: data.is_admin,
+        canUseCalculator: data.can_use_calculator
     };
 }
 

@@ -52,7 +52,7 @@ export interface User {
   avatarUrl?: string;
   isAdmin?: boolean; // Master user flag
   canUseCalculator?: boolean; // Permissão para usar calculadora
-  customPresentationUrl?: string; // Link para apresentação personalizada
+  customPresentationUrls?: Record<string, string>; // Links para apresentações personalizadas por solução
 }
 
 // --- PROPOSAL LAYOUT TYPES ---

@@ -501,12 +501,25 @@ const App: React.FC = () => {
               <div className="relative z-10 flex items-center gap-8">
                 {/* Text and Search - Left Side */}
                 <div className="flex-1 max-w-3xl">
-                  <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                    Vamos construir uma proposta incrível hoje, <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>?
-                  </h1>
-                  <p className="text-lg text-purple-100 mb-6">
-                    Explore nossa <strong style={{ color: '#c9f545' }}>árvore de soluções</strong> e personalize cada item para criar propostas exclusivas para nossos clientes.
-                  </p>
+                  {!(currentUser.isAdmin || currentUser.canUseCalculator) ? (
+                    <>
+                      <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                        Bem-vindo, <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>!
+                      </h1>
+                      <p className="text-lg text-purple-100 mb-6">
+                        Conheça nossas <strong style={{ color: '#c9f545' }}>soluções e serviços</strong> explorando a árvore de soluções. Descubra como cada opção pode transformar resultados para nossos clientes.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                        Vamos construir uma proposta incrível hoje, <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>?
+                      </h1>
+                      <p className="text-lg text-purple-100 mb-6">
+                        Explore nossa <strong style={{ color: '#c9f545' }}>árvore de soluções</strong> e personalize cada item para criar propostas exclusivas para nossos clientes.
+                      </p>
+                    </>
+                  )}
 
                   {/* Search Bar */}
                   <div className="relative">

@@ -2,9 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { User, QuizResult, SolutionData } from '../types';
 import { SOLUTIONS_DATA } from '../constants';
 import { generateQuiz, Question } from './QuizGenerator';
-import { Trophy, CheckCircle, XCircle, Brain, ArrowRight, Play, RotateCcw, Save } from 'lucide-react';
+import { Trophy, CheckCircle, XCircle, Brain, ArrowRight, Play, RotateCcw, Save, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Layers, Flame, Medal } from 'lucide-react';
 import { saveUser } from './lib/userService';
 
+// Helper for Icons
+const PackageIcon: React.FC<{ name: string; className?: string; size?: number }> = ({ name, className, size }) => {
+    switch (name) {
+        case 'Business': return <Briefcase className={className} size={size} />;
+        case 'Pharma Recruiter': return <Stethoscope className={className} size={size} />;
+        case 'Staffing': return <Users className={className} size={size} />;
+        case 'Talent': return <Star className={className} size={size} />;
+        case 'Tech Recruiter': return <Cpu className={className} size={size} />;
+        case 'Trilhando +': return <Map className={className} size={size} />;
+        case 'Varejo Pro': return <Store className={className} size={size} />;
+        default: return <Layers className={className} size={size} />;
+    }
+};
 interface QuizViewProps {
     user: User;
     onUpdateUser: (user: User) => void;
@@ -12,6 +25,7 @@ interface QuizViewProps {
 }
 
 type QuizState = 'intro' | 'playing' | 'result';
+
 
 export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }) => {
     const [gameState, setGameState] = useState<QuizState>('intro');
@@ -29,7 +43,9 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
 
     const startQuiz = (pkgFilter: string | null) => {
         setSelectedPackage(pkgFilter);
-        const newQuestions = generateQuiz(SOLUTIONS_DATA, 5, pkgFilter);
+        // Mixed mode gets 10 questions, specific gets 5
+        const questionCount = pkgFilter ? 5 : 10;
+        const newQuestions = generateQuiz(SOLUTIONS_DATA, questionCount, pkgFilter);
         setQuestions(newQuestions);
         setCurrentQuestionIndex(0);
         setScore(0);
@@ -49,8 +65,10 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
         const isCorrect = option === currentQ.correctAnswer;
 
         if (isCorrect) {
-            setScore(s => s + 100);
-            setFeedbackMessage('Correto! Mandou bem.');
+            // Mixed mode gets double points (200), specific gets normal (100)
+            const points = selectedPackage ? 100 : 200;
+            setScore(s => s + points);
+            setFeedbackMessage(selectedPackage ? 'Correto! Mandou bem.' : 'Excelente! Pontuação dupla no desafio!');
         } else {
             setFeedbackMessage(`Ops! A resposta certa era: ${currentQ.correctAnswer}`);
             // Add topic to review list if unique
@@ -132,28 +150,47 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                     </div>
 
                     <div className="mb-8">
-                        <h3 className="text-lg font-bold text-gray-700 mb-4">Escolha o desafio:</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {/* General Button */}
-                            <button
-                                onClick={() => startQuiz(null)}
-                                className="p-4 rounded-xl border-2 border-purple-100 hover:border-purple-500 hover:bg-purple-50 transition-all group flex flex-col items-center gap-2"
-                            >
-                                <Trophy className="text-purple-400 group-hover:text-purple-600" size={32} />
-                                <span className="font-bold text-gray-700 group-hover:text-purple-700">Geral (Misto)</span>
-                                <span className="text-xs text-gray-400">Todas as soluções</span>
-                            </button>
+                        <h3 className="text-xl font-bold text-gray-700 mb-6 font-barlow">Escolha o seu desafio:</h3>
 
-                            {packages.map(pkg => (
-                                <button
-                                    key={pkg}
-                                    onClick={() => startQuiz(pkg)}
-                                    className="p-4 rounded-xl border-2 border-gray-100 hover:border-metarh-medium hover:bg-purple-50/50 transition-all group flex flex-col items-center gap-2"
-                                >
-                                    <span className="font-bold text-gray-700 group-hover:text-metarh-medium">{pkg}</span>
-                                    <span className="text-xs text-gray-400">Solução Específica</span>
-                                </button>
-                            ))}
+                        <div className="flex flex-col gap-8">
+                            {/* Hard Mode / Mixed */}
+                            <div className="bg-gradient-to-r from-gray-900 to-purple-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all cursor-pointer border-2 border-transparent hover:border-yellow-400" onClick={() => startQuiz(null)}>
+                                <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                                    <div className="bg-yellow-400/20 p-6 rounded-full">
+                                        <Flame size={48} className="text-yellow-400 animate-pulse" />
+                                    </div>
+                                    <div className="flex-1 text-center md:text-left">
+                                        <h4 className="text-2xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-2">
+                                            Desafio Supremo <span className="bg-yellow-400 text-black text-xs px-2 py-1 rounded font-bold uppercase">Hard Mode</span>
+                                        </h4>
+                                        <p className="text-purple-200 mb-2">Todas as soluções misturadas. 10 perguntas. Pontuação Dupla.</p>
+                                        <p className="text-yellow-300 font-bold text-sm italic">"Só joga esse quem não tem medo de desafios!"</p>
+                                    </div>
+                                    <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold transition-all whitespace-nowrap">
+                                        Aceitar Desafio
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Specific Solutions Grid */}
+                            <div>
+                                <h4 className="text-lg font-bold text-gray-500 mb-4 uppercase tracking-wider text-center md:text-left">Treinar Solução Específica</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {packages.map(pkg => (
+                                        <button
+                                            key={pkg}
+                                            onClick={() => startQuiz(pkg)}
+                                            className="p-6 rounded-2xl border-2 border-gray-100 hover:border-metarh-medium/50 hover:bg-purple-50 hover:shadow-lg transition-all group flex flex-col items-center gap-4 bg-white"
+                                        >
+                                            <div className="w-12 h-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-metarh-medium group-hover:text-white flex items-center justify-center transition-colors">
+                                                <PackageIcon name={pkg} size={24} />
+                                            </div>
+                                            <span className="font-bold text-gray-700 group-hover:text-metarh-medium text-center leading-tight">{pkg}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -250,7 +287,11 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
 
     // Result State
     if (gameState === 'result') {
-        const isWin = score >= 300; // 3/5 correct
+        const isMixedMode = selectedPackage === null;
+        // Determine "Win" condition: 60% standard
+        const totalPossibleScore = questions.length * (isMixedMode ? 200 : 100);
+        const percentage = (score / totalPossibleScore) * 100;
+        const isWin = percentage >= 60;
 
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 min-h-[600px] font-barlow">
@@ -269,7 +310,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                     </div>
 
                     <h2 className="text-4xl font-bold text-gray-800 mb-2">
-                        {isWin ? 'Mandou muito bem!' : 'Bom esforço!'}
+                        {isWin ? (isMixedMode ? 'Lendário! Você destruiu!' : 'Mandou muito bem!') : 'Bom esforço!'}
                     </h2>
                     <p className="text-gray-500 mb-8">
                         Você completou o quiz. Confira seu desempenho abaixo.
@@ -279,7 +320,9 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                         {score}
                         <span className="text-2xl text-gray-400 font-medium ml-2">pts</span>
                     </div>
-                    <p className="text-gray-400 uppercase font-bold tracking-widest text-sm mb-12">Pontuação Final</p>
+                    {isMixedMode && <div className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full mb-8">PONTUAÇÃO DOBRADA</div>}
+
+                    <p className="text-gray-400 uppercase font-bold tracking-widest text-sm mb-12">Pontuação Final ({percentage.toFixed(0)}%)</p>
 
                     {topicsToReview.length > 0 && (
                         <div className="bg-orange-50 rounded-2xl p-6 mb-8 text-left border border-orange-100">

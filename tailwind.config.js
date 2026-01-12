@@ -19,6 +19,7 @@ export default {
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
+                barlow: ['Barlow', 'sans-serif'],
             }
         },
     },

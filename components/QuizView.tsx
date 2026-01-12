@@ -23,9 +23,13 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
     const [topicsToReview, setTopicsToReview] = useState<string[]>([]);
     const [feedbackMessage, setFeedbackMessage] = useState<string>('');
     const [history, setHistory] = useState<QuizResult[]>(user.quizHistory || []);
+    // New state for mode selection
+    const [selectedPackage, setSelectedPackage] = useState<string | null>(null); // null = 'Geral'
 
-    const startQuiz = () => {
-        const newQuestions = generateQuiz(SOLUTIONS_DATA, 5);
+
+    const startQuiz = (pkgFilter: string | null) => {
+        setSelectedPackage(pkgFilter);
+        const newQuestions = generateQuiz(SOLUTIONS_DATA, 5, pkgFilter);
         setQuestions(newQuestions);
         setCurrentQuestionIndex(0);
         setScore(0);
@@ -97,9 +101,12 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
         const bestScore = history.reduce((max, h) => Math.max(max, h.score), 0);
         const totalGames = history.length;
 
+        // Get unique packages for selection
+        const packages = Array.from(new Set(SOLUTIONS_DATA.map(s => s.solutionPackage))).sort();
+
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 min-h-[600px]">
-                <div className="max-w-2xl w-full bg-white rounded-[3rem] p-12 shadow-xl text-center relative overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 min-h-[600px] font-barlow">
+                <div className="max-w-4xl w-full bg-white rounded-[3rem] p-12 shadow-xl text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
 
                     <div className="flex justify-center mb-8">
@@ -108,29 +115,47 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                         </div>
                     </div>
 
-                    <h1 className="text-4xl font-bold text-gray-800 mb-4">Quiz de Soluções</h1>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-4 font-barlow">Desafio de Serviços METARH</h1>
                     <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
-                        Teste seus conhecimentos sobre as soluções da METARH, ganhe pontos e torne-se um especialista!
+                        Teste seus conhecimentos, ganhe pontos e domine nossas soluções! Escolha um modo para começar:
                     </p>
 
                     <div className="grid grid-cols-2 gap-6 mb-10 max-w-md mx-auto">
                         <div className="bg-purple-50 rounded-2xl p-4">
-                            <p className="text-sm text-purple-600 font-bold uppercase tracking-wider">Melhor Pontuação</p>
+                            <p className="text-sm text-purple-600 font-bold uppercase tracking-wider">Recorde</p>
                             <p className="text-3xl font-bold text-gray-800">{bestScore}</p>
                         </div>
                         <div className="bg-pink-50 rounded-2xl p-4">
-                            <p className="text-sm text-pink-600 font-bold uppercase tracking-wider">Partidas Jogadas</p>
+                            <p className="text-sm text-pink-600 font-bold uppercase tracking-wider">Jogos</p>
                             <p className="text-3xl font-bold text-gray-800">{totalGames}</p>
                         </div>
                     </div>
 
-                    <button
-                        onClick={startQuiz}
-                        className="group relative inline-flex items-center justify-center px-12 py-4 text-lg font-bold text-white transition-all duration-200 bg-purple-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 hover:bg-purple-700 hover:scale-105"
-                    >
-                        Começar Desafio
-                        <Play className="ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
+                    <div className="mb-8">
+                        <h3 className="text-lg font-bold text-gray-700 mb-4">Escolha o desafio:</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {/* General Button */}
+                            <button
+                                onClick={() => startQuiz(null)}
+                                className="p-4 rounded-xl border-2 border-purple-100 hover:border-purple-500 hover:bg-purple-50 transition-all group flex flex-col items-center gap-2"
+                            >
+                                <Trophy className="text-purple-400 group-hover:text-purple-600" size={32} />
+                                <span className="font-bold text-gray-700 group-hover:text-purple-700">Geral (Misto)</span>
+                                <span className="text-xs text-gray-400">Todas as soluções</span>
+                            </button>
+
+                            {packages.map(pkg => (
+                                <button
+                                    key={pkg}
+                                    onClick={() => startQuiz(pkg)}
+                                    className="p-4 rounded-xl border-2 border-gray-100 hover:border-metarh-medium hover:bg-purple-50/50 transition-all group flex flex-col items-center gap-2"
+                                >
+                                    <span className="font-bold text-gray-700 group-hover:text-metarh-medium">{pkg}</span>
+                                    <span className="text-xs text-gray-400">Solução Específica</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -140,8 +165,9 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
         const currentQ = questions[currentQuestionIndex];
         const progress = ((currentQuestionIndex) / questions.length) * 100;
 
+
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-gray-50">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-gray-50 font-barlow">
                 <div className="w-full max-w-3xl">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
@@ -227,7 +253,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
         const isWin = score >= 300; // 3/5 correct
 
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 min-h-[600px]">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 min-h-[600px] font-barlow">
                 <div className="max-w-2xl w-full bg-white rounded-[3rem] p-12 shadow-xl text-center">
 
                     <div className="mb-6 inline-block">
@@ -279,7 +305,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                             Voltar ao Catálogo
                         </button>
                         <button
-                            onClick={startQuiz}
+                            onClick={() => startQuiz(selectedPackage)}
                             className="px-6 py-3 bg-purple-600 text-white rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:bg-purple-700 hover:scale-105 transition-all flex items-center gap-2"
                         >
                             <RotateCcw size={18} /> Jogar Novamente

@@ -16,7 +16,8 @@ import { TrilhandoPlusCalculator } from './components/TrilhandoPlusCalculator';
 import { getUsers, saveUser, deleteUser } from './components/lib/userService';
 import { SupabaseStatus } from './components/SupabaseStatus';
 import { AppSettingsModal } from './components/AppSettingsModal';
-import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight, Sparkles } from 'lucide-react';
+import { QuizView } from './components/QuizView';
+import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight, Sparkles, GraduationCap } from 'lucide-react';
 import { Footer } from './components/Footer';
 
 // Package Themes Helper
@@ -68,7 +69,7 @@ const App: React.FC = () => {
   const [isLoginExiting, setIsLoginExiting] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-  const [view, setView] = useState<ViewState>('catalog');
+  const [view, setView] = useState<ViewState | 'quiz'>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
   // const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
   const [selectedSolution, setSelectedSolution] = useState<SolutionData | null>(null);
@@ -79,7 +80,7 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
-  // const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [isAppSettingsModalOpen, setIsAppSettingsModalOpen] = useState(false);
   const [selectedSummaryPackage, setSelectedSummaryPackage] = useState<string | null>(null);
   const [viewPackageSummary, setViewPackageSummary] = useState<string | null>(null);
@@ -242,6 +243,17 @@ const App: React.FC = () => {
               <span className="hidden sm:inline">Catálogo</span>
             </span>
           </button>
+
+          <button
+            onClick={() => setView('quiz')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'quiz' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
+          >
+            <span className="flex items-center gap-2">
+              <GraduationCap size={18} />
+              <span className="hidden sm:inline">Quiz</span>
+            </span>
+          </button>
+
           <div className="relative">
             {(currentUser.isAdmin || currentUser.canUseCalculator) && (
               <>
@@ -469,6 +481,25 @@ const App: React.FC = () => {
     //   </div>
     // );
   }
+
+  if (view === 'quiz') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
+        {renderHeader()}
+        <QuizView
+          user={currentUser}
+          onUpdateUser={async (updatedUser) => {
+            setCurrentUser(updatedUser);
+            // Also update in allUsers list locally
+            setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+          }}
+          onBack={() => setView('catalog')}
+        />
+        <Footer className="" />
+      </div>
+    );
+  }
+
 
   // Temporarily disabled - Layout Editor
   /*

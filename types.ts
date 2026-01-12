@@ -53,6 +53,15 @@ export interface User {
   isAdmin?: boolean; // Master user flag
   canUseCalculator?: boolean; // Permissão para usar calculadora
   customPresentationUrls?: Record<string, string>; // Links para apresentações personalizadas por solução
+  quizHistory?: QuizResult[]; // Histórico de resultados do Quiz
+}
+
+export interface QuizResult {
+  id: string;
+  date: string;
+  score: number;
+  totalQuestions: number;
+  topicsToReview: string[]; // IDs/Names of solutions identifying weak spots
 }
 
 // --- PROPOSAL LAYOUT TYPES ---

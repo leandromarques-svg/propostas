@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { X, UserPlus, Edit, Trash2, Shield, Save, Loader2 } from 'lucide-react';
+import { X, UserPlus, Edit, Trash2, Shield, Save, Loader2, RotateCcw } from 'lucide-react';
 import { getUsers, saveUser, deleteUser, UserProfile } from './lib/userService';
 
 interface UserManagementModalProps {
@@ -113,6 +113,35 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     }
   };
 
+  const handleResetQuiz = async () => {
+    if (!editingId || editingId === 'new') return;
+
+    if (confirm(`Tem certeza que deseja ZERAR todo o histórico e pontos do Quiz para o usuário ${formData.name}? Esta ação não pode ser desfeita.`)) {
+      setIsLoading(true);
+      try {
+        const currentUserData = userList.find(u => u.id === editingId);
+        if (!currentUserData) return;
+
+        // @ts-ignore
+        const updatedUser = { ...currentUserData, ...formData, quizHistory: [] };
+
+        // @ts-ignore
+        await saveUser(updatedUser);
+
+        setFormData(prev => ({ ...prev, quizHistory: [] }));
+        await loadUsers();
+        onUpdateUser(updatedUser as User);
+
+        alert('Histórico do Quiz zerado com sucesso!');
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao zerar histórico.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     // @ts-ignore
@@ -182,13 +211,29 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                   <h3 className="text-xl font-bold text-gray-800">
                     {editingId === 'new' ? 'Criar Novo Usuário' : 'Editar Usuário'}
                   </h3>
-                  {editingId !== 'new' && editingId !== currentUser.id && (
-                    <button
-                      onClick={() => handleDelete(editingId)}
-                      className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                    >
-                      <Trash2 size={16} /> Excluir
-                    </button>
+
+                  {editingId !== 'new' && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleResetQuiz}
+                        className="text-orange-500 hover:bg-orange-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                        title="Zerar pontos e histórico do Quiz"
+                      >
+                        <RotateCcw size={16} /> Zerar Quiz
+                      </button>
+
+                      {editingId !== currentUser.id && (
+                        <>
+                          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+                          <button
+                            onClick={() => handleDelete(editingId)}
+                            className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                          >
+                            <Trash2 size={16} /> Excluir
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
 

@@ -265,10 +265,20 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                             <div className="mt-8 pt-6 border-t border-gray-100 animate-fade-in">
                                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                                     <div>
-                                        <p className={`font-bold ${selectedOption === currentQ.correctAnswer ? 'text-green-600' : 'text-red-500'}`}>
+                                        <p className={`font-bold text-lg ${selectedOption === currentQ.correctAnswer ? 'text-green-600' : 'text-red-500'}`}>
                                             {feedbackMessage}
                                         </p>
-                                        <p className="text-gray-500 text-sm mt-1">{currentQ.explanation}</p>
+                                        <div className="text-gray-600 text-sm mt-2 leading-relaxed bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                            {currentQ.explanation.split('\n').map((line, i) => (
+                                                <p key={i} className="mb-1">
+                                                    {line.split(/(\*\*.*?\*\*)/).map((part, j) =>
+                                                        part.startsWith('**') && part.endsWith('**')
+                                                            ? <strong key={j} className="text-gray-800">{part.slice(2, -2)}</strong>
+                                                            : part
+                                                    )}
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
                                     <button
                                         onClick={nextQuestion}

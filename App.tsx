@@ -577,24 +577,40 @@ const App: React.FC = () => {
                     <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400" size={24} />
                   </div>
 
-                  {/* Institutional Presentation Button */}
-                  <div className="mt-4">
+                  {/* Institutional Presentation Button - Enhanced */}
+                  <div className="mt-6">
                     <button
                       onClick={() => {
                         const url = currentUser.customPresentationUrls?.['Institucional'] ||
                           'https://metarh.com.br/wp-content/uploads/apresentacoes/METARH_Institucional.pdf';
                         window.open(url, '_blank');
                       }}
-                      className="group flex items-center gap-3 bg-white/95 hover:bg-white backdrop-blur-sm px-6 py-3 rounded-xl border-2 border-[#c9f545]/30 hover:border-[#c9f545] transition-all shadow-lg hover:shadow-xl"
+                      className="group w-full flex items-center gap-4 bg-gradient-to-r from-white to-[#c9f545]/20 hover:from-[#c9f545] hover:to-[#c9f545] backdrop-blur-sm px-8 py-5 rounded-2xl border-2 border-[#c9f545] transition-all shadow-2xl hover:shadow-[0_0_30px_rgba(201,245,69,0.5)] hover:scale-[1.02] relative overflow-hidden"
                     >
-                      <div className="w-10 h-10 bg-gradient-to-br from-metarh-medium to-purple-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <FileDown className="text-white" size={20} />
+                      {/* Animated background effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+
+                      <div className="relative w-14 h-14 bg-gradient-to-br from-metarh-medium to-metarh-dark rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all shadow-lg">
+                        <FileDown className="text-[#c9f545]" size={28} strokeWidth={2.5} />
                       </div>
-                      <div className="flex-1 text-left">
-                        <p className="font-bold text-gray-800 text-sm">Apresentação Institucional</p>
-                        <p className="text-xs text-gray-500">Conheça todas as nossas soluções</p>
+
+                      <div className="flex-1 text-left relative">
+                        <p className="font-bold text-gray-900 text-lg mb-0.5 group-hover:text-metarh-dark transition-colors flex items-center gap-2">
+                          Apresentação Institucional
+                          <span className="text-xs bg-metarh-medium text-white px-2 py-0.5 rounded-full font-bold">NOVO</span>
+                        </p>
+                        <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors font-medium">
+                          Compartilhe todas as nossas soluções com seus contatos
+                        </p>
                       </div>
-                      <ArrowRight className="text-metarh-medium group-hover:translate-x-1 transition-transform" size={20} />
+
+                      <div className="relative flex items-center gap-2">
+                        <div className="hidden sm:flex flex-col items-end text-xs text-gray-500 group-hover:text-gray-700 transition-colors">
+                          <span className="font-bold">Download</span>
+                          <span>PDF</span>
+                        </div>
+                        <ArrowRight className="text-metarh-medium group-hover:text-metarh-dark group-hover:translate-x-2 transition-all" size={28} strokeWidth={2.5} />
+                      </div>
                     </button>
                   </div>
                 </div>

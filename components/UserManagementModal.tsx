@@ -292,7 +292,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                   </p>
 
                   <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100 max-h-60 overflow-y-auto custom-scrollbar">
-                    {['Business', 'Pharma Recruiter', 'Tech Recruiter', 'Trilhando +', 'Varejo Pro', 'Staffing', 'Talent'].map(pkg => (
+                    {['Institucional', 'Business', 'Pharma Recruiter', 'Tech Recruiter', 'Trilhando +', 'Varejo Pro', 'Staffing', 'Talent'].map(pkg => (
                       <div key={pkg}>
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{pkg}</label>
                         <input

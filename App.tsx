@@ -576,6 +576,27 @@ const App: React.FC = () => {
                     />
                     <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400" size={24} />
                   </div>
+
+                  {/* Institutional Presentation Button */}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => {
+                        const url = currentUser.customPresentationUrls?.['Institucional'] ||
+                          'https://metarh.com.br/wp-content/uploads/apresentacoes/METARH_Institucional.pdf';
+                        window.open(url, '_blank');
+                      }}
+                      className="group flex items-center gap-3 bg-white/95 hover:bg-white backdrop-blur-sm px-6 py-3 rounded-xl border-2 border-[#c9f545]/30 hover:border-[#c9f545] transition-all shadow-lg hover:shadow-xl"
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-metarh-medium to-purple-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FileDown className="text-white" size={20} />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-bold text-gray-800 text-sm">Apresentação Institucional</p>
+                        <p className="text-xs text-gray-500">Conheça todas as nossas soluções</p>
+                      </div>
+                      <ArrowRight className="text-metarh-medium group-hover:translate-x-1 transition-transform" size={20} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Mosaico Image - Right Side */}
@@ -643,10 +664,10 @@ const App: React.FC = () => {
                             <div className="w-px h-4 bg-gray-300"></div>
                             <button
                               className={`text-metarh-medium transition-colors ${currentUser.customPresentationUrls?.[group] ||
-                                  groupedSolutions[group][0]?.customPresentationUrl ||
-                                  PRESENTATION_URLS[group]
-                                  ? 'hover:text-metarh-dark'
-                                  : 'opacity-40 cursor-not-allowed'
+                                groupedSolutions[group][0]?.customPresentationUrl ||
+                                PRESENTATION_URLS[group]
+                                ? 'hover:text-metarh-dark'
+                                : 'opacity-40 cursor-not-allowed'
                                 }`}
                               title={
                                 currentUser.customPresentationUrls?.[group]

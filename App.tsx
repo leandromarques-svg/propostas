@@ -642,11 +642,25 @@ const App: React.FC = () => {
                             </button>
                             <div className="w-px h-4 bg-gray-300"></div>
                             <button
-                              className={`text-metarh-medium transition-colors ${currentUser.customPresentationUrls?.[group] || PRESENTATION_URLS[group] ? 'hover:text-metarh-dark' : 'opacity-40 cursor-not-allowed'}`}
-                              title={currentUser.customPresentationUrls?.[group] ? "Baixar Apresentação Personalizada" : (PRESENTATION_URLS[group] ? "Baixar Apresentação" : "Apresentação indisponível")}
+                              className={`text-metarh-medium transition-colors ${currentUser.customPresentationUrls?.[group] ||
+                                  groupedSolutions[group][0]?.customPresentationUrl ||
+                                  PRESENTATION_URLS[group]
+                                  ? 'hover:text-metarh-dark'
+                                  : 'opacity-40 cursor-not-allowed'
+                                }`}
+                              title={
+                                currentUser.customPresentationUrls?.[group]
+                                  ? "Baixar Apresentação Personalizada"
+                                  : (groupedSolutions[group][0]?.customPresentationUrl || PRESENTATION_URLS[group])
+                                    ? "Baixar Apresentação"
+                                    : "Apresentação indisponível"
+                              }
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const url = currentUser.customPresentationUrls?.[group] || PRESENTATION_URLS[group];
+                                // Priority: User custom URL > Solution default URL > Legacy PRESENTATION_URLS
+                                const url = currentUser.customPresentationUrls?.[group] ||
+                                  groupedSolutions[group][0]?.customPresentationUrl ||
+                                  PRESENTATION_URLS[group];
                                 if (url) {
                                   window.open(url, '_blank');
                                 } else {

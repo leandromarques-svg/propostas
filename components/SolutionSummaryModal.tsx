@@ -86,22 +86,7 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                             <span className="inline-block px-3 py-1 bg-metarh-lime text-metarh-dark text-xs font-bold rounded-full mb-2 uppercase tracking-wide">
                                 Resumo Prático
                             </span>
-                            <h2 className="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-4">
-                                {packageKey}
-
-                                {/* Present Button */}
-                                {solutions[0]?.customPresentationUrl && (
-                                    <a
-                                        href={solutions[0].customPresentationUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 bg-metarh-pink hover:bg-pink-600 text-white text-xs px-3 py-1.5 rounded-lg transition-colors font-bold shadow-lg animate-pulse hover:animate-none"
-                                    >
-                                        <ExternalLink size={14} />
-                                        Assistir Apresentação
-                                    </a>
-                                )}
-                            </h2>
+                            <h2 className="text-2xl md:text-3xl font-bold mb-2">{packageKey}</h2>
                             <p className="text-gray-200 text-base md:text-lg font-medium leading-relaxed max-w-4xl border-l-4 border-metarh-lime pl-4 mt-3">
                                 {headerText}
                             </p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, QuizResult, SolutionData } from '../types';
 import { SOLUTIONS_DATA } from '../constants';
 import { generateQuiz, Question } from './QuizGenerator';
-import { Trophy, CheckCircle, XCircle, Brain, ArrowRight, Play, RotateCcw, Save, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Layers, Flame, Medal } from 'lucide-react';
+import { Trophy, CheckCircle, XCircle, Brain, ArrowRight, Play, RotateCcw, Save, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Layers, Flame, Medal, ArrowLeft } from 'lucide-react';
 import { saveUser } from './lib/userService';
 
 // Helper for Icons
@@ -27,6 +27,10 @@ interface QuizViewProps {
 type QuizState = 'intro' | 'playing' | 'result';
 
 
+import { QuizLeaderboard } from './QuizLeaderboard';
+
+// ... imports ...
+
 export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }) => {
     const [gameState, setGameState] = useState<QuizState>('intro');
     const [questions, setQuestions] = useState<Question[]>([]);
@@ -39,6 +43,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
     const [history, setHistory] = useState<QuizResult[]>(user.quizHistory || []);
     // New state for mode selection
     const [selectedPackage, setSelectedPackage] = useState<string | null>(null); // null = 'Geral'
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
 
     const startQuiz = (pkgFilter: string | null) => {
@@ -99,14 +104,26 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
             date: new Date().toISOString(),
             score: finalScore,
             totalQuestions: questions.length,
-            topicsToReview
+            topicsToReview,
+            mode: selectedPackage || 'Desafio Supremo'
         };
 
         const newHistory = [result, ...history];
         setHistory(newHistory); // Update local state immediately
 
+        // Calculate Stats
+        const validScore = finalScore || 0;
+        const newTotalScore = (user.totalQuizScore || 0) + validScore;
+        const newTotalGames = (user.totalQuizGames || 0) + 1;
+
         // Persist to user profile
-        const updatedUser = { ...user, quizHistory: newHistory };
+        const updatedUser: User = {
+            ...user,
+            quizHistory: newHistory,
+            totalQuizScore: newTotalScore,
+            totalQuizGames: newTotalGames
+        };
+
         onUpdateUser(updatedUser);
 
         // Fire and forget save
@@ -115,17 +132,44 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
 
     // --- RENDERERS ---
 
+    if (showLeaderboard) {
+        return <QuizLeaderboard currentUser={user} onBack={() => setShowLeaderboard(false)} />;
+    }
+
     if (gameState === 'intro') {
         const bestScore = history.reduce((max, h) => Math.max(max, h.score), 0);
         const totalGames = history.length;
+        const totalGlobalScore = user.totalQuizScore || 0;
 
         // Get unique packages for selection
         const packages = Array.from(new Set(SOLUTIONS_DATA.map(s => s.solutionPackage))).sort();
+
+        // Calculate Lock Status
+        // A package is "completed" if user has played it at least once (checking mode)
+        const completedPackages = new Set(history.map(h => h.mode).filter(Boolean));
+
+        // Count how many unique packages from the available list are completed
+        const unlockedCount = packages.filter(pkg => completedPackages.has(pkg)).length;
+        const isSupremeUnlocked = unlockedCount >= packages.length;
+        const remainingToUnlock = packages.length - unlockedCount;
+
 
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 min-h-[600px] font-barlow">
                 <div className="max-w-4xl w-full bg-white rounded-[3rem] p-12 shadow-xl text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+
+                    <div className="flex justify-between items-start mb-4">
+                        <button onClick={onBack} className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <ArrowLeft size={24} />
+                        </button>
+                        <button
+                            onClick={() => setShowLeaderboard(true)}
+                            className="bg-yellow-100/50 hover:bg-yellow-100 text-yellow-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all border border-yellow-200"
+                        >
+                            <Trophy size={18} /> Ver Ranking
+                        </button>
+                    </div>
 
                     <div className="flex justify-center mb-8">
                         <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center animate-bounce">
@@ -138,7 +182,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                         Teste seus conhecimentos, ganhe pontos e domine nossas soluções! Escolha um modo para começar:
                     </p>
 
-                    <div className="grid grid-cols-2 gap-6 mb-10 max-w-md mx-auto">
+                    <div className="grid grid-cols-3 gap-6 mb-10 max-w-2xl mx-auto">
                         <div className="bg-purple-50 rounded-2xl p-4">
                             <p className="text-sm text-purple-600 font-bold uppercase tracking-wider">Recorde</p>
                             <p className="text-3xl font-bold text-gray-800">{bestScore}</p>
@@ -147,48 +191,91 @@ export const QuizView: React.FC<QuizViewProps> = ({ user, onUpdateUser, onBack }
                             <p className="text-sm text-pink-600 font-bold uppercase tracking-wider">Jogos</p>
                             <p className="text-3xl font-bold text-gray-800">{totalGames}</p>
                         </div>
+                        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                            <p className="text-sm text-amber-600 font-bold uppercase tracking-wider">Total XP</p>
+                            <p className="text-3xl font-bold text-gray-800">{totalGlobalScore}</p>
+                        </div>
                     </div>
 
                     <div className="mb-8">
                         <h3 className="text-xl font-bold text-gray-700 mb-6 font-barlow">Escolha o seu desafio:</h3>
 
                         <div className="flex flex-col gap-8">
-                            {/* Hard Mode / Mixed */}
-                            <div className="bg-gradient-to-r from-gray-900 to-purple-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all cursor-pointer border-2 border-transparent hover:border-yellow-400" onClick={() => startQuiz(null)}>
-                                <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-                                    <div className="bg-yellow-400/20 p-6 rounded-full">
-                                        <Flame size={48} className="text-yellow-400 animate-pulse" />
+                            {/* Hard Mode / Mixed - ONLY IF UNLOCKED */}
+                            {isSupremeUnlocked ? (
+                                <div className="bg-gradient-to-r from-gray-900 to-purple-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all cursor-pointer border-2 border-transparent hover:border-yellow-400" onClick={() => startQuiz(null)}>
+                                    <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                                        <div className="bg-yellow-400/20 p-6 rounded-full">
+                                            <Flame size={48} className="text-yellow-400 animate-pulse" />
+                                        </div>
+                                        <div className="flex-1 text-center md:text-left">
+                                            <h4 className="text-2xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-2">
+                                                Desafio Supremo <span className="bg-yellow-400 text-black text-xs px-2 py-1 rounded font-bold uppercase">Hard Mode</span>
+                                            </h4>
+                                            <p className="text-purple-200 mb-2">Todas as soluções misturadas. 10 perguntas. Pontuação Dupla.</p>
+                                            <p className="text-yellow-300 font-bold text-sm italic">"Só joga esse quem não tem medo de desafios!"</p>
+                                        </div>
+                                        <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold transition-all whitespace-nowrap">
+                                            Aceitar Desafio
+                                        </button>
                                     </div>
-                                    <div className="flex-1 text-center md:text-left">
-                                        <h4 className="text-2xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-2">
-                                            Desafio Supremo <span className="bg-yellow-400 text-black text-xs px-2 py-1 rounded font-bold uppercase">Hard Mode</span>
-                                        </h4>
-                                        <p className="text-purple-200 mb-2">Todas as soluções misturadas. 10 perguntas. Pontuação Dupla.</p>
-                                        <p className="text-yellow-300 font-bold text-sm italic">"Só joga esse quem não tem medo de desafios!"</p>
-                                    </div>
-                                    <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold transition-all whitespace-nowrap">
-                                        Aceitar Desafio
-                                    </button>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="bg-gray-100 rounded-3xl p-8 text-gray-400 shadow-inner relative overflow-hidden border-2 border-dashed border-gray-300">
+                                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 opacity-70">
+                                        <div className="bg-gray-200 p-6 rounded-full">
+                                            <Layers size={48} className="text-gray-400" />
+                                        </div>
+                                        <div className="flex-1 text-center md:text-left">
+                                            <h4 className="text-2xl font-bold text-gray-500 mb-2 flex items-center justify-center md:justify-start gap-2">
+                                                Desafio Supremo <span className="bg-gray-300 text-gray-500 text-xs px-2 py-1 rounded font-bold uppercase">Bloqueado</span>
+                                            </h4>
+                                            <p className="text-gray-400 mb-2">Complete todos os quizes das soluções abaixo para destravar o modo supremo e ganhar pontuação dobrada!</p>
+                                            <div className="w-full bg-gray-200 h-2 rounded-full mt-2 overflow-hidden">
+                                                <div className="bg-purple-400 h-full" style={{ width: `${(unlockedCount / packages.length) * 100}%` }}></div>
+                                            </div>
+                                            <p className="text-xs font-bold mt-1 text-purple-500">{unlockedCount}/{packages.length} Completos</p>
+                                        </div>
+                                        <div className="px-8 py-4 border-2 border-gray-300 rounded-xl font-bold text-gray-400 whitespace-nowrap bg-gray-50">
+                                            Faltam {remainingToUnlock}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Specific Solutions Grid */}
                             <div>
                                 <h4 className="text-lg font-bold text-gray-500 mb-4 uppercase tracking-wider text-center md:text-left">Treinar Solução Específica</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {packages.map(pkg => (
-                                        <button
-                                            key={pkg}
-                                            onClick={() => startQuiz(pkg)}
-                                            className="p-6 rounded-2xl border-2 border-gray-100 hover:border-metarh-medium/50 hover:bg-purple-50 hover:shadow-lg transition-all group flex flex-col items-center gap-4 bg-white"
-                                        >
-                                            <div className="w-12 h-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-metarh-medium group-hover:text-white flex items-center justify-center transition-colors">
-                                                <PackageIcon name={pkg} size={24} />
-                                            </div>
-                                            <span className="font-bold text-gray-700 group-hover:text-metarh-medium text-center leading-tight">{pkg}</span>
-                                        </button>
-                                    ))}
+                                    {packages.map(pkg => {
+                                        const isCompleted = completedPackages.has(pkg);
+                                        return (
+                                            <button
+                                                key={pkg}
+                                                onClick={() => startQuiz(pkg)}
+                                                className={`p-6 rounded-2xl border-2 transition-all group flex flex-col items-center gap-4 bg-white relative overflow-hidden
+                                                ${isCompleted
+                                                        ? 'border-green-100 bg-green-50/30'
+                                                        : 'border-gray-100 hover:border-metarh-medium/50 hover:bg-purple-50 hover:shadow-lg'}
+                                            `}
+                                            >
+                                                {isCompleted && (
+                                                    <div className="absolute top-2 right-2 text-green-500">
+                                                        <CheckCircle size={16} />
+                                                    </div>
+                                                )}
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors
+                                                ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400 group-hover:bg-metarh-medium group-hover:text-white'}
+                                            `}>
+                                                    <PackageIcon name={pkg} size={24} />
+                                                </div>
+                                                <span className={`font-bold text-center leading-tight ${isCompleted ? 'text-green-700' : 'text-gray-700 group-hover:text-metarh-medium'}`}>
+                                                    {pkg}
+                                                </span>
+                                            </button>
+                                        )
+                                    })}
                                 </div>
                             </div>
                         </div>

@@ -54,6 +54,8 @@ export interface User {
   canUseCalculator?: boolean; // Permissão para usar calculadora
   customPresentationUrls?: Record<string, string>; // Links para apresentações personalizadas por solução
   quizHistory?: QuizResult[]; // Histórico de resultados do Quiz
+  totalQuizScore?: number;
+  totalQuizGames?: number;
 }
 
 export interface QuizResult {
@@ -62,6 +64,7 @@ export interface QuizResult {
   score: number;
   totalQuestions: number;
   topicsToReview: string[]; // IDs/Names of solutions identifying weak spots
+  mode?: string; // 'Business', 'Tech Recruiter', or 'mixed' (for Supreme)
 }
 
 // --- PROPOSAL LAYOUT TYPES ---

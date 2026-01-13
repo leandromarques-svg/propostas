@@ -74,8 +74,11 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
             <div className="bg-white w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl relative flex flex-col overflow-hidden">
 
                 {/* Header - Standardized to METARH Dark to match DetailModal */}
-                <div className="bg-metarh-dark text-white p-6 md:p-8 flex justify-between items-start z-10 shrink-0 shadow-lg">
-                    <div className="flex items-start gap-5">
+                <div className="bg-metarh-dark text-white p-6 md:p-8 flex justify-between items-start z-10 shrink-0 shadow-lg relative overflow-hidden">
+                    {/* Dynamic Background Element */}
+                    <div className="absolute top-0 right-0 p-32 bg-metarh-medium/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                    <div className="flex items-start gap-5 relative z-10">
                         <div className="p-3 bg-white/10 rounded-xl mt-1 backdrop-blur-sm border border-white/10">
                             <BookOpen size={32} />
                         </div>
@@ -83,13 +86,28 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
                             <span className="inline-block px-3 py-1 bg-metarh-lime text-metarh-dark text-xs font-bold rounded-full mb-2 uppercase tracking-wide">
                                 Resumo Prático
                             </span>
-                            <h2 className="text-2xl md:text-3xl font-bold mb-2">{packageKey}</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-4">
+                                {packageKey}
+
+                                {/* Present Button */}
+                                {solutions[0]?.customPresentationUrl && (
+                                    <a
+                                        href={solutions[0].customPresentationUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 bg-metarh-pink hover:bg-pink-600 text-white text-xs px-3 py-1.5 rounded-lg transition-colors font-bold shadow-lg animate-pulse hover:animate-none"
+                                    >
+                                        <ExternalLink size={14} />
+                                        Assistir Apresentação
+                                    </a>
+                                )}
+                            </h2>
                             <p className="text-gray-200 text-base md:text-lg font-medium leading-relaxed max-w-4xl border-l-4 border-metarh-lime pl-4 mt-3">
                                 {headerText}
                             </p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors">
+                    <button onClick={onClose} className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors relative z-10">
                         <X size={32} />
                     </button>
                 </div>

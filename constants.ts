@@ -319,7 +319,8 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs, CIEE...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas...'],
     laborType: 'Estágio',
     sla: '15 a 25 dias entre a abertura e o fechamento.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.',
+    customPresentationUrl: 'https://metarh.com.br/wp-content/uploads/apresentacoes/Talent.pdf'
   },
   {
     id: 'talent-trainee',
@@ -333,7 +334,8 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     toolsUsed: ['Atração e Divulgação: Gupy, 99Jobs...', 'Triagem e Avaliação: ATS, Testes...', 'Dinâmicas e Entrevistas...'],
     laborType: 'CLT',
     sla: '15 a 25 dias entre a abertura e o fechamento.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.',
+    customPresentationUrl: 'https://metarh.com.br/wp-content/uploads/apresentacoes/Talent.pdf'
   },
   {
     id: 'talent-map',
@@ -347,7 +349,8 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     toolsUsed: ['Plataformas de Inteligência.', 'ATS e Sourcing.', 'Web Scraping.', 'Bancos de Dados.'],
     laborType: 'Não se Aplica',
     sla: 'Sob consulta',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.',
+    customPresentationUrl: 'https://metarh.com.br/wp-content/uploads/apresentacoes/Talent.pdf'
   },
   {
     id: 'talent-programas',
@@ -361,7 +364,8 @@ export const SOLUTIONS_DATA: SolutionData[] = [
     toolsUsed: ['Gestão do Programa: LinkedIn, CIEE, Gupy, Google Forms, Testes soft skills, Lógica, Inglês.', 'Gestão pós-contratação: PDI, Feedback 360, Jornadas de aprendizagem.'],
     laborType: 'Estágio / Trainee (CLT)',
     sla: 'Processo seletivo: 8 a 12 semanas. Acompanhamento: 6 a 12 meses.',
-    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.'
+    aboutSolution: 'Voltada para programas e vagas pontuais de estágio e trainee, a solução identifica jovens talentos que buscam sua primeira oportunidade e conecta-os às empresas de forma estruturada e estratégica. Conta com profissionais especializados nesse tipo de recrutamento.',
+    customPresentationUrl: 'https://metarh.com.br/wp-content/uploads/apresentacoes/Talent.pdf'
   },
   {
     id: 'tech-terceiros',

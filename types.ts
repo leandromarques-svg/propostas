@@ -13,6 +13,7 @@ export interface SolutionData {
   laborType: string;
   sla: string;
   aboutSolution: string; // About the parent solution package
+  customPresentationUrl?: string;
 }
 
 export type ViewState = 'catalog' | 'proposal' | 'calculator';

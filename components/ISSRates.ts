@@ -11,6 +11,7 @@ export const ISS_RATES = [
   { municipio: "ARARAS", uf: "SP", base: "ARARAS SP", aliquota: 5.0 },
   { municipio: "ARIQUEMES", uf: "RO", base: "ARIQUEMES RO", aliquota: 3.5 },
   { municipio: "ATIBAIA", uf: "SP", base: "ATIBAIA SP", aliquota: 2.0 },
+  { municipio: "BARUERI", uf: "SP", base: "BARUERI SP", aliquota: 2.0 },
   { municipio: "BAURU", uf: "SP", base: "BAURU SP", aliquota: 4.0 },
   { municipio: "BELÉM", uf: "PA", base: "BELÉM PA", aliquota: 5.0 },
   { municipio: "BELFORD ROXO", uf: "RJ", base: "BELFORD ROXO RJ", aliquota: 3.0 },
@@ -22,5 +23,10 @@ export const ISS_RATES = [
   { municipio: "BOTUCATU", uf: "SP", base: "BOTUCATU SP", aliquota: 4.0 },
   { municipio: "BRAGANÇA PAULISTA", uf: "SP", base: "BRAGANÇA PAULISTA SP", aliquota: 3.0 },
   { municipio: "BRASÍLIA", uf: "DF", base: "BRASÍLIA DF", aliquota: 5.0 },
+  { municipio: "CAMPINAS", uf: "SP", base: "CAMPINAS SP", aliquota: 5.0 },
+  { municipio: "CURITIBA", uf: "PR", base: "CURITIBA PR", aliquota: 5.0 },
+  { municipio: "PORTO ALEGRE", uf: "RS", base: "PORTO ALEGRE RS", aliquota: 5.0 },
+  { municipio: "RIO DE JANEIRO", uf: "RJ", base: "RIO DE JANEIRO RJ", aliquota: 5.0 },
+  { municipio: "SÃO PAULO", uf: "SP", base: "SÃO PAULO SP", aliquota: 5.0 },
   // ...adicione o restante conforme necessário
 ];

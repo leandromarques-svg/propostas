@@ -14,6 +14,7 @@ import { generatePDF } from './lib/pdfGenerator';
 
 import { Logo } from './Logo';
 import { ISSSelector } from './ISSSelector';
+import { ISS_RATES } from './ISSRates';
 
 interface LaborPosition {
     id: string;
@@ -522,12 +523,9 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
 
         // Taxes (Tributos) - ISS now varies by city
-        const issRateOptions = [
-            { city: 'São Paulo - SP', rate: 0.05 },
-            { city: 'Barueri - SP', rate: 0.02 },
-            { city: 'Outra Localidade (5%)', rate: 0.05 },
-        ];
-        const selectedIssRate = issRateOptions.find(opt => opt.city === selectedCity)?.rate || 0.05;
+        // Busca a alíquota do município selecionado na lista ISS_RATES
+        const selectedIssData = ISS_RATES.find(item => item.base === selectedCity);
+        const selectedIssRate = selectedIssData ? (selectedIssData.aliquota / 100) : 0.05;
 
         const totalTaxRate =
             selectedIssRate +
@@ -1050,8 +1048,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                                 <div className="mb-4">
                                     <ISSSelector
-                                        value={selectedISSBase}
-                                        onChange={setSelectedISSBase}
+                                        value={selectedCity}
+                                        onChange={setSelectedCity}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>

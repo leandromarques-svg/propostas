@@ -125,7 +125,6 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
         // @ts-ignore
         const updatedUser = { 
           ...currentUserData, 
-          ...formData, 
           quizHistory: [], 
           totalQuizScore: 0, 
           totalQuizGames: 0 

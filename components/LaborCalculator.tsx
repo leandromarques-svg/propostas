@@ -13,6 +13,7 @@ import { getAppSettings, AppSettings } from './lib/settingsService';
 import { generatePDF } from './lib/pdfGenerator';
 
 import { Logo } from './Logo';
+import { ISSSelector } from './ISSSelector';
 
 interface LaborPosition {
     id: string;

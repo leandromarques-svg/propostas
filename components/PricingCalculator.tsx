@@ -333,13 +333,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
-        {/* Seleção de Município/ISS */}
-        <div className="mb-6">
-          <ISSSelector
-            value={inputs.selectedISSBase}
-            onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
-          />
-        </div>
+
 
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

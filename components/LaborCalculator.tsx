@@ -1050,8 +1050,8 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                                 <div className="mb-4">
                                     <ISSSelector
-                                        value={inputs.selectedISSBase}
-                                        onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+                                        value={selectedISSBase}
+                                        onChange={setSelectedISSBase}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>

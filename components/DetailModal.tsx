@@ -162,12 +162,6 @@ export const DetailModal: React.FC<DetailModalProps> = ({ solution, initialSelec
           >
             Cancelar
           </button>
-          <button
-            onClick={handleSave}
-            className="px-8 py-3 rounded-full bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg shadow-purple-200 transition-all transform hover:-translate-y-1 flex items-center gap-2"
-          >
-            {initialSelections ? 'Atualizar Item' : 'Adicionar à Proposta'}
-          </button>
         </div>
       </div>
     </div>

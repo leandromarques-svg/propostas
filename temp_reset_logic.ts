@@ -9,12 +9,18 @@ const handleResetQuiz = async () => {
             if (!currentUserData) return;
 
             // @ts-ignore
-            const updatedUser = { ...currentUserData, ...formData, quizHistory: [] };
+            const updatedUser = { 
+                ...currentUserData, 
+                ...formData, 
+                quizHistory: [], 
+                totalQuizScore: 0, 
+                totalQuizGames: 0 
+            };
 
             // @ts-ignore
             await saveUser(updatedUser);
 
-            setFormData(prev => ({ ...prev, quizHistory: [] }));
+            setFormData(prev => ({ ...prev, quizHistory: [], totalQuizScore: 0, totalQuizGames: 0 }));
             await loadUsers();
             onUpdateUser(updatedUser as User);
 

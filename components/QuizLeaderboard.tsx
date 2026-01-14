@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { generateQuiz, Question } from './QuizGenerator';
 import { SOLUTIONS_DATA } from '../constants';
 import { User, QuizResult } from '../types';
-import { getUsers } from './lib/userService';
+import { getUsers, saveUser } from './lib/userService';
 import { Trophy, Medal, Crown, Shield, FileText, ArrowLeft, Loader2, Star, Lock } from 'lucide-react';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -14,10 +15,29 @@ interface QuizLeaderboardProps {
 export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, onBack }) => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [tiebreakerNeeded, setTiebreakerNeeded] = useState(false);
+    const [tiedUsers, setTiedUsers] = useState<User[]>([]);
+    const [tiebreakerQuestion, setTiebreakerQuestion] = useState<Question | null>(null);
+    const [tiebreakerAnswer, setTiebreakerAnswer] = useState<string | null>(null);
+    const [tiebreakerResult, setTiebreakerResult] = useState<string | null>(null);
 
     useEffect(() => {
         loadUsers();
     }, []);
+
+    // Gera uma pergunta extra para desempate quando necessário
+    useEffect(() => {
+        if (tiebreakerNeeded && tiedUsers.length > 0 && !tiebreakerQuestion) {
+            // Gera uma pergunta aleatória (pode ser aprimorado para garantir unicidade)
+            const questions = generateQuiz(SOLUTIONS_DATA, 1);
+            setTiebreakerQuestion(questions[0]);
+        }
+        if (!tiebreakerNeeded) {
+            setTiebreakerQuestion(null);
+            setTiebreakerAnswer(null);
+            setTiebreakerResult(null);
+        }
+    }, [tiebreakerNeeded, tiedUsers, tiebreakerQuestion]);
 
     const loadUsers = async () => {
         try {
@@ -27,6 +47,22 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
             // Sort by score desc
             const sorted = filtered.sort((a, b) => (b.totalQuizScore || 0) - (a.totalQuizScore || 0));
             setUsers(sorted);
+
+            // Detecta empate entre top 3
+            if (sorted.length >= 2) {
+                const topScore = sorted[0].totalQuizScore;
+                const tied = sorted.filter(u => u.totalQuizScore === topScore);
+                if (tied.length > 1 && tied.length <= 3) {
+                    setTiebreakerNeeded(true);
+                    setTiedUsers(tied);
+                } else {
+                    setTiebreakerNeeded(false);
+                    setTiedUsers([]);
+                }
+            } else {
+                setTiebreakerNeeded(false);
+                setTiedUsers([]);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -86,6 +122,47 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
 
     return (
         <div className="flex-1 flex flex-col p-8 bg-gray-50 min-h-[600px] font-barlow relative">
+            {tiebreakerNeeded && tiebreakerQuestion && (
+                <div className="mb-6 p-4 bg-yellow-100 border border-yellow-300 rounded-xl text-yellow-900 font-bold text-center">
+                    Empate detectado entre os primeiros colocados!<br />
+                    <span className="font-normal">Responda a pergunta extra para desempatar:</span>
+                    <div className="mt-4 text-base font-normal">
+                        <div className="mb-2 font-bold">{tiebreakerQuestion.questionText}</div>
+                        <div className="flex flex-col gap-2 items-center">
+                            {tiebreakerQuestion.options.map(opt => (
+                                <button
+                                    key={opt}
+                                    className={`px-4 py-2 rounded-lg border font-medium ${tiebreakerAnswer === opt ? 'bg-yellow-300 border-yellow-500' : 'bg-white border-yellow-300 hover:bg-yellow-200'}`}
+                                    disabled={!!tiebreakerAnswer}
+                                    onClick={async () => {
+                                        setTiebreakerAnswer(opt);
+                                        if (opt === tiebreakerQuestion.correctAnswer) {
+                                            setTiebreakerResult('Correto! Você assume a liderança.');
+                                            // Atualiza o score do usuário empatado (apenas para o usuário atual)
+                                            if (tiedUsers.some(u => u.id === currentUser.id)) {
+                                                const updatedUser = {
+                                                    ...currentUser,
+                                                    totalQuizScore: (currentUser.totalQuizScore || 0) + 1
+                                                };
+                                                await saveUser(updatedUser);
+                                                // Recarrega ranking após atualização
+                                                await loadUsers();
+                                            }
+                                        } else {
+                                            setTiebreakerResult('Errado! Tente novamente na próxima rodada.');
+                                        }
+                                    }}
+                                >
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                        {tiebreakerResult && (
+                            <div className={`mt-4 font-bold ${tiebreakerResult.startsWith('Correto') ? 'text-green-700' : 'text-red-700'}`}>{tiebreakerResult}</div>
+                        )}
+                    </div>
+                </div>
+            )}
             <button
                 onClick={onBack}
                 className="absolute top-8 left-8 flex items-center gap-2 text-gray-500 hover:text-metarh-medium transition-colors font-medium z-10"

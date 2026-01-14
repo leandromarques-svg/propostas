@@ -854,7 +854,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
             </div>
           </div>
 
-        </div>
+        {/* ...existing code... */}
       </div>
     </div>
   );

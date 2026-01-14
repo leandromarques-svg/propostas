@@ -314,12 +314,19 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
-        {/* Seleção de Município/ISS */}
-        <div className="mb-6">
-          <ISSSelector
-            value={inputs.selectedISSBase}
-            onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
-          />
+
+        {/* 2. ENCARGOS */}
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mt-8 mb-8">
+          <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+            <Calculator size={18} /> 2. Encargos
+          </h2>
+          <div className="mb-4">
+            <ISSSelector
+              value={inputs.selectedISSBase}
+              onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+            />
+          </div>
+          <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
         </div>
 
         {/* Header */}

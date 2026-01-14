@@ -1040,13 +1040,20 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
                                 </div>
                             </div>
 
-                            {/* 2. CHARGES (ENCARGOS) */}
+                            {/* 3. ENCARGOS */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.charges ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <Settings size={18} /> 2. Encargos
+                                        <Settings size={18} /> 3. Encargos
                                     </h2>
                                 </div>
+                                <div className="mb-4">
+                                    <ISSSelector
+                                        value={inputs.selectedISSBase}
+                                        onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
 
                                 <div className="mt-4 grid md:grid-cols-2 gap-6 animate-fade-in">
                                     {/* Group A */}
@@ -1172,11 +1179,11 @@ export const LaborCalculator: React.FC<LaborCalculatorProps> = ({ onCancel }) =>
 
                             {/* 3. BENEFITS (Organized by Category) */}
 
-                            {/* 3. BENEFITS (Organized by Category) */}
+                            {/* 4. BENEFÍCIOS (Organized by Category) */}
                             <div className={`bg-white p-6 rounded-[2rem] shadow-sm border transition-all ${confirmedSections.benefits ? 'border-green-200 ring-1 ring-green-100' : 'border-gray-100'}`}>
                                 <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h2 className="text-lg font-bold text-metarh-dark flex items-center gap-2">
-                                        <Sparkles size={18} /> 3. Benefícios
+                                        <Sparkles size={18} /> 4. Benefícios
                                     </h2>
                                 </div>
 

@@ -397,19 +397,7 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               </div>
             </div>
 
-            {/* 2. ENCARGOS */}
-            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mt-8 mb-8">
-              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                <Calculator size={18} /> 2. Encargos
-              </h2>
-              <div className="mb-4">
-                <ISSSelector
-                  value={inputs.selectedISSBase}
-                  onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
-                />
-              </div>
-              <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
-            </div>
+
 
             {/* 1. SCOPE & COMPLEXITY */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
@@ -684,11 +672,24 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
             </div>
 
 
-            {/* 3. TAXA ADMINISTRATIVA */}
+            {/* 2. TAXA ADMINISTRATIVA */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                <DollarSign size={18} /> 3. Taxa Administrativa
+                <DollarSign size={18} /> 2. Taxa Administrativa
               </h2>
+            {/* 3. ENCARGOS */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mt-8 mb-8">
+              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <Calculator size={18} /> 3. Encargos
+              </h2>
+              <div className="mb-4">
+                <ISSSelector
+                  value={inputs.selectedISSBase}
+                  onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+                />
+              </div>
+              <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
+            </div>
 
               {/* Explicação dos Modos de Cálculo */}
               <div className="mb-4">

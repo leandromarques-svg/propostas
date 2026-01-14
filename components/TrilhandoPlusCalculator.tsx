@@ -7,6 +7,8 @@ import { SupabaseStatus } from './SupabaseStatus';
 import { generateProposalPDF } from './lib/pdfGenerator';
 import { getTeamRates, TeamRates } from './lib/teamRatesService';
 import { Logo } from './Logo';
+import { ISSSelector } from './ISSSelector';
+import { ISS_RATES } from './ISSRates';
 
 interface TrilhandoPlusCalculatorProps {
   onCancel: () => void;
@@ -29,6 +31,7 @@ export const TrilhandoPlusCalculator: React.FC<TrilhandoPlusCalculatorProps> = (
     fixedItems: DEFAULT_FIXED_ITEMS,
     marginMultiplier: 100,
     selectedCity: 'São Paulo - SP',
+    selectedISSBase: '',
     clientName: '',
     clientCnpj: ''
   });
@@ -91,7 +94,8 @@ export const TrilhandoPlusCalculator: React.FC<TrilhandoPlusCalculatorProps> = (
       demandedDays,
       qtyConsultant2, qtyConsultant1, qtyAssistant,
       fixedItems,
-      marginMultiplier
+      marginMultiplier,
+      selectedISSBase
     } = inputs;
 
     // 1. Team Suggestion based on Complexity Scale (0-5)
@@ -148,7 +152,12 @@ export const TrilhandoPlusCalculator: React.FC<TrilhandoPlusCalculatorProps> = (
     const totalPreTax = adminFee;
 
     // 4. Taxes
-    const issRate = 0.05; // São Paulo default
+    // Busca a alíquota do município selecionado
+    let issRate = 0.05;
+    if (selectedISSBase) {
+      const found = ISS_RATES.find(item => item.base === selectedISSBase);
+      if (found) issRate = found.aliquota / 100;
+    }
     const taxIss = totalPreTax * issRate;
     const taxPis = totalPreTax * TAX_RATES.pis;
     const taxCofins = totalPreTax * TAX_RATES.cofins;
@@ -305,6 +314,13 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-32 animate-fade-in overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
+        {/* Seleção de Município/ISS */}
+        <div className="mb-6">
+          <ISSSelector
+            value={inputs.selectedISSBase}
+            onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+          />
+        </div>
 
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

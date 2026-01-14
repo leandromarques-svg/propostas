@@ -22,8 +22,10 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
     const loadUsers = async () => {
         try {
             const allUsers = await getUsers();
+            // Filtra apenas usuários com pontuação > 0 para ranking
+            const filtered = allUsers.filter(u => (u.totalQuizScore || 0) > 0);
             // Sort by score desc
-            const sorted = allUsers.sort((a, b) => (b.totalQuizScore || 0) - (a.totalQuizScore || 0));
+            const sorted = filtered.sort((a, b) => (b.totalQuizScore || 0) - (a.totalQuizScore || 0));
             setUsers(sorted);
         } catch (error) {
             console.error(error);
@@ -136,7 +138,7 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
                                         </div>
                                     )}
                                 </div>
-                                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">2º Lugar</div>
+                                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{users[1] && users[1].totalQuizScore > 0 ? '2º Lugar' : ''}</div>
                                 <div className="font-bold text-gray-800 text-center leading-tight line-clamp-1">{users[1].name}</div>
                                 <div className="text-xs text-gray-500 mb-2">{users[1].totalQuizScore} pts</div>
 
@@ -167,7 +169,7 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
                                         </div>
                                     )}
                                 </div>
-                                <div className="text-sm font-bold text-metarh-yellow uppercase tracking-widest mb-1 drop-shadow-sm">1º Lugar</div>
+                                <div className="text-sm font-bold text-metarh-yellow uppercase tracking-widest mb-1 drop-shadow-sm">{users[0] && users[0].totalQuizScore > 0 ? '1º Lugar' : ''}</div>
                                 <div className="text-xl font-bold text-gray-900 text-center leading-tight line-clamp-1">{users[0].name}</div>
                                 <div className="text-sm text-gray-500 mb-2 font-bold">{users[0].totalQuizScore} pts</div>
 
@@ -200,7 +202,7 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
                                         </div>
                                     )}
                                 </div>
-                                <div className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-1">3º Lugar</div>
+                                <div className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-1">{users[2] && users[2].totalQuizScore > 0 ? '3º Lugar' : ''}</div>
                                 <div className="font-bold text-gray-800 text-center leading-tight line-clamp-1">{users[2].name}</div>
                                 <div className="text-xs text-gray-500 mb-2">{users[2].totalQuizScore} pts</div>
 
@@ -233,6 +235,7 @@ export const QuizLeaderboard: React.FC<QuizLeaderboardProps> = ({ currentUser, o
                             </thead>
                             <tbody>
                                 {users.map((u, index) => {
+                                    if (!u.totalQuizScore || u.totalQuizScore === 0) return null;
                                     const isCurrentUser = u.id === currentUser.id;
                                     const rankInfo = getRankInfo(index, u);
 

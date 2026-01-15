@@ -61,23 +61,10 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                 <DollarSign size={18} /> 2. Taxa Administrativa
-              </h2>
-              {/* Explicação dos Modos de Cálculo */}
-              <div className="mb-4">
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-[12px] text-gray-700 leading-relaxed">
-                  <p className="mb-1"><strong>5 Colunas:</strong> A taxa (margem) é aplicada <strong>sobre os valores antes dos impostos</strong> (Salário Referência, Salário do Cargo e Custos Operacionais). Ou seja, sua margem é calculada sobre o custo do projeto, antes de adicionar tributos.</p>
-                  <p><strong>Taxa Final:</strong> A taxa é aplicada <strong>sobre o valor da NF Bruta</strong> (faturamento total, já incluindo impostos). Aqui, sua margem é calculada sobre o valor final que o cliente paga, já com tributos embutidos.</p>
-                </div>
-              </div>
-              {/* Admin Fee */}
-              <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
-                <div className="flex items-center gap-2 mb-3">
-                  <input
-                    type="number"
-                    step="1"
-                    value={inputs.marginMultiplier}
-                    onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+
+              );
+            };
+            export default PricingCalculator;
                     className="w-20 p-2 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
                   />
                   <span className="text-sm text-gray-600">%</span>

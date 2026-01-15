@@ -57,43 +57,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   const [taxRates, setTaxRates] = useState(TAX_RATES);
 
 
-            {/* 2. TAXA ADMINISTRATIVA */}
-            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                <DollarSign size={18} /> 2. Taxa Administrativa
 
-              );
-            };
-            export default PricingCalculator;
-                    className="w-20 p-2 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
-                  />
-                  <span className="text-sm text-gray-600">%</span>
-                  <span className="text-xs text-gray-500">sobre salário referência</span>
-                </div>
-                {result && (
-                  <div className="bg-white rounded-2xl p-3 border border-gray-300">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-600">Valor Total:</span>
-                      <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 3. ENCARGOS */}
-            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                <Calculator size={18} /> 3. Encargos
-              </h2>
-              <div className="mb-4">
-                <ISSSelector
-                  value={inputs.selectedISSBase}
-                  onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
-                />
-              </div>
-              <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
-            </div>
 
     // Total Operacional = Team Costs + Fixed Costs
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;

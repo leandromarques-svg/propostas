@@ -858,7 +858,9 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
       </div>
     </div>
   );
-}
+};
+
+export default PricingCalculator;
 
 // Simple InputField helper
 const InputField = ({ label, type = "text", value, onChange }: any) => (

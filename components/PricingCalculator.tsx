@@ -56,83 +56,57 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ onCancel }
   // Tax Rates State (Dynamic)
   const [taxRates, setTaxRates] = useState(TAX_RATES);
 
-  const ROLE_OPTIONS = [
-    { label: 'Diretoria', value: 2 },
-    { label: 'Gerência', value: 1.75 },
-    { label: 'Supervisão', value: 1.75 },
-    { label: 'Analista Sr', value: 1.5 },
-    { label: 'Analista Pl/Jr', value: 1.25 },
-    { label: 'Técnico', value: 1.25 },
-    { label: 'Assistente', value: 1 },
-    { label: 'Operacional', value: 1 }
-  ];
 
-  const [selectedRoleLabel, setSelectedRoleLabel] = useState<string>('Assistente');
-  const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
+            {/* 2. TAXA ADMINISTRATIVA */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <DollarSign size={18} /> 2. Taxa Administrativa
+              </h2>
+              {/* Explicação dos Modos de Cálculo */}
+              <div className="mb-4">
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-[12px] text-gray-700 leading-relaxed">
+                  <p className="mb-1"><strong>5 Colunas:</strong> A taxa (margem) é aplicada <strong>sobre os valores antes dos impostos</strong> (Salário Referência, Salário do Cargo e Custos Operacionais). Ou seja, sua margem é calculada sobre o custo do projeto, antes de adicionar tributos.</p>
+                  <p><strong>Taxa Final:</strong> A taxa é aplicada <strong>sobre o valor da NF Bruta</strong> (faturamento total, já incluindo impostos). Aqui, sua margem é calculada sobre o valor final que o cliente paga, já com tributos embutidos.</p>
+                </div>
+              </div>
+              {/* Admin Fee */}
+              <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="number"
+                    step="1"
+                    value={inputs.marginMultiplier}
+                    onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+                    className="w-20 p-2 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                  />
+                  <span className="text-sm text-gray-600">%</span>
+                  <span className="text-xs text-gray-500">sobre salário referência</span>
+                </div>
+                {result && (
+                  <div className="bg-white rounded-2xl p-3 border border-gray-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-600">Valor Total:</span>
+                      <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-  // Load team rates and settings on mount and refresh every 5 seconds
-  useEffect(() => {
-    const loadRates = async () => {
-      const [rates, settings] = await Promise.all([
-        getTeamRates(),
-        getAppSettings()
-      ]);
-      setTeamRates(rates);
-      if (settings && settings.general_tax_rates) {
-        setTaxRates(settings.general_tax_rates);
-      }
-    };
-
-    // Load immediately
-    loadRates();
-
-    // Refresh every 5 seconds
-    const interval = setInterval(loadRates, 5000);
-
-    // Cleanup
-    return () => clearInterval(interval);
-  }, []);
-
-  // --- CALCULATION LOGIC ---
-  useEffect(() => {
-    calculatePricing();
-  }, [inputs, profitMarginPct, complexityScale, teamRates, taxRates]);
-
-  const calculatePricing = () => {
-    const {
-      positions,
-      demandedDays,
-      qtyConsultant2, qtyConsultant1, qtyAssistant,
-      fixedItems,
-      marginMultiplier,
-      selectedISSBase
-    } = inputs;
-
-    // 1. Team Suggestion based on Complexity Scale (0-5)
-    let suggestedTeam = 'Equipe Padrão';
-    if (complexityScale <= 1.5) suggestedTeam = 'Foco em Assistente/Jr';
-    else if (complexityScale <= 3.5) suggestedTeam = 'Equipe Mista (Pleno)';
-    else suggestedTeam = 'Foco em Sênior/Especialista';
-
-    // 2. Operational Costs - Use dynamic rates from Supabase
-    const LOCAL_HOURLY_RATES = {
-      consultant2: teamRates.senior,  // Senior
-      consultant1: teamRates.plena,   // Pleno
-      assistant: teamRates.junior     // Junior
-    };
-
-    const teamHourlyCost =
-      (qtyConsultant2 * LOCAL_HOURLY_RATES.consultant2) +
-      (qtyConsultant1 * LOCAL_HOURLY_RATES.consultant1) +
-      (qtyAssistant * LOCAL_HOURLY_RATES.assistant);
-
-    // Calculate Total Team Cost based on Demand Hours
-    // 1 Day = 9 Hours
-    const hoursPerDay = 9;
-    const projectHours = demandedDays * hoursPerDay;
-    const teamCostTotal = teamHourlyCost * projectHours;
-
-    const fixedItemsCostTotal = fixedItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
+            {/* 3. ENCARGOS */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <Calculator size={18} /> 3. Encargos
+              </h2>
+              <div className="mb-4">
+                <ISSSelector
+                  value={inputs.selectedISSBase}
+                  onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+                />
+              </div>
+              <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
+            </div>
 
     // Total Operacional = Team Costs + Fixed Costs
     const totalOperationalCost = teamCostTotal + fixedItemsCostTotal;

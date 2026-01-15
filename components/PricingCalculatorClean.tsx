@@ -367,5 +367,4 @@ const Row: React.FC<{ label: string, value: string, highlight?: boolean, small?:
       </div>
     </div>
   );
-}
-export default PricingCalculator;
+

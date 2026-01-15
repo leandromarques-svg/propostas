@@ -10,7 +10,7 @@ import { UserManagementModal } from './components/UserManagementModal';
 import { SolutionSummaryModal } from './components/SolutionSummaryModal';
 import { ChatBot } from './components/ChatBot';
 import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayoutEditor';
-import { PricingCalculator } from './components/PricingCalculator';
+import { PricingCalculator } from './components/PricingCalculatorClean';
 import { LaborCalculator } from './components/LaborCalculator';
 import { TrilhandoPlusCalculator } from './components/TrilhandoPlusCalculator';
 import { getUsers, saveUser, deleteUser } from './components/lib/userService';

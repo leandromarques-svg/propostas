@@ -806,11 +806,12 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
 
 
 
+
         {/* ...existing code... */}
       </div>
     </div>
   );
-};
+}
 export default PricingCalculator;
 
 // Simple InputField helper

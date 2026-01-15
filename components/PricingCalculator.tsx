@@ -805,10 +805,10 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
           </div>
 
 
+
         {/* ...existing code... */}
       </div>
     </div>
-
   );
 };
 export default PricingCalculator;

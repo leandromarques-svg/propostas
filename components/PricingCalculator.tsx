@@ -712,6 +712,8 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
               <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
             </div>
 
+
+
               {/* Explicação dos Modos de Cálculo */}
               <div className="mb-4">
                 <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-[12px] text-gray-700 leading-relaxed">
@@ -719,7 +721,6 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
                   <p><strong>Taxa Final:</strong> A taxa é aplicada <strong>sobre o valor da NF Bruta</strong> (faturamento total, já incluindo impostos). Aqui, sua margem é calculada sobre o valor final que o cliente paga, já com tributos embutidos.</p>
                 </div>
               </div>
-
               {/* Admin Fee */}
               <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>

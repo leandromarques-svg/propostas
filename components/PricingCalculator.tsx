@@ -853,11 +853,12 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
             </div>
           </div>
 
+
         {/* ...existing code... */}
       </div>
     </div>
   );
-};
+}
 
 // Simple InputField helper
 const InputField = ({ label, type = "text", value, onChange }: any) => (

@@ -666,27 +666,51 @@ Retorne APENAS o JSON, sem explicações, markdown ou formatação adicional.`;
             </div>
 
 
+
             {/* 2. TAXA ADMINISTRATIVA */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                 <DollarSign size={18} /> 2. Taxa Administrativa
               </h2>
-            // ...existing code...
-          </div>
+              {/* ...existing code... */}
+              {/* Admin Fee */}
+              <div className="bg-gray-50 border-2 border-gray-300 p-4 rounded-3xl">
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Taxa Administrativa</label>
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="number"
+                    step="1"
+                    value={inputs.marginMultiplier}
+                    onChange={(e) => handleNumberChange('marginMultiplier', e.target.value)}
+                    className="w-20 p-2 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none font-bold text-center"
+                  />
+                  <span className="text-sm text-gray-600">%</span>
+                  <span className="text-xs text-gray-500">sobre salário referência</span>
+                </div>
+                {result && (
+                  <div className="bg-white rounded-2xl p-3 border border-gray-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-600">Valor Total:</span>
+                      <span className="text-lg font-bold text-gray-900">{fmtCurrency(result.adminFee)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-        {/* 3. ENCARGOS - FORA DO GRID PRINCIPAL */}
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-8">
-          <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <Calculator size={18} /> 3. Encargos
-          </h2>
-          <div className="mb-4">
-            <ISSSelector
-              value={inputs.selectedISSBase}
-              onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
-            />
-          </div>
-          <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
-        </div>
+            {/* 3. ENCARGOS */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-metarh-dark mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <Calculator size={18} /> 3. Encargos
+              </h2>
+              <div className="mb-4">
+                <ISSSelector
+                  value={inputs.selectedISSBase}
+                  onChange={base => setInputs(prev => ({ ...prev, selectedISSBase: base }))}
+                />
+              </div>
+              <p className="text-xs text-gray-500">Selecione o município para definir a alíquota de ISS. Outros encargos são calculados automaticamente.</p>
+            </div>
 
               {/* Explicação dos Modos de Cálculo */}
               <div className="mb-4">

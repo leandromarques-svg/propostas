@@ -70,7 +70,12 @@ export const SolutionSummaryModal: React.FC<SolutionSummaryModalProps> = ({
     const headerText = SALES_ARGUMENTS[packageKey] || solutions[0]?.aboutSolution || '';
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-100/60 backdrop-blur-md animate-fade-in">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}
+        >
             <div className="bg-white w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl relative flex flex-col overflow-hidden">
 
                 {/* Header - Standardized to METARH Dark to match DetailModal */}

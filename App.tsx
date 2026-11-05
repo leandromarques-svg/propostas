@@ -1,28 +1,44 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Logo } from './components/Logo';
-import { SOLUTIONS_DATA, USERS } from './constants';
-import { SolutionData, ViewState, CartItem, CartSelections, User, SavedProposal, ProposalSection } from './types';
+import { SOLUTIONS_DATA } from './constants';
+import { SolutionData, User } from './types';
 import { DetailModal } from './components/DetailModal';
-import { ProposalView } from './components/ProposalView';
 import { LoginScreen } from './components/LoginScreen';
 import { ProfileModal } from './components/ProfileModal';
 import { UserManagementModal } from './components/UserManagementModal';
 import { SolutionSummaryModal } from './components/SolutionSummaryModal';
-import { ChatBot } from './components/ChatBot';
-import { ProposalLayoutEditor, DEFAULT_LAYOUT } from './components/ProposalLayoutEditor';
-import { PricingCalculator } from './components/PricingCalculator';
-import { LaborCalculator } from './components/LaborCalculator';
-import { TrilhandoPlusCalculator } from './components/TrilhandoPlusCalculator';
-import { getUsers, saveUser, deleteUser } from './components/lib/userService';
-import { SupabaseStatus } from './components/SupabaseStatus';
-import { AppSettingsModal } from './components/AppSettingsModal';
-import { Search, ShoppingBag, Plus, Edit3, ChevronDown, Layers, Download, LogOut, User as UserIcon, Shield, BookOpen, Info, FileDown, Briefcase, Stethoscope, Users, Star, Cpu, Map, Store, Crown, Layout, Calculator, Settings, ArrowRight, Sparkles } from 'lucide-react';
+import { CommercialToolsModal } from './components/CommercialToolsModal';
+import { SolutionBlogSection } from './components/SolutionBlogSection';
+import { ServiceCard } from './components/ServiceCard';
+import { getUsers, saveUser, deleteUser, isGerencialComercial } from './components/lib/userService';
+import {
+  Search,
+  ChevronDown,
+  Layers,
+  LogOut,
+  User as UserIcon,
+  Shield,
+  Briefcase,
+  Stethoscope,
+  Users,
+  Star,
+  Cpu,
+  Map,
+  Store,
+  Info,
+  Sparkles
+} from 'lucide-react';
 import { Footer } from './components/Footer';
+import { SocialLinks } from './components/SocialLinks';
 
 // Package Themes Helper
 const getPackageTheme = (packageKey: string) => {
-  const baseTheme = { color: 'bg-metarh-medium', textColor: 'text-metarh-dark', borderColor: 'border-metarh-medium', iconColor: 'text-white' };
-  return baseTheme;
+  return {
+    color: 'bg-metarh-medium',
+    textColor: 'text-metarh-dark',
+    borderColor: 'border-metarh-medium',
+    iconColor: 'text-white'
+  };
 };
 
 const PackageIcon: React.FC<{ name: string; className?: string; size?: number }> = ({ name, className, size }) => {
@@ -54,41 +70,46 @@ const getGreeting = () => {
 };
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('metarh_active_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [isLoginExiting, setIsLoginExiting] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-  const [view, setView] = useState<ViewState>('catalog');
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [proposalHistory, setProposalHistory] = useState<SavedProposal[]>([]);
   const [selectedSolution, setSelectedSolution] = useState<SolutionData | null>(null);
 
-  // State for Proposal Layout
-  const [proposalLayout, setProposalLayout] = useState<ProposalSection[]>(DEFAULT_LAYOUT);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Modals state
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-  const [isAppSettingsModalOpen, setIsAppSettingsModalOpen] = useState(false);
-  const [selectedSummaryPackage, setSelectedSummaryPackage] = useState<string | null>(null);
+  const [isCommercialToolsOpen, setIsCommercialToolsOpen] = useState(false);
   const [viewPackageSummary, setViewPackageSummary] = useState<string | null>(null);
 
-  // Calculator Dashboard State
-  const [activeCalculator, setActiveCalculator] = useState<'pricing' | 'labor' | 'trilhando' | null>(null);
-
+  // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchQuery, setSearchQuery] = useState(''); // For banner search
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-  const [showCalculatorMenu, setShowCalculatorMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    'Business': true // First group open by default
+  });
 
+  const isManager = isGerencialComercial(currentUser);
+
+  // Grouped Solutions (Solutions contain Services)
   const groupedSolutions = useMemo(() => {
     const lower = searchTerm.toLowerCase();
 
-    const filtered = SOLUTIONS_DATA.filter(s =>
-      s.name.toLowerCase().includes(lower) ||
-      s.description.toLowerCase().includes(lower) ||
-      s.solutionPackage.toLowerCase().includes(lower)
+    const filtered = SOLUTIONS_DATA.filter(
+      s =>
+        s.name.toLowerCase().includes(lower) ||
+        s.description.toLowerCase().includes(lower) ||
+        s.solutionPackage.toLowerCase().includes(lower) ||
+        s.benefits.some(b => b.toLowerCase().includes(lower)) ||
+        s.publicNeeds.some(n => n.toLowerCase().includes(lower))
     );
 
     const groups: Record<string, SolutionData[]> = {};
@@ -110,600 +131,355 @@ const App: React.FC = () => {
         return acc;
       }, {} as Record<string, boolean>);
       setExpandedGroups(allGroups);
-    } else {
-      setExpandedGroups({});
     }
   }, [searchTerm, groupedSolutions]);
 
   const groupKeys = Object.keys(groupedSolutions).sort();
-  const cartCount = cart.length;
   const greeting = getGreeting();
 
+  // Load users from Google Apps Script (excluding Cliente role)
   useEffect(() => {
     const loadUsers = async () => {
       setIsLoadingUsers(true);
-      const users = await getUsers();
-      setAllUsers(users);
-      setIsLoadingUsers(false);
+      try {
+        const users = await getUsers();
+        setAllUsers(users);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoadingUsers(false);
+      }
     };
     loadUsers();
   }, []);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
+    try {
+      localStorage.setItem('metarh_active_user', JSON.stringify(user));
+    } catch {}
   };
 
   const handleLogout = () => {
     setIsLoginExiting(true);
     setTimeout(() => {
       setCurrentUser(null);
+      try {
+        localStorage.removeItem('metarh_active_user');
+      } catch {}
       setIsLoginExiting(false);
-      setView('catalog');
-      setCart([]);
-    }, 500);
-  };
-
-  const addToCart = (solution: SolutionData, selections?: CartSelections) => {
-    if (!cart.find(item => item.solution.id === solution.id)) {
-      setCart([...cart, { solution, quantity: 1, selections: selections || { benefits: [], publicNeeds: [], toolsUsed: [] } }]);
-    }
-  };
-
-  const removeFromCart = (solutionId: string) => {
-    setCart(cart.filter(item => item.solution.id !== solutionId));
-  };
-
-  const updateQuantity = (solutionId: string, delta: number) => {
-    setCart(cart.map(item => {
-      if (item.solution.id === solutionId) {
-        const newQuantity = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    }));
-  };
-
-  const updateSelections = (solutionId: string, selections: CartSelections) => {
-    setCart(cart.map(item => {
-      if (item.solution.id === solutionId) {
-        return { ...item, selections };
-      }
-      return item;
-    }));
+    }, 400);
   };
 
   const toggleGroup = (group: string) => {
     setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }));
   };
 
-  const handleSaveProposal = (proposal: SavedProposal) => {
-    setProposalHistory([proposal, ...proposalHistory]);
-    setCart([]);
-    setView('catalog');
-  };
-
-  const handleCreateUser = async (newUser: Omit<User, 'id'>) => {
-    const createdUser = await saveUser(newUser);
+  const handleCreateUser = async (newUser: User) => {
+    const createdUser = await saveUser(newUser, currentUser);
     if (createdUser) {
-      setAllUsers([...allUsers, createdUser]);
+      setAllUsers(prev => [...prev, createdUser]);
     }
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
-    const savedUser = await saveUser(updatedUser);
+    const savedUser = await saveUser(updatedUser, currentUser);
     if (savedUser) {
-      setAllUsers(allUsers.map(u => u.id === savedUser.id ? savedUser : u));
-      if (currentUser?.id === savedUser.id) {
+      setAllUsers(prev => prev.map(u => (u.username === savedUser.username ? savedUser : u)));
+      if (currentUser?.username === savedUser.username) {
         setCurrentUser(savedUser);
+        try {
+          localStorage.setItem('metarh_active_user', JSON.stringify(savedUser));
+        } catch {}
       }
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    const success = await deleteUser(userId);
-    if (success) {
-      setAllUsers(allUsers.filter(u => u.id !== userId));
-    }
+  const handleDeleteUser = async (username: string) => {
+    await deleteUser(username, currentUser);
+    setAllUsers(prev => prev.filter(u => u.username !== username));
   };
 
+  // Login Screen
   if (!currentUser) {
-    return <LoginScreen onLoginSuccess={handleLogin} users={allUsers} isExiting={isLoginExiting} />;
-  }
-
-  const renderHeader = () => (
-    <header className="bg-gradient-to-r from-metarh-medium to-purple-700 text-white px-6 py-3 shadow-lg sticky top-0 z-30">
-      <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-4">
-        {/* Left: Logo + Greeting */}
-        <div className="flex items-center gap-6">
-          <Logo variant="white" orientation="horizontal" className="h-7 w-auto" />
-          <div className="hidden md:block">
-            <p className="text-sm font-medium opacity-90">{greeting}, <span className="font-bold">{currentUser.name.split(' ')[0]}</span></p>
-          </div>
-        </div>
-
-        {/* Center: Navigation Menu */}
-        <nav className="flex items-center gap-2">
-          <button
-            onClick={() => setView('catalog')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'catalog' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
-          >
-            <span className="flex items-center gap-2">
-              <Layers size={18} />
-              <span className="hidden sm:inline">Catálogo</span>
-            </span>
-          </button>
-          <div className="relative">
-            <button
-              onClick={() => setShowCalculatorMenu(!showCalculatorMenu)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${view === 'calculator' ? 'bg-white text-metarh-medium shadow-md' : 'bg-white/10 hover:bg-white/20'}`}
-            >
-              <span className="flex items-center gap-2">
-                <Calculator size={18} />
-                <span className="hidden sm:inline">Calculadoras</span>
-                <ChevronDown size={14} className={`transition-transform ${showCalculatorMenu ? 'rotate-180' : ''}`} />
-              </span>
-            </button>
-            {showCalculatorMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden min-w-[200px] z-50">
-                <button
-                  onClick={() => {
-                    setView('calculator');
-                    setActiveCalculator('pricing');
-                    setShowCalculatorMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2"
-                >
-                  <Calculator size={16} />
-                  Calculadora de Projetos
-                </button>
-                <button
-                  onClick={() => {
-                    setView('calculator');
-                    setActiveCalculator('labor');
-                    setShowCalculatorMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
-                >
-                  <Users size={16} />
-                  Gestão de Mão de Obra
-                </button>
-                <button
-                  onClick={() => {
-                    setView('calculator');
-                    setActiveCalculator('trilhando');
-                    setShowCalculatorMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm flex items-center gap-2 border-t border-gray-100"
-                >
-                  <Sparkles size={16} />
-                  Calculadora Trilhando+
-                </button>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={() => setIsSummaryModalOpen(true)}
-            className="px-4 py-2 rounded-lg font-medium text-sm bg-white/10 hover:bg-white/20 transition-all relative"
-          >
-            <span className="flex items-center gap-2">
-              <ShoppingBag size={18} />
-              <span className="hidden sm:inline">Minhas Propostas</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-yellow-400 text-metarh-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </span>
-          </button>
-        </nav>
-
-        {/* Right: Profile + Admin Controls */}
-        <div className="flex items-center gap-3">
-          {currentUser.isAdmin && (
-            <>
-              <button
-                onClick={() => setIsUserManagementOpen(true)}
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-                title="Gerenciar Usuários"
-              >
-                <Crown size={20} className="text-yellow-300" />
-              </button>
-              <button
-                onClick={() => setIsAppSettingsModalOpen(true)}
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-                title="Configurações"
-              >
-                <Settings size={20} />
-              </button>
-            </>
-          )}
-          <div className="h-6 w-px bg-white/20"></div>
-          <button
-            onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-2 hover:bg-white/10 rounded-lg p-1 pr-3 transition-all"
-          >
-            <div className="relative">
-              <img
-                src={currentUser.avatarUrl}
-                alt={currentUser.name}
-                className="w-8 h-8 rounded-full object-cover border-2 border-white/30"
-              />
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-metarh-medium rounded-full"></div>
-            </div>
-            <span className="hidden lg:inline text-sm font-medium">{currentUser.name.split(' ')[0]}</span>
-          </button>
-          <button
-            onClick={handleLogout}
-            className="p-2 bg-white/10 hover:bg-red-500 rounded-lg transition-all"
-            title="Sair"
-          >
-            <LogOut size={18} />
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-
-  // --- RENDER CALCULATORS ---
-  if (view === 'calculator') {
-    if (activeCalculator === 'pricing') {
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
-          {renderHeader()}
-          <PricingCalculator onCancel={() => setActiveCalculator(null)} />
-          <Footer />
-        </div>
-      );
-    }
-    if (activeCalculator === 'labor') {
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
-          {renderHeader()}
-          <LaborCalculator onCancel={() => setActiveCalculator(null)} />
-          <Footer />
-        </div>
-      );
-    }
-    if (activeCalculator === 'trilhando') {
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
-          {renderHeader()}
-          <TrilhandoPlusCalculator onCancel={() => setActiveCalculator(null)} />
-          <Footer />
-        </div>
-      );
-    }
-
-    // Calculator Dashboard
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col animate-fade-in">
-        {renderHeader()}
-
-        <div className="flex-1 p-8 max-w-6xl mx-auto w-full flex items-center justify-center">
-          <div className="grid md:grid-cols-3 gap-6 w-full">
-            {/* Pricing Calculator Card */}
-            <button
-              onClick={() => setActiveCalculator('pricing')}
-              className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Calculator size={100} className="text-metarh-medium" />
-              </div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Calculator size={28} className="text-metarh-medium" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Calculadora de Projetos</h2>
-                <p className="text-sm text-gray-500 mb-4">
-                  Precificação de projetos de consultoria, R&S e serviços pontuais.
-                </p>
-                <div className="flex items-center gap-2 text-metarh-medium font-bold text-sm group-hover:translate-x-2 transition-transform">
-                  Acessar <ArrowRight size={16} />
-                </div>
-              </div>
-            </button>
-
-            {/* Labor Calculator Card */}
-            <button
-              onClick={() => setActiveCalculator('labor')}
-              className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Users size={100} className="text-metarh-medium" />
-              </div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Users size={28} className="text-metarh-medium" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Gestão de Mão de Obra</h2>
-                <p className="text-sm text-gray-500 mb-4">
-                  Cálculo de custos para mão de obra administrada e terceiros.
-                </p>
-                <div className="flex items-center gap-2 text-metarh-medium font-bold text-sm group-hover:translate-x-2 transition-transform">
-                  Acessar <ArrowRight size={16} />
-                </div>
-              </div>
-            </button>
-
-            {/* Trilhando+ Calculator Card */}
-            <button
-              onClick={() => setActiveCalculator('trilhando')}
-              className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-metarh-medium/30 transition-all group text-left relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Sparkles size={100} className="text-metarh-medium" />
-              </div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-metarh-medium/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Sparkles size={28} className="text-metarh-medium" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Calculadora Trilhando+</h2>
-                <p className="text-sm text-gray-500 mb-4">
-                  Precificação exclusiva para projetos do programa Trilhando+.
-                </p>
-                <div className="flex items-center gap-2 text-metarh-medium font-bold text-sm group-hover:translate-x-2 transition-transform">
-                  Acessar <ArrowRight size={16} />
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
+      <LoginScreen
+        onLoginSuccess={handleLogin}
+        users={allUsers}
+        isExiting={isLoginExiting}
+      />
     );
   }
 
-  if (view === 'proposal') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
-        {renderHeader()}
-        <ProposalView
-          cart={cart}
-          onBack={() => setView('catalog')}
-          onSaveToHistory={handleSaveProposal}
-          user={currentUser}
-          history={proposalHistory}
-          onRemove={removeFromCart}
-        />
-        <Footer />
-      </div>
-    );
-  }
-
-  // Temporarily disabled - Layout Editor
-  /*
-  if (view === 'layout-editor') {
-    return (
-          <ProposalLayoutEditor
-            currentLayout={proposalLayout}
-            onSave={(newLayout) => {
-              setProposalLayout(newLayout);
-              setView('catalog');
-            }}
-            onCancel={() => setView('catalog')}
-          />
-          );
-  }
-          */
+  const userInitial = (currentUser.name || currentUser.username || 'U').charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 animate-fade-in">
       {/* Top Navigation Bar */}
-      {renderHeader()}
+      <header className="sticky top-0 bg-metarh-dark text-white shadow-xl z-40 border-b border-white/10 shrink-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          {/* Left: Brand Logo */}
+          <div className="flex items-center gap-4">
+            <Logo variant="white" orientation="horizontal" className="h-9" />
+            <div className="hidden md:block h-6 w-px bg-white/20"></div>
+            <span className="hidden md:block text-xs font-semibold text-purple-200 uppercase tracking-widest">
+              Árvore de Soluções
+            </span>
+          </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Center/Right Nav Controls */}
+          <div className="flex items-center gap-3">
+            {/* Redes Sociais no Header */}
+            <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-full px-2 py-1">
+              <SocialLinks variant="header" />
+            </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-7xl mx-auto pb-24">
+            {/* Ferramentas do Comercial - Restricted to Gerencial Comercial */}
+            {isManager && (
+              <button
+                type="button"
+                onClick={() => setIsCommercialToolsOpen(true)}
+                className="px-4 py-2.5 rounded-full font-bold text-xs bg-metarh-lime text-metarh-dark hover:bg-yellow-300 transition-all flex items-center gap-2 shadow-md shadow-metarh-lime/20 cursor-pointer"
+                title="Ferramentas Estratégicas do Comercial"
+              >
+                <Briefcase size={15} />
+                <span>Ferramentas do Comercial</span>
+              </button>
+            )}
 
-            {/* Hero Banner - Purple with Search */}
-            <div className="bg-gradient-to-br from-purple-700 via-purple-600 to-purple-800 rounded-[3rem] p-12 mb-8 shadow-2xl relative overflow-hidden">
-              {/* Animated Background Blobs - Same as loading screen */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                <div className="w-[800px] h-[800px] border-[1px] border-white/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s' }}></div>
-                <div className="w-[600px] h-[600px] border-[1px] border-white/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s', animationDelay: '0.5s' }}></div>
+            {/* Gerenciar Usuários - Restricted to Gerencial Comercial */}
+            {isManager && (
+              <button
+                type="button"
+                onClick={() => setIsUserManagementOpen(true)}
+                className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all text-purple-200 hover:text-white cursor-pointer"
+                title="Gerenciar Usuários (Google Sheets)"
+              >
+                <Shield size={18} />
+              </button>
+            )}
+
+            <div className="h-6 w-px bg-white/20 mx-1"></div>
+
+            {/* Profile Button */}
+            <button
+              type="button"
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex items-center gap-2.5 hover:bg-white/10 rounded-full py-1.5 px-3 transition-all cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-metarh-medium to-purple-400 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+                {userInitial}
               </div>
-              <div className="blob-shape bg-purple-500 w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20 animate-float absolute"></div>
-              <div className="blob-shape bg-purple-400 w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-screen filter blur-[80px] opacity-20 animate-float absolute" style={{ animationDelay: '2s' }}></div>
+              <div className="hidden lg:flex flex-col text-left">
+                <span className="text-xs font-bold leading-tight">{currentUser.name.split(' ')[0]}</span>
+                <span className="text-[10px] text-purple-200 leading-tight">
+                  {currentUser.role || 'Colaborador'}
+                </span>
+              </div>
+            </button>
 
-              <div className="relative z-10 flex items-center gap-8">
-                {/* Text and Search - Left Side */}
-                <div className="flex-1 max-w-3xl">
-                  <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                    Vamos construir uma proposta incrível hoje, <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>?
-                  </h1>
-                  <p className="text-lg text-purple-100 mb-6">
-                    Explore nossa <strong style={{ color: '#c9f545' }}>árvore de soluções</strong> e personalize cada item para criar propostas exclusivas para nossos clientes.
-                  </p>
+            {/* Logout Button */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="p-2.5 bg-white/10 hover:bg-red-500 rounded-full transition-all text-purple-200 hover:text-white cursor-pointer"
+              title="Sair"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        </div>
+      </header>
 
-                  {/* Search Bar */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Busque por serviço ou soluções (ex: Hunting, R&S, Tech)..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setSearchTerm(e.target.value);
-                      }}
-                      className="w-full px-6 py-4 pr-12 rounded-2xl border-2 border-purple-300/30 bg-white/95 backdrop-blur-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#c9f545]/50 focus:border-[#c9f545] transition-all shadow-lg"
-                    />
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400" size={24} />
-                  </div>
-                </div>
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
+        {/* Hero Banner */}
+        <div className="bg-gradient-to-br from-purple-900 via-metarh-dark to-purple-800 rounded-[3rem] p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden text-white">
+          <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none">
+            <div
+              className="w-[700px] h-[700px] border border-white/15 rounded-full animate-ping absolute"
+              style={{ animationDuration: '3.5s' }}
+            ></div>
+          </div>
 
-                {/* Mosaico Image - Right Side */}
-                <div className="hidden lg:block flex-shrink-0">
-                  <img
-                    src="https://metarh.com.br/wp-content/uploads/2025/12/mosaico_Banner.png"
-                    alt="Mosaico METARH"
-                    className="w-[280px] h-auto object-contain drop-shadow-2xl"
-                  />
-                </div>
+          <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8 justify-between">
+            {/* Left Text */}
+            <div className="flex-1 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold text-metarh-lime mb-4">
+                <Sparkles size={14} /> Portal Comercial & Árvore de Soluções
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight">
+                {greeting},{' '}
+                <span style={{ color: '#c9f545' }}>{currentUser.name.split(' ')[0]}</span>!
+              </h1>
+
+              <p className="text-sm sm:text-base text-purple-100 mb-5 leading-relaxed">
+                Explore as <strong>Soluções de RH</strong> da METARH e seus respectivos <strong>Serviços</strong>.
+                Consulte as matérias do blog e etapas do funil de vendas associadas a cada solução,
+                e acesse as ferramentas estratégicas do comercial.
+              </p>
+
+              {/* Redes Sociais & Site Oficial */}
+              <div className="mb-6 p-3 sm:p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15">
+                <SocialLinks variant="hero" />
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Busque por soluções, serviços, benefícios ou dores de clientes..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchTerm(e.target.value);
+                  }}
+                  className="w-full px-6 py-4 pr-12 rounded-2xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-metarh-lime/50 transition-all shadow-xl text-sm font-medium"
+                />
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-metarh-medium" size={22} />
               </div>
             </div>
 
-            {/* Catalog Grid */}
-            <div className="space-y-12">
-              {groupKeys.length === 0 ? (
-                <div className="text-center py-20">
-                  <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Search size={32} className="text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-700">Nenhum resultado encontrado</h3>
-                  <p className="text-gray-500 mt-2">Tente buscar por outros termos ou navegue pelas categorias.</p>
-                </div>
-              ) : (
-                groupKeys.map(group => {
-                  const theme = getPackageTheme(group);
-                  const isExpanded = expandedGroups[group] ?? false; // Default closed
-
-                  return (
-                    <div
-                      key={group}
-                      className={`animate-slide-up bg-white rounded-[2.5rem] p-8 shadow-sm border transition-all duration-300 mb-8 ${isExpanded ? 'border-metarh-medium ring-1 ring-metarh-medium/50' : 'border-gray-100 hover:shadow-md'}`}
-                    >
-                      {/* Header Section */}
-                      <div
-                        className="flex flex-col md:flex-row items-start md:items-center gap-6 cursor-pointer group/header select-none"
-                        onClick={() => toggleGroup(group)}
-                      >
-                        {/* Icon Box */}
-                        <div className={`w-16 h-16 ${theme.color} rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105`}>
-                          <PackageIcon name={group} className="text-white" size={32} />
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1">
-                          <h2 className="text-2xl font-bold text-metarh-dark mb-2 group-hover:text-metarh-medium transition-colors">{group}</h2>
-                          <p className="text-gray-600 text-sm leading-relaxed max-w-4xl">
-                            {groupedSolutions[group][0]?.aboutSolution || "Solução especializada METARH."}
-                          </p>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-3 ml-auto mt-4 md:mt-0 shrink-0">
-                          <div className="bg-gray-50 rounded-full px-4 py-2 flex items-center gap-4 border border-gray-100">
-                            <button
-                              className="text-metarh-medium hover:text-metarh-dark transition-colors"
-                              title="Mais Informações"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setViewPackageSummary(group);
-                              }}
-                            >
-                              <Info size={20} />
-                            </button>
-                            <div className="w-px h-4 bg-gray-300"></div>
-                            <button className="text-metarh-medium hover:text-metarh-dark transition-colors" title="Baixar PDF">
-                              <FileDown size={20} />
-                            </button>
-                          </div>
-
-                          <div className={`w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-all ${isExpanded ? 'bg-gray-50 border-metarh-medium/30' : ''}`}>
-                            <ChevronDown
-                              size={24}
-                              className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-metarh-medium' : ''}`}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Expanded Content */}
-                      {isExpanded && (
-                        <div className="mt-8 pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in">
-                          {groupedSolutions[group].map(solution => {
-                            const inCart = cart.find(item => item.solution.id === solution.id);
-                            return (
-                              <div
-                                key={solution.id}
-                                className={`bg-white rounded-3xl p-6 border transition-all duration-300 flex flex-col hover:shadow-lg ${inCart ? 'border-metarh-medium ring-1 ring-metarh-medium' : 'border-gray-100 hover:border-gray-200'}`}
-                              >
-                                <h3 className="text-lg font-bold text-gray-800 mb-3 line-clamp-1">{solution.name}</h3>
-                                <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-1 line-clamp-4">
-                                  {solution.description}
-                                </p>
-
-                                <div className="mt-auto flex items-center justify-between gap-4">
-                                  <button
-                                    onClick={() => setSelectedSolution(solution)}
-                                    className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all"
-                                  >
-                                    Detalhes
-                                  </button>
-
-                                  {inCart ? (
-                                    <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 h-10 px-1">
-                                      <button
-                                        onClick={() => updateQuantity(solution.id, -1)}
-                                        className="w-8 h-full flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors font-bold"
-                                      >
-                                        -
-                                      </button>
-                                      <span className="w-6 text-center text-sm font-bold text-gray-800">{inCart.quantity}</span>
-                                      <button
-                                        onClick={() => updateQuantity(solution.id, 1)}
-                                        className="w-8 h-full flex items-center justify-center text-gray-500 hover:text-metarh-medium transition-colors font-bold"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      onClick={() => addToCart(solution)}
-                                      className="w-10 h-10 rounded-full bg-metarh-medium text-white flex items-center justify-center hover:bg-metarh-dark transition-all shadow-lg shadow-purple-200 hover:shadow-purple-300 hover:scale-105"
-                                      title="Adicionar à proposta"
-                                    >
-                                      <Plus size={20} />
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
+            {/* Right Hero Visual / Mosaico */}
+            <div className="hidden lg:block flex-shrink-0">
+              <img
+                src="https://metarh.com.br/wp-content/uploads/2025/12/mosaico_Banner.png"
+                alt="Mosaico METARH"
+                className="w-[280px] h-auto object-contain drop-shadow-2xl"
+              />
             </div>
-            <Footer />
           </div>
         </div>
 
-        {/* Footer Actions */}
-        {cart.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 animate-slide-up">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="bg-metarh-medium/10 p-3 rounded-xl">
-                  <ShoppingBag size={24} className="text-metarh-medium" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">Resumo do Pedido</p>
-                  <p className="text-xl font-bold text-gray-800">{cartCount} {cartCount === 1 ? 'solução selecionada' : 'soluções selecionadas'}</p>
-                </div>
+        {/* Catalog: Solutions with their Blog Posts & their Services */}
+        <div className="space-y-8 mb-16">
+          {groupKeys.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <Search size={28} />
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setIsSummaryModalOpen(true)}
-                  className="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:border-metarh-medium hover:text-metarh-medium transition-all"
-                >
-                  Ver Resumo
-                </button>
-                <button
-                  onClick={() => setView('proposal')}
-                  className="px-8 py-3 bg-metarh-medium text-white rounded-xl font-bold shadow-lg shadow-metarh-medium/30 hover:bg-metarh-dark hover:scale-105 transition-all flex items-center gap-2"
-                >
-                  Gerar Proposta <ArrowRight size={18} />
-                </button>
-              </div>
+              <h3 className="text-lg font-bold text-gray-800">Nenhuma solução ou serviço encontrado</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Tente buscar por termos como "Hunting", "Assessment", "Staffing", "Tech" ou "Mapeamento".
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            groupKeys.map((group) => {
+              const theme = getPackageTheme(group);
+              const isExpanded = expandedGroups[group] ?? false;
+              const servicesInSolution = groupedSolutions[group] || [];
+
+              return (
+                <div
+                  key={group}
+                  className={`bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-xs border transition-all duration-300 ${
+                    isExpanded
+                      ? 'border-metarh-medium/40 ring-1 ring-metarh-medium/20 shadow-md'
+                      : 'border-gray-200/80 hover:border-gray-300'
+                  }`}
+                >
+                  {/* Solution Accordion Header */}
+                  <div
+                    className="flex flex-col md:flex-row items-start md:items-center gap-5 cursor-pointer group/header select-none"
+                    onClick={() => toggleGroup(group)}
+                  >
+                    {/* Solution Icon */}
+                    <div
+                      className={`w-14 h-14 ${theme.color} rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover/header:scale-105`}
+                    >
+                      <PackageIcon name={group} className="text-white" size={28} />
+                    </div>
+
+                    {/* Title & Description */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-wrap mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-50 text-metarh-medium border border-purple-100">
+                          Solução METARH
+                        </span>
+                        <h2 className="text-2xl font-bold text-metarh-dark group-hover/header:text-metarh-medium transition-colors">
+                          {group}
+                        </h2>
+                        <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                          {servicesInSolution.length} {servicesInSolution.length === 1 ? 'serviço' : 'serviços'}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed max-w-4xl line-clamp-2">
+                        {servicesInSolution[0]?.aboutSolution || 'Solução especializada METARH.'}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 ml-auto shrink-0 mt-3 md:mt-0">
+                      <button
+                        type="button"
+                        className="bg-gray-50 hover:bg-metarh-medium hover:text-white text-gray-700 px-4 py-2 rounded-full border border-gray-200 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                        title="Argumentário Comercial & Pitch"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewPackageSummary(group);
+                        }}
+                      >
+                        <Info size={15} />
+                        <span>Pitch Comercial</span>
+                      </button>
+
+                      <div
+                        className={`w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center transition-all ${
+                          isExpanded ? 'bg-purple-50 border-metarh-medium text-metarh-medium' : 'text-gray-400'
+                        }`}
+                      >
+                        <ChevronDown
+                          size={20}
+                          className={`transition-transform duration-300 ${
+                            isExpanded ? 'rotate-180 text-metarh-medium' : ''
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Solution Content */}
+                  {isExpanded && (
+                    <div className="mt-8 pt-8 border-t border-gray-100 animate-fade-in space-y-8">
+                      {/* 1. Blog Articles & Funnel Stages of THIS Solution */}
+                      <SolutionBlogSection packageKey={group} />
+
+                      {/* 2. Services of this Solution */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Layers size={18} className="text-metarh-medium" />
+                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                              Serviços da Solução {group} ({servicesInSolution.length})
+                            </h3>
+                          </div>
+                          <span className="text-xs text-gray-400">
+                            Clique em "Mais Informações" para visualizar a ficha técnica
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          {servicesInSolution.map((service) => (
+                            <ServiceCard
+                              key={service.id}
+                              service={service}
+                              onOpenDetails={(s) => setSelectedSolution(s)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </main>
+
+      {/* Grounded Footer */}
+      <Footer />
 
       {/* Modals */}
       {selectedSolution && (
@@ -711,10 +487,6 @@ const App: React.FC = () => {
           solution={selectedSolution}
           isOpen={!!selectedSolution}
           onClose={() => setSelectedSolution(null)}
-          onAddToProposal={(s, selections) => {
-            addToCart(s, selections);
-            setSelectedSolution(null);
-          }}
         />
       )}
 
@@ -735,20 +507,20 @@ const App: React.FC = () => {
         currentUser={currentUser}
       />
 
+      <CommercialToolsModal
+        isOpen={isCommercialToolsOpen}
+        onClose={() => setIsCommercialToolsOpen(false)}
+      />
+
       {viewPackageSummary && (
         <SolutionSummaryModal
           packageKey={viewPackageSummary}
-          solutions={groupedSolutions[viewPackageSummary]}
+          solutions={groupedSolutions[viewPackageSummary] || []}
           isOpen={!!viewPackageSummary}
           onClose={() => setViewPackageSummary(null)}
           theme={getPackageTheme(viewPackageSummary)}
         />
       )}
-
-      <AppSettingsModal
-        isOpen={isAppSettingsModalOpen}
-        onClose={() => setIsAppSettingsModalOpen(false)}
-      />
     </div>
   );
 };

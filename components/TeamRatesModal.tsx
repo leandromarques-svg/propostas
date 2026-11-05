@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Save, Loader2, Settings } from 'lucide-react';
 import { getTeamRates, updateAllTeamRates, TeamRates } from './lib/teamRatesService';
-import { supabase } from '../lib/supabase';
 
 interface TeamRatesModalProps {
     isOpen: boolean;
@@ -25,11 +24,8 @@ export const TeamRatesModal: React.FC<TeamRatesModalProps> = ({ isOpen, onClose 
         }
     }, [isOpen]);
 
-    const loadUserInfo = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            setUserInfo({ id: user.id, email: user.email || '' });
-        }
+    const loadUserInfo = () => {
+        setUserInfo({ id: 'u0', email: 'leandro@metarh.com.br' });
     };
 
     const loadRates = async () => {

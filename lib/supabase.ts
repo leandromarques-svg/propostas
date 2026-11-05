@@ -1,23 +1,32 @@
-// Supabase Client Configuration
-//
-// IMPORTANT: Create a .env.local file in the root of your project with:
-// VITE_SUPABASE_URL=your-project-url
-// VITE_SUPABASE_ANON_KEY=your-anon-key
-//
-// Get these values from: https://app.supabase.com/project/_/settings/api
+// Supabase Mock Client (Supabase removed per user request)
+// Provides safe fallbacks to prevent errors if any component references supabase.
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials not found. Please check your .env.local file.');
-}
-
-// Create the client only if keys are present, otherwise create a dummy client or handle gracefully
-// For now, we allow it to be created but it might fail on requests if keys are empty.
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
+export const supabase = {
+  auth: {
+    getUser: async () => ({
+      data: { user: { id: 'u0', email: 'leandro@metarh.com.br' } },
+      error: null
+    }),
+    signOut: async () => ({ error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+  },
+  from: () => {
+    const chainable = {
+      select: () => chainable,
+      order: () => Promise.resolve({ data: [], error: null }),
+      eq: () => chainable,
+      single: () => Promise.resolve({ data: null, error: null }),
+      maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      upsert: () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: null, error: null })
+        })
+      }),
+      insert: () => Promise.resolve({ data: null, error: null }),
+      update: () => chainable,
+      delete: () => chainable,
+      then: (resolve: any) => resolve({ data: [], error: null })
+    };
+    return chainable;
+  }
+} as any;

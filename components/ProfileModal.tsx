@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { X, User as UserIcon, Mail, Phone, Linkedin, Briefcase, FileText, Image as ImageIcon, Upload, Save } from 'lucide-react';
+import { X, User as UserIcon, Lock, Briefcase, Building, Save, ShieldCheck } from 'lucide-react';
+import { isGerencialComercial } from './lib/userService';
 
 interface ProfileModalProps {
   user: User;
@@ -12,6 +12,7 @@ interface ProfileModalProps {
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState<User>(user);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setFormData(user);
@@ -19,20 +20,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
 
   if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, avatarUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,162 +31,177 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClos
     onClose();
   };
 
+  const isManager = isGerencialComercial(user);
+  const userInitial = (formData.name || formData.username || 'U').charAt(0).toUpperCase();
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-metarh-dark/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative flex flex-col max-h-[90vh] overflow-y-auto">
-        
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative flex flex-col max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
-            <h2 className="text-2xl font-bold text-metarh-dark flex items-center gap-2">
-                <UserIcon className="text-metarh-medium" /> Editar Perfil
-            </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <X size={24} />
-            </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-metarh-dark to-metarh-medium text-white flex items-center justify-center font-bold text-lg shadow-md shadow-metarh-medium/20">
+              {userInitial}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-metarh-dark">Perfil do Usuário</h2>
+              <p className="text-xs text-gray-500">Dados cadastrais e credenciais</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
-            
-            {/* Avatar Section */}
-            <div className="flex flex-col md:flex-row gap-6 items-center">
-                <div className="w-32 h-32 rounded-full bg-gray-100 border-4 border-white shadow-lg overflow-hidden shrink-0 relative group">
-                    {formData.avatarUrl ? (
-                        <img src={formData.avatarUrl} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-metarh-medium text-white text-4xl font-bold">
-                            {formData.name.charAt(0)}
-                        </div>
-                    )}
-                </div>
-                <div className="flex-1 w-full">
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <ImageIcon size={16}/> Foto de Perfil
-                    </label>
-                    <div className="relative">
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="hidden"
-                            id="avatar-upload"
-                        />
-                        <label 
-                            htmlFor="avatar-upload"
-                            className="flex items-center gap-3 px-4 py-3 rounded-full border border-gray-300 hover:border-metarh-medium cursor-pointer hover:bg-gray-50 transition-colors w-full"
-                        >
-                            <div className="bg-metarh-gray p-2 rounded-full text-metarh-medium">
-                                <Upload size={18} />
-                            </div>
-                            <span className="text-sm text-gray-600 font-medium">
-                                {formData.avatarUrl ? 'Alterar foto' : 'Carregar foto'}
-                            </span>
-                        </label>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-2 ml-2">Recomendado: Imagem quadrada, min 250x250px.</p>
-                </div>
+        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5">
+          {/* Status Badge */}
+          <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className={`p-2 rounded-xl ${
+                  isManager ? 'bg-purple-100 text-metarh-dark' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Perfil de Acesso</p>
+                <p className="text-sm font-bold text-metarh-dark">{formData.role || 'Colaborador'}</p>
+              </div>
             </div>
+            {isManager && (
+              <span className="text-[11px] font-bold px-3 py-1 bg-metarh-lime text-metarh-dark rounded-full">
+                Gerência Comercial
+              </span>
+            )}
+          </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <UserIcon size={16}/> Nome Completo
-                    </label>
-                    <input 
-                        type="text" 
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <Briefcase size={16}/> Cargo / Função
-                    </label>
-                    <input 
-                        type="text" 
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
-                        required
-                    />
-                </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+              <UserIcon size={14} className="text-metarh-medium" /> Nome
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-medium"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+              <UserIcon size={14} className="text-metarh-medium" /> Usuário de Login
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-medium bg-gray-50"
+              required
+              readOnly={!isManager}
+            />
+            {!isManager && (
+              <p className="text-[11px] text-gray-400 mt-1 ml-1">
+                Apenas a Gerência Comercial pode alterar nomes de usuário.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+              <Lock size={14} className="text-metarh-medium" /> Senha
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-medium"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-metarh-medium px-2 py-1 cursor-pointer"
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
             </div>
+          </div>
 
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+              <Briefcase size={14} className="text-metarh-medium" /> Perfil / Função
+            </label>
+            {isManager ? (
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none text-sm font-medium bg-white"
+              >
+                <option value="Gerencial Comercial">Gerencial Comercial</option>
+                <option value="Comercial">Comercial</option>
+                <option value="Colaborador">Colaborador</option>
+                <option value="RH">RH</option>
+                <option value="Cliente">Cliente</option>
+              </select>
+            ) : (
+              <input
+                type="text"
+                name="role"
+                value={formData.role}
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-medium text-gray-600 outline-none"
+                readOnly
+              />
+            )}
+          </div>
+
+          {formData.grupoEconomico && (
             <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <FileText size={16}/> Mini Bio (Para assinatura da proposta)
-                </label>
-                <textarea 
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-[2rem] border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none resize-none"
-                />
-                <p className="text-xs text-gray-400 mt-1 ml-2">Essa descrição aparecerá no rodapé das propostas geradas.</p>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                <Building size={14} className="text-metarh-medium" /> Grupo Econômico
+              </label>
+              <input
+                type="text"
+                name="grupoEconomico"
+                value={formData.grupoEconomico}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-2xl border border-gray-300 bg-gray-50 text-sm font-medium text-gray-700 outline-none"
+                readOnly={!isManager}
+              />
             </div>
+          )}
 
-            <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <Mail size={16}/> E-mail
-                    </label>
-                    <input 
-                        type="email" 
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <Phone size={16}/> Telefone
-                    </label>
-                    <input 
-                        type="text" 
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
-                        required
-                    />
-                </div>
-            </div>
-
-            <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Linkedin size={16}/> LinkedIn (URL)
-                </label>
-                <input 
-                    type="text" 
-                    name="linkedin"
-                    value={formData.linkedin}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium outline-none"
-                />
-            </div>
-
-            <div className="pt-4 flex justify-end gap-3">
-                <button 
-                    type="button"
-                    onClick={onClose}
-                    className="px-6 py-3 rounded-full border border-gray-300 font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                    Cancelar
-                </button>
-                <button 
-                    type="submit"
-                    className="px-8 py-3 rounded-full bg-metarh-medium hover:bg-metarh-dark text-white font-bold shadow-lg shadow-purple-200 transition-all flex items-center gap-2"
-                >
-                    <Save size={18} /> Salvar Alterações
-                </button>
-            </div>
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 rounded-full border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-8 py-3 rounded-full bg-metarh-medium text-white font-bold text-sm hover:bg-metarh-dark transition-all flex items-center gap-2 shadow-lg shadow-metarh-medium/20 cursor-pointer"
+            >
+              <Save size={16} /> Salvar Alterações
+            </button>
+          </div>
         </form>
       </div>
     </div>

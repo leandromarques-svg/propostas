@@ -41,16 +41,17 @@ export interface SavedProposal {
 
 export interface User {
   id: string;
-  username?: string; // Mantido para compatibilidade, mas usaremos email no login
-  password?: string; // Não usado no frontend com Supabase (segurança)
+  username: string;
+  password?: string;
   name: string;
   role: string;
-  bio: string;
-  email: string;
-  phone: string;
-  linkedin: string;
+  grupoEconomico?: string;
+  bio?: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
   avatarUrl?: string;
-  isAdmin?: boolean; // Master user flag
+  isAdmin?: boolean;
 }
 
 // --- PROPOSAL LAYOUT TYPES ---
@@ -139,7 +140,7 @@ export interface PricingResult {
   suggestedMargin: number;
 
   // Operational Costs
-  workingHours: number; // Horas Úteis (Dias * 9)
+  workingHours?: number; // Horas Úteis (Dias * 9)
   teamCostTotal: number;
   fixedItemsCostTotal: number;
   totalOperationalCost: number;

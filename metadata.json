@@ -1,5 +1,6 @@
 {
   "name": "METARH Solutions Tree",
-  "description": "A commercial tool for constructing personalized HR proposals using the METARH solutions portfolio.",
-  "requestFramePermissions": []
+  "description": "Ferramenta comercial para construção de propostas de RH personalizadas utilizando o portfólio de soluções METARH.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

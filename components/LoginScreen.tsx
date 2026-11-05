@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { Logo } from './Logo';
 import { User } from '../types';
-
-import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
-import { getUsers } from './lib/userService';
+import { Eye, EyeOff, LogIn, AlertCircle, KeyRound, Sparkles } from 'lucide-react';
+import { getUsers, MASTER_USER } from './lib/userService';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User) => void;
@@ -13,8 +11,8 @@ interface LoginScreenProps {
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users = [], isExiting = false }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('Leandro');
+  const [password, setPassword] = useState('123');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,130 +24,186 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
     setIsLoading(true);
 
     try {
-      // Fetch users from Supabase
-      const remoteUsers = await getUsers();
-      // Combine with local users if needed, or just use remote
-      const allUsers = [...(users || []), ...remoteUsers];
+      const trimmedUser = username.trim().toLowerCase();
+      const trimmedPass = password.trim();
 
-      // Remove duplicates if any (by username)
-      const uniqueUsers = Array.from(new Map(allUsers.map(item => [item.username, item])).values());
+      // Check Master User first
+      if (
+        (trimmedUser === 'leandro' || trimmedUser === 'leandro@metarh.com.br') &&
+        trimmedPass === '123'
+      ) {
+        setLoginUser(MASTER_USER);
+        setTimeout(() => {
+          onLoginSuccess(MASTER_USER);
+        }, 600);
+        return;
+      }
 
-      // Local Authentication Logic
-      const foundUser = uniqueUsers.find(u =>
-        (u.username?.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) &&
-        u.password === password
+      // Check other local users
+      const storedUsers = await getUsers();
+      const allUsers = [...(users || []), ...storedUsers];
+      const foundUser = allUsers.find(
+        u =>
+          (u.username?.toLowerCase() === trimmedUser || u.email?.toLowerCase() === trimmedUser) &&
+          u.password === trimmedPass
       );
 
       if (foundUser) {
+        if ((foundUser.role || '').toLowerCase().trim() === 'cliente') {
+          setError('Acesso restrito ao time interno da METARH.');
+          setIsLoading(false);
+          return;
+        }
         setLoginUser(foundUser);
-        // Simulate loading delay for better UX before switching screens
         setTimeout(() => {
           onLoginSuccess(foundUser);
-        }, 1500);
+        }, 600);
       } else {
-        setError('Usuário ou senha incorretos');
+        setError('Usuário ou senha incorretos. Use Leandro e senha 123');
         setIsLoading(false);
       }
     } catch (err) {
       console.error(err);
-      setError('Erro ao conectar ao servidor: ' + JSON.stringify(err));
+      setError('Erro ao autenticar');
       setIsLoading(false);
     }
+  };
+
+  const handleFillMaster = () => {
+    setUsername('Leandro');
+    setPassword('123');
+    setError('');
   };
 
   // Loading Screen with "Ball Logo"
   if (isLoading) {
     return (
-      <div className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 scale-110 filter blur-lg' : 'opacity-100'}`}>
-        {/* Abstract Background Shapes for Loading - More animated */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-[800px] h-[800px] border-[1px] border-metarh-medium/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s' }}></div>
-          <div className="w-[600px] h-[600px] border-[1px] border-metarh-pink/10 rounded-full animate-ping absolute" style={{ animationDuration: '3s', animationDelay: '0.5s' }}></div>
+      <div
+        className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden transition-all duration-700 ease-in-out ${
+          isExiting ? 'opacity-0 scale-105 filter blur-sm' : 'opacity-100'
+        }`}
+      >
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+            className="w-[700px] h-[700px] border border-metarh-medium/10 rounded-full animate-ping absolute"
+            style={{ animationDuration: '3s' }}
+          ></div>
         </div>
 
-        <div className="blob-shape bg-metarh-medium w-[600px] h-[600px] rounded-full top-[-200px] right-[-200px] mix-blend-multiply filter blur-[80px] opacity-10 animate-float"></div>
-        <div className="blob-shape bg-metarh-pink w-[500px] h-[500px] rounded-full bottom-[-100px] left-[-100px] mix-blend-multiply filter blur-[80px] opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="blob-shape bg-metarh-medium w-[500px] h-[500px] rounded-full top-[-150px] right-[-150px] mix-blend-multiply filter blur-[80px] opacity-15 animate-float"></div>
+        <div
+          className="blob-shape bg-metarh-pink w-[450px] h-[450px] rounded-full bottom-[-100px] left-[-100px] mix-blend-multiply filter blur-[80px] opacity-15 animate-float"
+          style={{ animationDelay: '2s' }}
+        ></div>
 
         <div className="z-10 flex flex-col items-center justify-center relative">
-          <div className="mb-8 relative">
+          <div className="mb-6 relative">
             <div className="absolute inset-0 bg-metarh-medium/20 rounded-full blur-xl animate-pulse-slow"></div>
             <div className="animate-breathing relative z-10">
-              {/* Using the 'icon' (ball) orientation as requested */}
-              <Logo variant="purple" orientation="icon" className="h-32 w-32 drop-shadow-2xl" />
+              <Logo variant="purple" orientation="icon" className="h-28 w-28 drop-shadow-2xl" />
             </div>
           </div>
 
           <div className="flex flex-col items-center gap-2">
-            <h3 className="text-2xl font-bold text-metarh-dark tracking-tight animate-fade-in-down">Bem vindo, {loginUser?.name.split(' ')[0]}</h3>
-            <p className="text-metarh-medium/80 font-medium text-sm animate-pulse tracking-widest uppercase">Preparando ambiente...</p>
+            <h3 className="text-2xl font-bold text-metarh-dark tracking-tight animate-fade-in-down">
+              Bem-vindo, {loginUser?.name?.split(' ')[0] || 'Leandro'}!
+            </h3>
+            <p className="text-metarh-medium/80 font-medium text-xs tracking-widest uppercase animate-pulse">
+              Carregando Árvore de Soluções...
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Main Login Form
   return (
-    <div className={`min-h-screen bg-metarh-dark flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all duration-1000 ease-in-out ${isExiting ? 'opacity-0 -translate-y-20 scale-95' : 'opacity-100'}`}>
-
+    <div
+      className={`min-h-screen bg-metarh-dark flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all duration-700 ease-in-out ${
+        isExiting ? 'opacity-0 -translate-y-10 scale-95' : 'opacity-100'
+      }`}
+    >
       {/* Background blobs */}
-      <div className="blob-shape bg-metarh-medium w-[800px] h-[800px] rounded-full top-[-400px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-20 animate-float"></div>
-      <div className="blob-shape bg-metarh-pink w-[600px] h-[600px] rounded-full bottom-[-200px] left-[-200px] mix-blend-screen filter blur-[80px] opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+      <div className="blob-shape bg-metarh-medium w-[800px] h-[800px] rounded-full top-[-400px] right-[-200px] mix-blend-screen filter blur-[100px] opacity-25 animate-float"></div>
+      <div
+        className="blob-shape bg-metarh-pink w-[600px] h-[600px] rounded-full bottom-[-200px] left-[-200px] mix-blend-screen filter blur-[80px] opacity-25 animate-float"
+        style={{ animationDelay: '2s' }}
+      ></div>
 
       <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 animate-fade-in">
-        <div className="p-8 md:p-12">
-          <div className="flex justify-center mb-8">
+        <div className="p-8 md:p-10">
+          <div className="flex justify-center mb-6">
             <Logo variant="purple" orientation="horizontal" />
           </div>
 
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-3">Boas Vindas</h2>
-          <p className="text-center text-gray-500 mb-8 text-sm leading-relaxed px-4">
-            Acesse para conhecer a nossa Árvore de Soluções e gerenciar suas propostas
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-2">Boas-Vindas</h2>
+          <p className="text-center text-gray-500 mb-6 text-sm leading-relaxed px-2">
+            Acesse a Árvore de Soluções e gerencie suas propostas comerciais METARH.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Master User Card Helper */}
+          <div className="mb-6 p-3 bg-purple-50/80 border border-purple-100 rounded-2xl flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-metarh-dark">
+              <KeyRound size={16} className="text-metarh-medium shrink-0" />
+              <div>
+                <span className="font-bold">Acesso Master Ativo</span>
+                <p className="text-gray-500 text-[11px]">Usuário: <strong className="text-gray-800">Leandro</strong> | Senha: <strong className="text-gray-800">123</strong></p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleFillMaster}
+              className="text-metarh-medium hover:text-metarh-dark font-bold text-[11px] underline shrink-0 cursor-pointer"
+            >
+              Preencher
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Usuário</label>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 ml-1">Usuário</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
-                placeholder="Digite seu usuário"
+                className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all text-sm font-medium"
+                placeholder="Ex: Leandro"
+                required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Senha</label>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 ml-1">Senha</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all"
-                  placeholder="Digite sua senha"
+                  className="w-full px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-metarh-medium focus:border-transparent outline-none transition-all text-sm font-medium"
+                  placeholder="Ex: 123"
+                  required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-2"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-2 cursor-pointer"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center flex items-center justify-center gap-2 font-medium animate-pulse">
-                <AlertCircle size={16} /> {error}
+              <div className="p-3 bg-red-50 text-red-600 text-xs rounded-2xl text-center flex items-center justify-center gap-2 font-medium">
+                <AlertCircle size={15} /> {error}
               </div>
             )}
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group mt-4 transform active:scale-95"
+              className="w-full py-3.5 bg-metarh-medium text-white font-bold rounded-full shadow-lg shadow-purple-200 hover:bg-metarh-dark hover:shadow-xl transition-all flex items-center justify-center gap-2 group mt-4 transform active:scale-95 cursor-pointer"
             >
-              Entrar <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
+              Entrar no Sistema <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
         </div>

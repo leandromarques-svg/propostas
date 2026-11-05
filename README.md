@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# METARH - Árvore de Soluções & Portal Comercial
 
-# Run and deploy your AI Studio app
+Portal Comercial e Árvore de Soluções da **METARH Recursos Humanos**.
 
-This contains everything you need to run your app locally.
+## Funcionalidades Principais
 
-View your app in AI Studio: https://ai.studio/apps/drive/1shSY40zYnrFzCrLmoCtS-QtZwTQ8csV8
+- **Árvore de Soluções & Serviços**: Catálogo interativo das soluções estratégicas da METARH (Business, Pharma Recruiter, Staffing, Talent, Tech Recruiter, Trilhando +, Varejo Pro) e suas respectivas fichas técnicas de serviços.
+- **Conteúdos do Blog & Funil de Vendas**: Integração em tempo real com a API do Blog METARH News (`metarh.com.br`), apresentando a contagem de conteúdos por etapa (Topo, Meio e Fundo de Funil) e janela modal completa para consulta e apoio comercial.
+- **Ferramentas Estratégicas do Comercial** (Exclusivo Gerência):
+  - Consulta de alocados temporários/terceirizados e status de processos: [alocados.metarh.com.br](https://alocados.metarh.com.br/)
+  - Confecção de custos para clientes novos e recorrentes: [custos.metarh.com.br](https://custos.metarh.com.br/)
+  - Estudo de cargos e salários: [cargoesalario.metarh.com.br](https://cargoesalario.metarh.com.br/)
+  - Onboarding de novos clientes: [onboarding.metarh.com.br](https://onboarding.metarh.com.br/)
+- **Gestão de Usuários**: Integração segura via Google Apps Script (com controle de permissões por perfil).
+- **Redes Sociais & Site Oficial**: Acesso rápido aos canais oficiais da METARH (Site, LinkedIn, Instagram, TikTok, Facebook e YouTube).
 
-## Run Locally
+## Execução Local
 
-**Prerequisites:**  Node.js
+```bash
+# 1. Instalar dependências
+npm install
 
+# 2. Iniciar servidor de desenvolvimento
+npm run dev
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Build de Produção
+
+```bash
+npm run build
+npm run preview
+```

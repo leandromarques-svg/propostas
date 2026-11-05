@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo';
 import { User } from '../types';
-import { Eye, EyeOff, LogIn, AlertCircle, KeyRound, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, LogIn, AlertCircle, Sparkles } from 'lucide-react';
 import { getUsers, MASTER_USER } from './lib/userService';
 
 interface LoginScreenProps {
@@ -11,8 +11,8 @@ interface LoginScreenProps {
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users = [], isExiting = false }) => {
-  const [username, setUsername] = useState('Leandro');
-  const [password, setPassword] = useState('123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +59,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
           onLoginSuccess(foundUser);
         }, 600);
       } else {
-        setError('Usuário ou senha incorretos. Use Leandro e senha 123');
+        setError('Usuário ou senha incorretos.');
         setIsLoading(false);
       }
     } catch (err) {
@@ -67,12 +67,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
       setError('Erro ao autenticar');
       setIsLoading(false);
     }
-  };
-
-  const handleFillMaster = () => {
-    setUsername('Leandro');
-    setPassword('123');
-    setError('');
   };
 
   // Loading Screen with "Ball Logo"
@@ -138,26 +132,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, users 
 
           <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-2">Boas-Vindas</h2>
           <p className="text-center text-gray-500 mb-6 text-sm leading-relaxed px-2">
-            Acesse a Árvore de Soluções e gerencie suas propostas comerciais METARH.
+            Acesse a Árvore de Soluções e Ferramentas Estratégicas METARH.
           </p>
-
-          {/* Master User Card Helper */}
-          <div className="mb-6 p-3 bg-purple-50/80 border border-purple-100 rounded-2xl flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-metarh-dark">
-              <KeyRound size={16} className="text-metarh-medium shrink-0" />
-              <div>
-                <span className="font-bold">Acesso Master Ativo</span>
-                <p className="text-gray-500 text-[11px]">Usuário: <strong className="text-gray-800">Leandro</strong> | Senha: <strong className="text-gray-800">123</strong></p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleFillMaster}
-              className="text-metarh-medium hover:text-metarh-dark font-bold text-[11px] underline shrink-0 cursor-pointer"
-            >
-              Preencher
-            </button>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

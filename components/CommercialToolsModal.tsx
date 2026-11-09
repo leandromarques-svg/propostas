@@ -74,7 +74,7 @@ export const CommercialToolsModal: React.FC<CommercialToolsModalProps> = ({ isOp
               <div className="flex items-center gap-2">
                 <h2 className="text-xl md:text-2xl font-bold">Ferramentas do Comercial</h2>
                 <span className="text-[11px] font-bold px-2.5 py-0.5 bg-metarh-lime text-metarh-dark rounded-full">
-                  Exclusivo Gerência
+                  Equipe Comercial
                 </span>
               </div>
               <p className="text-xs text-purple-200 mt-1">

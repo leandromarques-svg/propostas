@@ -10,7 +10,7 @@ import { SolutionSummaryModal } from './components/SolutionSummaryModal';
 import { CommercialToolsModal } from './components/CommercialToolsModal';
 import { SolutionBlogSection } from './components/SolutionBlogSection';
 import { ServiceCard } from './components/ServiceCard';
-import { getUsers, saveUser, deleteUser, isGerencialComercial } from './components/lib/userService';
+import { getUsers, saveUser, deleteUser, isGerencialComercial, isComercial } from './components/lib/userService';
 import {
   Search,
   ChevronDown,
@@ -98,6 +98,7 @@ const App: React.FC = () => {
   });
 
   const isManager = isGerencialComercial(currentUser);
+  const isCommercialUser = isComercial(currentUser);
 
   // Grouped Solutions (Solutions contain Services)
   const groupedSolutions = useMemo(() => {
@@ -234,8 +235,8 @@ const App: React.FC = () => {
               <SocialLinks variant="header" />
             </div>
 
-            {/* Ferramentas do Comercial - Restricted to Gerencial Comercial */}
-            {isManager && (
+            {/* Ferramentas do Comercial - Acessível a toda a equipe Comercial e Gerencial */}
+            {isCommercialUser && (
               <button
                 type="button"
                 onClick={() => setIsCommercialToolsOpen(true)}

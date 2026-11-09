@@ -54,6 +54,24 @@ export const getBlogPosts = async (
 
 const memoryCache = new Map<string, EnrichedBlogPost[]>();
 
+function cleanHtmlText(text?: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&#8211;/g, '–')
+    .replace(/&#8212;/g, '—')
+    .replace(/&#8216;|&#8217;/g, "'")
+    .replace(/&#8220;|&#8221;/g, '"')
+    .replace(/&#8230;/g, '…')
+    .replace(/&amp;|&#038;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+}
+
 export const getBlogPostsForPackage = async (
   solutionPackage: string
 ): Promise<{
@@ -75,7 +93,7 @@ export const getBlogPostsForPackage = async (
   }
 
   try {
-    const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=30&_embed`;
+    const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=100&_embed`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
 
@@ -88,16 +106,13 @@ export const getBlogPostsForPackage = async (
         stage = 'fundo';
       } else if (p.categories.includes(WP_CONFIG.funnelStages.meio)) {
         stage = 'meio';
+      } else if (p.categories.includes(132)) {
+        // Categoria Tendências mapeia naturalmente para Topo de Funil
+        stage = 'topo';
       }
 
-      // Clean HTML from title and excerpt
-      const cleanTitle = p.title?.rendered
-        ? p.title.rendered.replace(/&#8211;/g, '–').replace(/&#8220;|&#8221;/g, '"').replace(/&#8217;/g, "'").replace(/&amp;/g, '&')
-        : 'Artigo METARH';
-
-      const cleanExcerpt = p.excerpt?.rendered
-        ? p.excerpt.rendered.replace(/<[^>]*>/g, '').trim()
-        : '';
+      const cleanTitle = p.title?.rendered ? cleanHtmlText(p.title.rendered) : 'Artigo METARH';
+      const cleanExcerpt = p.excerpt?.rendered ? cleanHtmlText(p.excerpt.rendered) : '';
 
       return {
         id: p.id,

@@ -22,6 +22,21 @@ export const MASTER_USER: User = {
 };
 
 /**
+ * Check if a given user is from the commercial team (e.g. 'Comercial' or 'Gerencial Comercial')
+ */
+export function isComercial(user?: User | null): boolean {
+  if (!user) return false;
+  const role = (user.role || '').toLowerCase().trim();
+  return (
+    role === 'comercial' ||
+    role === 'gerencial comercial' ||
+    role.includes('comercial') ||
+    role.includes('gerencial') ||
+    Boolean(user.isAdmin)
+  );
+}
+
+/**
  * Check if a given user has the 'Gerencial Comercial' role
  */
 export function isGerencialComercial(user?: User | null): boolean {

@@ -23,6 +23,13 @@ export default defineConfig(({ mode }) => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      proxy: {
+        '/api/wp': {
+          target: 'https://metarh.com.br/metarhnews/wp-json/wp/v2',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api\/wp/, ''),
+        },
+      },
     },
   };
 });

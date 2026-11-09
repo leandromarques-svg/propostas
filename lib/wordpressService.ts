@@ -1,3 +1,5 @@
+import { BLOG_POSTS_FALLBACK } from './blogPostsFallback';
+
 // WordPress API Configuration
 export const WP_CONFIG = {
   baseUrl: 'https://metarh.com.br/metarhnews/wp-json/wp/v2',
@@ -52,7 +54,16 @@ export const getBlogPosts = async (
   return { posts, total: posts.length };
 };
 
+// Memory cache seeded with fallback snapshot so posts are instantly available
 const memoryCache = new Map<string, EnrichedBlogPost[]>();
+
+// Initialize memoryCache with the verified fallback snapshot
+for (const [pkg, posts] of Object.entries(BLOG_POSTS_FALLBACK)) {
+  const catId = WP_CONFIG.categories[pkg as keyof typeof WP_CONFIG.categories];
+  if (catId) {
+    memoryCache.set(`pkg_${catId}`, posts);
+  }
+}
 
 function cleanHtmlText(text?: string): string {
   if (!text) return '';
@@ -72,6 +83,13 @@ function cleanHtmlText(text?: string): string {
     .trim();
 }
 
+/**
+ * Fetch blog posts with multi-strategy fallback:
+ * 1. Checks memory cache (instantly seeded with verified articles)
+ * 2. Tries same-origin proxy (/api/wp) which bypasses browser CORS on Vercel
+ * 3. Tries direct WordPress API with cache-buster timestamp
+ * 4. Falls back safely to verified static snapshot if network/CORS fails
+ */
 export const getBlogPostsForPackage = async (
   solutionPackage: string
 ): Promise<{
@@ -87,49 +105,76 @@ export const getBlogPostsForPackage = async (
   }
 
   const cacheKey = `pkg_${categoryId}`;
-  if (memoryCache.has(cacheKey)) {
-    const cached = memoryCache.get(cacheKey)!;
-    return categorizePosts(cached);
-  }
+  const existingCached = memoryCache.get(cacheKey);
 
+  // Attempt live refresh in background/async
   try {
-    const url = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=100&_embed`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    let rawPosts: BlogPost[] | null = null;
 
-    const rawPosts: BlogPost[] = await res.json();
-    const enriched: EnrichedBlogPost[] = rawPosts.map((p) => {
-      let stage: 'topo' | 'meio' | 'fundo' = 'meio';
-      if (p.categories.includes(WP_CONFIG.funnelStages.topo)) {
-        stage = 'topo';
-      } else if (p.categories.includes(WP_CONFIG.funnelStages.fundo)) {
-        stage = 'fundo';
-      } else if (p.categories.includes(WP_CONFIG.funnelStages.meio)) {
-        stage = 'meio';
-      } else if (p.categories.includes(132)) {
-        // Categoria Tendências mapeia naturalmente para Topo de Funil
-        stage = 'topo';
+    // Strategy 1: Same-origin proxy (configured in vercel.json and vite.config.ts)
+    try {
+      const proxyUrl = `/api/wp/posts?categories=${categoryId}&per_page=100`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          rawPosts = data;
+        }
       }
+    } catch {}
 
-      const cleanTitle = p.title?.rendered ? cleanHtmlText(p.title.rendered) : 'Artigo METARH';
-      const cleanExcerpt = p.excerpt?.rendered ? cleanHtmlText(p.excerpt.rendered) : '';
+    // Strategy 2: Direct WordPress endpoint with cache-busting to bypass stale CDN CORS headers
+    if (!rawPosts) {
+      try {
+        const directUrl = `${WP_CONFIG.baseUrl}/posts?categories=${categoryId}&per_page=100&_cb=${Date.now()}`;
+        const res = await fetch(directUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            rawPosts = data;
+          }
+        }
+      } catch {}
+    }
 
-      return {
-        id: p.id,
-        title: cleanTitle,
-        link: p.link,
-        excerpt: cleanExcerpt,
-        date: p.date,
-        funnelStage: stage
-      };
-    });
+    if (rawPosts && Array.isArray(rawPosts) && rawPosts.length > 0) {
+      const enriched: EnrichedBlogPost[] = rawPosts.map((p) => {
+        let stage: 'topo' | 'meio' | 'fundo' = 'meio';
+        if (p.categories.includes(WP_CONFIG.funnelStages.topo) || p.categories.includes(132)) {
+          stage = 'topo';
+        } else if (p.categories.includes(WP_CONFIG.funnelStages.fundo)) {
+          stage = 'fundo';
+        } else if (p.categories.includes(WP_CONFIG.funnelStages.meio)) {
+          stage = 'meio';
+        }
 
-    memoryCache.set(cacheKey, enriched);
-    return categorizePosts(enriched);
+        const cleanTitle = p.title?.rendered ? cleanHtmlText(p.title.rendered) : 'Artigo METARH';
+        const cleanExcerpt = p.excerpt?.rendered ? cleanHtmlText(p.excerpt.rendered) : '';
+
+        return {
+          id: p.id,
+          title: cleanTitle,
+          link: p.link,
+          excerpt: cleanExcerpt,
+          date: p.date,
+          funnelStage: stage
+        };
+      });
+
+      memoryCache.set(cacheKey, enriched);
+      return categorizePosts(enriched);
+    }
   } catch (err) {
-    console.error(`[WordPress] Falha ao buscar posts para ${solutionPackage}:`, err);
-    return { all: [], topo: [], meio: [], fundo: [] };
+    console.warn(`[WordPress] Usando base consolidada para ${solutionPackage}:`, err);
   }
+
+  // If live fetch returned nothing or threw, use cached/fallback data
+  if (existingCached && existingCached.length > 0) {
+    return categorizePosts(existingCached);
+  }
+
+  const fallback = BLOG_POSTS_FALLBACK[solutionPackage] || [];
+  return categorizePosts(fallback);
 };
 
 function categorizePosts(posts: EnrichedBlogPost[]) {

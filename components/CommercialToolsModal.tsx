@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ExternalLink, Briefcase, Users, Calculator, TrendingUp, ShieldCheck, UserCheck, Sparkles } from 'lucide-react';
+import { X, ExternalLink, Briefcase, Users, Calculator, TrendingUp, ShieldCheck, UserCheck, Sparkles, BrainCircuit } from 'lucide-react';
 
 interface CommercialToolsModalProps {
   isOpen: boolean;
@@ -7,6 +7,17 @@ interface CommercialToolsModalProps {
 }
 
 export const COMMERCIAL_TOOLS = [
+  {
+    id: 'ia-negociacoes',
+    title: 'IA para Negociações',
+    subtitle: 'RD Station CRM & Inteligência',
+    description:
+      'Ferramenta ligada ao nosso CRM que realiza o estudo das reuniões feitas com o cliente para auxiliar na qualidade de abordagem e estratégia comercial.',
+    url: 'https://vendas.rdstation.com/home/',
+    icon: BrainCircuit,
+    gradient: 'from-cyan-500 to-blue-600',
+    tag: 'vendas.rdstation.com'
+  },
   {
     id: 'alocados',
     title: 'Consulta de Alocados & Processos Seletivos',
@@ -63,7 +74,7 @@ export const CommercialToolsModal: React.FC<CommercialToolsModalProps> = ({ isOp
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl relative flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl relative flex flex-col max-h-[92vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-metarh-dark via-purple-900 to-metarh-medium text-white p-6 md:p-8 flex justify-between items-center z-10 shrink-0 shadow-lg">
           <div className="flex items-center gap-4">
@@ -92,7 +103,7 @@ export const CommercialToolsModal: React.FC<CommercialToolsModalProps> = ({ isOp
 
         {/* Content */}
         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {COMMERCIAL_TOOLS.map((tool) => {
               const Icon = tool.icon;
               return (

@@ -6,7 +6,8 @@ Portal Comercial e Árvore de Soluções da **METARH Recursos Humanos**.
 
 - **Árvore de Soluções & Serviços**: Catálogo interativo das soluções estratégicas da METARH (Business, Pharma Recruiter, Staffing, Talent, Tech Recruiter, Trilhando +, Varejo Pro) e suas respectivas fichas técnicas de serviços.
 - **Conteúdos do Blog & Funil de Vendas**: Integração em tempo real com a API do Blog METARH News (`metarh.com.br`), apresentando a contagem de conteúdos por etapa (Topo, Meio e Fundo de Funil) e janela modal completa para consulta e apoio comercial.
-- **Ferramentas Estratégicas do Comercial** (Exclusivo Gerência):
+- **Ferramentas Estratégicas do Comercial** (Equipe Comercial):
+  - IA para Negociações (RD Station CRM): [vendas.rdstation.com/home](https://vendas.rdstation.com/home/)
   - Consulta de alocados temporários/terceirizados e status de processos: [alocados.metarh.com.br](https://alocados.metarh.com.br/)
   - Confecção de custos para clientes novos e recorrentes: [custos.metarh.com.br](https://custos.metarh.com.br/)
   - Estudo de cargos e salários: [cargoesalario.metarh.com.br](https://cargoesalario.metarh.com.br/)
